@@ -1,0 +1,22 @@
+google.com, pub-5400335063218645, DIRECT, f08c47fec0942fa0
+# ads.txt for PromptLab
+# Google AdSense publisher declaration
+google.com, pub-5400335063218645, DIRECT, f08c47fec0942fa0
+
+# Instructions:
+# 1. Place this file at the root of your domain: https://your-domain/ads.txt
+# 2. Keep exactly one record per line in the format:
+#    <ad-system-domain>, <publisher-id>, <relationship>, <certification-authority-id>
+#    Example: google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0
+# 3. Replace or add publisher IDs only if you control those ad accounts.
+# 4. To allow other sellers, add lines for each authorized seller (SELLER or RESELLER):
+#    example-net.com, seller-0000, RESELLER, ffffffffffffffff
+# 5. After uploading, verify at:
+#    - Google AdSense > Sites or the AdSense ads.txt troubleshooter
+#    - Visit https://your-domain/ads.txt to confirm the file is publicly accessible
+# 6. Common troubleshooting:
+#    - Ensure no redirects block access to /ads.txt
+#    - Clear any CDN cache after updating the file
+#    - It can take 24-48 hours for AdSense to recognize changes
+
+# If you want, I can add placeholders for other networks or additional publisher lines.
