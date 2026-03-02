@@ -375,8 +375,37 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* AD SLOTS */
+        .ad-banner {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 12px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+            border: 1px dashed rgba(255,255,255,0.06);
+            border-radius: 8px;
+            color: #cbd5e1;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .ad-rect {
+            width: 100%;
+            padding: 18px;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.05);
+            border-radius: 10px;
+            color: #cbd5e1;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
     </style>
-</head>
+    <!-- Example ad scripts (replace with your provider's snippet, e.g., Google AdSense).
+         Uncomment and paste your script below when ready. -->
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645"
+     crossorigin="anonymous"></script>
+    </head>
 <body>
     <header>
         <div class="container">
@@ -386,10 +415,12 @@
     </header>
 
     <main class="container">
+        <!-- Top banner ad placeholder -->
+        <div class="ad-banner" aria-label="Advertisement">Ad space — replace with your ad code or network script.</div>
         <!-- HERO SECTION -->
         <section class="hero">
-            <h1>Level Up Your AI Prompts</h1>
-            <p>Get instant scoring and optimization suggestions for ChatGPT, Claude, and GPT-4. Write better prompts in seconds.</p>
+            <h1>Master Prompts for Any AI Model</h1>
+            <p>Test and optimize prompts for 50+ AI models across text, image, video, audio, and code generation. Write better prompts in seconds.</p>
         </section>
 
         <!-- TOOL SECTION -->
@@ -397,12 +428,23 @@
             <div class="input-panel">
                 <h2>Your Prompt</h2>
 
-                <label>What model are you using?</label>
+                <label>Content Type</label>
+                <select id="modalitySelect" onchange="updateProviders()">
+                    <option value="text">📝 Text Generation</option>
+                    <option value="image">🖼️ Image Generation</option>
+                    <option value="video">🎬 Video Generation</option>
+                    <option value="audio">🎵 Audio/Speech</option>
+                    <option value="code">💻 Code Generation</option>
+                </select>
+
+                <label>Provider</label>
+                <select id="providerSelect" onchange="updateModels()">
+                    <option value="">Select Provider...</option>
+                </select>
+
+                <label>Model</label>
                 <select id="modelSelect">
-                    <option value="chatgpt">ChatGPT (GPT-4)</option>
-                    <option value="claude">Claude 3.5 Sonnet</option>
-                    <option value="gpt4">GPT-4 Turbo</option>
-                    <option value="gemini">Google Gemini</option>
+                    <option value="">Select Model...</option>
                 </select>
 
                 <label>Paste your prompt below</label>
@@ -424,7 +466,10 @@
             <h2>Ready to Master Prompting?</h2>
             <p>Join 5,000+ users who've improved their AI workflow</p>
 
-            <div class="features-grid">
+                <!-- CTA rectangle ad placeholder -->
+                <div class="ad-rect" aria-label="Advertisement">Sponsored — get featured here. Replace this with your ad markup.</div>
+
+                <div class="features-grid">
                 <div class="feature">
                     <div class="feature-title">🎯 Instant Scoring</div>
                     <div class="feature-desc">Get clarity scores for every prompt instantly</div>
@@ -451,14 +496,192 @@
     </footer>
 
     <script>
+        // Complete AI Models Database
+        const modelsDatabase = {
+            text: {
+                'OpenAI': [
+                    { value: 'gpt4-turbo', label: 'GPT-4 Turbo' },
+                    { value: 'gpt4o', label: 'GPT-4o' },
+                    { value: 'gpt4o-mini', label: 'GPT-4o Mini' },
+                    { value: 'gpt35-turbo', label: 'GPT-3.5 Turbo' },
+                    { value: 'o1', label: 'o1 (Reasoning)' }
+                ],
+                'Anthropic': [
+                    { value: 'claude-35-sonnet', label: 'Claude 3.5 Sonnet' },
+                    { value: 'claude-3-opus', label: 'Claude 3 Opus' },
+                    { value: 'claude-3-haiku', label: 'Claude 3 Haiku' }
+                ],
+                'Google': [
+                    { value: 'gemini-20-flash', label: 'Gemini 2.0 Flash' },
+                    { value: 'gemini-pro', label: 'Gemini Pro' },
+                    { value: 'palm-2', label: 'PaLM 2' }
+                ],
+                'Meta': [
+                    { value: 'llama-31-405b', label: 'Llama 3.1 405B' },
+                    { value: 'llama-31-70b', label: 'Llama 3.1 70B' },
+                    { value: 'llama-3-70b', label: 'Llama 3 70B' }
+                ],
+                'Mistral': [
+                    { value: 'mistral-large', label: 'Mistral Large' },
+                    { value: 'mistral-medium', label: 'Mistral Medium' },
+                    { value: 'mistral-small', label: 'Mistral Small (7B)' }
+                ],
+                'xAI': [
+                    { value: 'grok-3', label: 'Grok 3' },
+                    { value: 'grok-2', label: 'Grok 2' }
+                ],
+                'Cohere': [
+                    { value: 'command-r-plus', label: 'Command R+' },
+                    { value: 'command-r', label: 'Command R' }
+                ],
+                'AWS': [
+                    { value: 'titan-text-premier', label: 'Titan Text Premier' },
+                    { value: 'titan-text-express', label: 'Titan Text Express' }
+                ],
+                'Alibaba': [
+                    { value: 'qwen-max', label: 'Qwen Max' },
+                    { value: 'qwen-plus', label: 'Qwen Plus' }
+                ]
+            },
+            image: {
+                'OpenAI': [
+                    { value: 'dalle3', label: 'DALL-E 3' },
+                    { value: 'dalle2', label: 'DALL-E 2' }
+                ],
+                'Stability AI': [
+                    { value: 'sdxl', label: 'Stable Diffusion XL 1.0' },
+                    { value: 'sd3', label: 'Stable Diffusion 3' },
+                    { value: 'sd3-turbo', label: 'Stable Diffusion 3 Turbo' }
+                ],
+                'Midjourney': [
+                    { value: 'mj-v6', label: 'Midjourney v6' },
+                    { value: 'mj-v5.2', label: 'Midjourney v5.2' }
+                ],
+                'Google': [
+                    { value: 'imagen-3', label: 'Imagen 3' },
+                    { value: 'imagen-2', label: 'Imagen 2' }
+                ],
+                'Adobe': [
+                    { value: 'firefly-v3', label: 'Firefly v3' }
+                ],
+                'Leonardo.AI': [
+                    { value: 'leonardo-diffusion', label: 'Leonardo Diffusion' },
+                    { value: 'leonardo-vision', label: 'Leonardo Vision' }
+                ]
+            },
+            video: {
+                'OpenAI': [
+                    { value: 'sora', label: 'Sora' }
+                ],
+                'Google': [
+                    { value: 'gemini-video', label: 'Gemini Video' },
+                    { value: 'veo', label: 'Veo' }
+                ],
+                'Runway': [
+                    { value: 'gen3-alpha', label: 'Gen-3 Alpha' },
+                    { value: 'gen2', label: 'Gen-2' }
+                ],
+                'Pika': [
+                    { value: 'pika-20', label: 'Pika 2.0' }
+                ],
+                'HeyGen': [
+                    { value: 'heygen-avatar', label: 'HeyGen Avatar' }
+                ],
+                'Synthesia': [
+                    { value: 'synthesia-v1', label: 'Synthesia v1' }
+                ]
+            },
+            audio: {
+                'OpenAI': [
+                    { value: 'whisper', label: 'Whisper (Speech-to-Text)' },
+                    { value: 'tts-1', label: 'TTS-1 (Text-to-Speech)' },
+                    { value: 'tts-1-hd', label: 'TTS-1 HD' }
+                ],
+                'Google': [
+                    { value: 'google-stt', label: 'Speech-to-Text' },
+                    { value: 'google-tts', label: 'Text-to-Speech' }
+                ],
+                'ElevenLabs': [
+                    { value: 'eleven-v3', label: 'ElevenLabs v3' },
+                    { value: 'eleven-v2', label: 'ElevenLabs v2' }
+                ],
+                'Anthropic': [
+                    { value: 'claude-audio', label: 'Claude Audio (Native)' }
+                ],
+                'Deepgram': [
+                    { value: 'deepgram-nova-2', label: 'Nova-2' },
+                    { value: 'deepgram-nova', label: 'Nova' }
+                ]
+            },
+            code: {
+                'OpenAI': [
+                    { value: 'gpt4-code', label: 'GPT-4 Turbo' },
+                    { value: 'gpt4o-code', label: 'GPT-4o' },
+                    { value: 'codex', label: 'Codex (Legacy)' }
+                ],
+                'GitHub': [
+                    { value: 'copilot', label: 'GitHub Copilot X' }
+                ],
+                'Anthropic': [
+                    { value: 'claude-code', label: 'Claude 3.5 Sonnet' },
+                    { value: 'claude-opus-code', label: 'Claude 3 Opus' }
+                ],
+                'Meta': [
+                    { value: 'codellama-34b', label: 'Code Llama 34B' },
+                    { value: 'codellama-13b', label: 'Code Llama 13B' },
+                    { value: 'codellama-7b', label: 'Code Llama 7B' }
+                ],
+                'Google': [
+                    { value: 'codey', label: 'Codey (PaLM)' }
+                ]
+            }
+        };
+
+        function updateProviders() {
+            const modality = document.getElementById('modalitySelect').value;
+            const providers = Object.keys(modelsDatabase[modality]);
+
+            const providerSelect = document.getElementById('providerSelect');
+            providerSelect.innerHTML = '<option value="">Select Provider...</option>';
+
+            providers.forEach(provider => {
+                const option = document.createElement('option');
+                option.value = provider;
+                option.textContent = provider;
+                providerSelect.appendChild(option);
+            });
+
+            updateModels();
+        }
+
+        function updateModels() {
+            const modality = document.getElementById('modalitySelect').value;
+            const provider = document.getElementById('providerSelect').value;
+
+            const modelSelect = document.getElementById('modelSelect');
+            modelSelect.innerHTML = '<option value="">Select Model...</option>';
+
+            if (!provider) return;
+
+            const models = modelsDatabase[modality][provider];
+            if (models) {
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.value;
+                    option.textContent = model.label;
+                    modelSelect.appendChild(option);
+                });
+            }
+        }
+
         // AI Prompt Analyzer - Client-side only
-        function analyzePrompt(prompt, model) {
-            // Scoring heuristics based on prompt quality
+        function analyzePrompt(prompt, model, modality) {
+            // Scoring heuristics based on prompt quality and modality
             const metrics = {
                 clarity: calculateClarity(prompt),
-                specificity: calculateSpecificity(prompt),
-                structure: calculateStructure(prompt),
-                actionability: calculateActionability(prompt)
+                specificity: calculateSpecificity(prompt, modality),
+                structure: calculateStructure(prompt, modality),
+                actionability: calculateActionability(prompt, modality)
             };
 
             const overallScore = Math.round(
@@ -468,31 +691,42 @@
             return {
                 score: overallScore,
                 metrics: metrics,
-                feedback: generateFeedback(prompt, metrics),
-                suggestions: generateSuggestions(prompt, metrics)
+                feedback: generateFeedback(prompt, metrics, modality),
+                suggestions: generateSuggestions(prompt, metrics, modality)
             };
         }
 
         function calculateClarity(prompt) {
             const words = prompt.split(/\s+/).length;
-            const sentences = prompt.split(/[.!?]+/).length;
             const clarity = Math.min(100, (words / 50) * 100);
             return Math.round(clarity);
         }
 
-        function calculateSpecificity(prompt) {
+        function calculateSpecificity(prompt, modality) {
             let score = 50;
-            if (prompt.includes('specific') || prompt.includes('exactly') || prompt.includes('detailed')) score += 15;
+
+            // Common specificity indicators
             if (prompt.match(/\d+/)) score += 15;
-            if (prompt.includes('format') || prompt.includes('structure')) score += 10;
-            if (prompt.includes('example') || prompt.includes('like')) score += 10;
+            if (prompt.includes('specific') || prompt.includes('exactly') || prompt.includes('detailed')) score += 10;
+
+            // Modality-specific checks
+            if (modality === 'image') {
+                if (prompt.includes('style') || prompt.includes('color') || prompt.includes('size')) score += 10;
+            } else if (modality === 'video') {
+                if (prompt.includes('duration') || prompt.includes('speed') || prompt.includes('scene')) score += 10;
+            } else if (modality === 'audio') {
+                if (prompt.includes('voice') || prompt.includes('tone') || prompt.includes('accent')) score += 10;
+            } else if (modality === 'code') {
+                if (prompt.includes('language') || prompt.includes('function') || prompt.includes('format')) score += 10;
+            }
+
             return Math.min(100, score);
         }
 
-        function calculateStructure(prompt) {
+        function calculateStructure(prompt, modality) {
             let score = 50;
-            const hasContext = prompt.includes('context') || prompt.includes('background') || prompt.match(/[A-Z]/);
-            const hasTask = prompt.includes('task') || prompt.includes('write') || prompt.includes('create') || prompt.includes('generate');
+            const hasContext = prompt.match(/[A-Z]{2,}/) || prompt.includes('You are') || prompt.includes('As a');
+            const hasTask = prompt.includes('create') || prompt.includes('write') || prompt.includes('generate') || prompt.includes('show') || prompt.includes('make');
             const hasConstraints = prompt.includes('don\'t') || prompt.includes('avoid') || prompt.includes('must') || prompt.includes('should');
 
             if (hasContext) score += 20;
@@ -501,33 +735,48 @@
             return Math.min(100, score);
         }
 
-        function calculateActionability(prompt) {
+        function calculateActionability(prompt, modality) {
             let score = 50;
-            const actionVerbs = ['write', 'create', 'generate', 'analyze', 'explain', 'summarize', 'list', 'compare', 'design', 'build'];
-            const hasActionVerb = actionVerbs.some(verb => prompt.toLowerCase().includes(verb));
+            const actionVerbs = {
+                text: ['write', 'create', 'generate', 'analyze', 'explain', 'summarize', 'list', 'compare', 'design', 'build'],
+                image: ['create', 'generate', 'design', 'draw', 'paint', 'render', 'illustrate', 'visualize'],
+                video: ['create', 'generate', 'produce', 'show', 'make', 'film', 'animate'],
+                audio: ['create', 'generate', 'speak', 'voice', 'narrate', 'produce', 'synthesize'],
+                code: ['write', 'create', 'generate', 'build', 'develop', 'implement', 'code']
+            };
+
+            const verbs = actionVerbs[modality] || actionVerbs.text;
+            const hasActionVerb = verbs.some(verb => prompt.toLowerCase().includes(verb));
 
             if (hasActionVerb) score += 25;
             if (prompt.split('.').length > 2) score += 15;
             return Math.min(100, score);
         }
 
-        function generateFeedback(prompt, metrics) {
+        function generateFeedback(prompt, metrics, modality) {
             const lowest = Math.min(...Object.values(metrics));
+            const modalityName = { text: 'text', image: 'image', video: 'video', audio: 'audio', code: 'code' }[modality];
 
-            if (lowest >= 80) return "Excellent prompt! You've included clear context, specific requirements, and actionable instructions.";
-            if (lowest >= 60) return "Good work. Your prompt is clear but could benefit from more specific details or constraints.";
-            return "Your prompt has potential. Consider adding more context, examples, or specific output requirements.";
+            if (lowest >= 80) return `Excellent ${modalityName} prompt! You've included clear context, specific requirements, and actionable instructions.`;
+            if (lowest >= 60) return `Good work. Your ${modalityName} prompt is clear but could benefit from more specific details.`;
+            return `Your ${modalityName} prompt has potential. Add more specific details about what you want.`;
         }
 
-        function generateSuggestions(prompt, metrics) {
+        function generateSuggestions(prompt, metrics, modality) {
             const suggestions = [];
 
-            if (metrics.clarity < 70) suggestions.push("Add more context at the beginning - help the AI understand your situation");
-            if (metrics.specificity < 70) suggestions.push("Include specific numbers, formats, or example outputs");
-            if (metrics.structure < 70) suggestions.push("Organize your prompt: Context → Task → Constraints → Format");
-            if (metrics.actionability < 70) suggestions.push("Start with a clear action verb: Write, Create, Generate, Analyze, etc.");
+            if (metrics.clarity < 70) suggestions.push("Add more context at the beginning");
+            if (metrics.specificity < 70) {
+                if (modality === 'image') suggestions.push("Describe style, colors, and composition details");
+                else if (modality === 'video') suggestions.push("Specify duration, scene details, and transitions");
+                else if (modality === 'audio') suggestions.push("Describe voice type, tone, and accent preferences");
+                else if (modality === 'code') suggestions.push("Specify programming language, output format, and requirements");
+                else suggestions.push("Include specific numbers, formats, or example outputs");
+            }
+            if (metrics.structure < 70) suggestions.push("Organize: Context → Task → Constraints → Details");
+            if (metrics.actionability < 70) suggestions.push("Start with a clear action verb (Create, Generate, Build, etc.)");
 
-            if (suggestions.length === 0) suggestions.push("This is a solid prompt! Minor: Consider adding edge cases or error handling instructions.");
+            if (suggestions.length === 0) suggestions.push("This is a solid prompt! Consider adding more edge cases or specific examples.");
 
             return suggestions;
         }
@@ -535,10 +784,16 @@
         function testPrompt() {
             const prompt = document.getElementById('promptInput').value.trim();
             const model = document.getElementById('modelSelect').value;
+            const modality = document.getElementById('modalitySelect').value;
             const resultsPanel = document.getElementById('resultsPanel');
 
             if (!prompt) {
                 alert('Please enter a prompt to analyze');
+                return;
+            }
+
+            if (!model) {
+                alert('Please select a model');
                 return;
             }
 
@@ -547,19 +802,24 @@
 
             // Simulate processing delay
             setTimeout(() => {
-                const result = analyzePrompt(prompt, model);
-                displayResults(result, model);
+                const result = analyzePrompt(prompt, model, modality);
+                displayResults(result, model, modality);
             }, 800);
         }
 
-        function displayResults(result, model) {
+        function displayResults(result, model, modality) {
             const resultsPanel = document.getElementById('resultsPanel');
             const scoreClass = result.score >= 80 ? 'excellent' : result.score >= 60 ? 'good' : 'fair';
+
+            // Get selected model label
+            const modelSelect = document.getElementById('modelSelect');
+            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+            const modelLabel = selectedOption.text;
 
             let html = `
                 <div class="result-card">
                     <div class="result-header">
-                        <div class="model-name">${model.charAt(0).toUpperCase() + model.slice(1)} Analysis</div>
+                        <div class="model-name">${modelLabel} Analysis</div>
                         <div class="score ${scoreClass}">${result.score}/100</div>
                     </div>
                     <div class="feedback">${result.feedback}</div>
@@ -612,6 +872,11 @@
             if (e.ctrlKey && e.key === 'Enter') {
                 testPrompt();
             }
+        });
+
+        // Initialize providers on page load
+        window.addEventListener('load', function() {
+            updateProviders();
         });
     </script>
 </body>
