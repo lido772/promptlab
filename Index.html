@@ -511,7 +511,24 @@
     </footer>
 
     <script>
-        // Complete AI Models Database
+        // ========================================
+        // CONFIGURATION
+        // ========================================
+        const CONFIG = {
+            // Cloudflare Worker URL for prompt improvement
+            // Set this via environment variable or update directly
+            WORKER_URL: window.env?.WORKER_URL || "https://broad-snow-9b87.lido772.workers.dev",
+
+            // Optional: Custom error handler
+            onError: (error) => {
+                console.error('PromptLab Error:', error);
+                // You can add custom error tracking here
+            }
+        };
+
+        // ========================================
+        // COMPLETE AI MODELS DATABASE
+        // ========================================
         const modelsDatabase = {
             text: {
                 'OpenAI': [
@@ -912,7 +929,7 @@
   try {
 
         const response = await fetch(
-            "https://broad-snow-9b87.lido772.workers.dev",
+            CONFIG.WORKER_URL,
       {
         method: "POST",
         headers: {
