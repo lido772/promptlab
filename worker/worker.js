@@ -28,26 +28,62 @@ export default {
       "http://localhost:*",
       "https://promptlab.lido772.workers.dev",
       "https://broad-snow-9b87.lido772.workers.dev",
-      "https://promptailab.netlify.app/"
+      "https://promptailab.netlify.app"
     ];
 
     const origin = request.headers.get("Origin");
     let allowedOrigin = null;
 
+    // Normalize origin by removing trailing slash for comparison
+    const normalizeOrigin = (url) => url ? url.replace(/\/$/, "") : "";
+    const normalizedOrigin = normalizeOrigin(origin);
+
     // Check if origin is allowed (supports wildcard subdomains)
     for (const allowed of allowedOrigins) {
-      if (allowed === "*" || (origin && (
-        allowed === origin ||
-        (allowed.includes("*") && origin.match(new RegExp("^" + allowed.replace("*", ".*") + "$")))
-      ))) {
-        allowedOrigin = origin || allowed;
+      const normalizedAllowed = normalizeOrigin(allowed);
+
+      if (allowed === "*") {
+        allowedOrigin = origin || "*";
         break;
+      }
+
+      if (origin) {
+        // Exact match
+        if (normalizedAllowed === normalizedOrigin) {
+          allowedOrigin = origin;
+          break;
+        }
+
+        // Wildcard match (e.g., http://localhost:* matches any port)
+        if (allowed.includes("*")) {
+          const pattern = "^" + allowed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace("*", ".*") + "$";
+          if (normalizedOrigin.match(new RegExp(pattern))) {
+            allowedOrigin = origin;
+            break;
+          }
+        }
       }
     }
 
-    // If no origin match and no Origin header (like direct API calls), use first allowed origin
+    // If no origin match, reject the request with a clear error
+    if (!allowedOrigin && origin) {
+      return new Response(JSON.stringify({
+        error: "Origin not allowed",
+        origin: origin
+      }), {
+        status: 403,
+        headers: {
+          "Content-Type": "application/json",
+          ...securityHeaders
+        }
+      });
+    }
+
+    // For requests without Origin header (like curl), use first allowed origin
     if (!allowedOrigin && allowedOrigins.length > 0) {
-      allowedOrigin = allowedOrigins[0].replace("*", "localhost");
+      // Find first non-wildcard origin to use as default
+      const defaultOrigin = allowedOrigins.find(o => !o.includes("*")) || allowedOrigins[0];
+      allowedOrigin = defaultOrigin.replace(/:\*$/, ":8080"); // Replace wildcard port with default
     }
 
     const corsHeaders = {
