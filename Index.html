@@ -465,7 +465,11 @@
                 <button onclick="testPrompt()">Test & Analyze</button>
                 <div style="height:12px"></div>
                 <button id="improveFreeBtn" style="margin-top:8px; background:linear-gradient(135deg,#34d399,#10b981);" onclick="improvePromptFree()">Improve Prompt (Free)</button>
-                <button id="improveRewardedBtn" style="margin-top:8px; background:linear-gradient(135deg,#f59e0b,#f97316);" onclick="improvePromptRewarded()">Improve (Watch Ad)</button>
+                <div id="dailyLimitDisplay" style="text-align:center;margin-top:8px;font-size:13px;color:#10b981;">
+                    <span id="dailyCounter">Loading...</span>
+                </div>
+                <div style="height:8px"></div>
+                <button id="improveRewardedBtn" style="background:linear-gradient(135deg,#f59e0b,#f97316);" onclick="improvePromptRewarded()">🎁 Improve (Watch Ad - Unlimited)</button>
             </div>
 
             <div class="results-panel" id="resultsPanel">
@@ -909,7 +913,47 @@
         // Initialize providers on page load
         window.addEventListener('load', function() {
             updateProviders();
+            checkDailyLimit();
         });
+
+        // Check daily limit status from worker
+        async function checkDailyLimit() {
+            const dailyCounter = document.getElementById('dailyCounter');
+            if (!dailyCounter) return;
+
+            dailyCounter.innerHTML = 'Checking...';
+
+            try {
+                // Make a minimal request to check headers
+                const response = await fetch(CONFIG.WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: "check limit" })
+                });
+
+                const remainingFree = response.headers.get("X-DailyRemaining");
+                const dailyLimit = response.headers.get("X-DailyLimit");
+
+                if (remainingFree !== null && dailyLimit !== null) {
+                    updateDailyCounter(parseInt(remainingFree), parseInt(dailyLimit));
+                }
+            } catch (err) {
+                // On error, show unknown status
+                dailyCounter.innerHTML = '?/3 free today';
+            }
+        }
+
+        // Update daily counter display
+        function updateDailyCounter(remaining, total) {
+            const dailyCounter = document.getElementById('dailyCounter');
+            if (!dailyCounter) return;
+
+            if (remaining <= 0) {
+                dailyCounter.innerHTML = `<span style="color:#fbbf24">⚠️ Daily limit reached (${total}/${total} used)</span>`;
+            } else {
+                dailyCounter.innerHTML = `✨ ${remaining}/${total} free improvements remaining today`;
+            }
+        }
 
         // Improve prompt via server endpoint (free flow)
         async function improvePromptFree() {
@@ -948,6 +992,8 @@
     }
 
     const improved = data.result;
+    const remainingFree = data.remainingFree ?? 0;
+    const dailyLimit = data.dailyLimit ?? 3;
 
     resultsPanel.innerHTML = `
       <div class="result-card">
@@ -957,14 +1003,42 @@
           <button onclick="applyImproved()">Use This Prompt</button>
           <button onclick="copyImproved()" class="btn-secondary">Copy</button>
         </div>
+        <div style="margin-top:15px;padding:10px;background:rgba(16,185,129,0.1);border-radius:6px;text-align:center">
+          <span style="color:#10b981;font-size:14px">
+            🎉 Free improvements remaining today: <strong>${remainingFree}/${dailyLimit}</strong>
+          </span>
+        </div>
       </div>
     `;
 
+    // Update the daily counter display
+    updateDailyCounter(remainingFree, dailyLimit);
+
   } catch (err) {
+    let errorMessage = err.message;
+
+    // Check if it's a daily limit error
+    if (errorMessage.includes('Daily free limit reached')) {
+      const resetTime = data?.resetAt ? new Date(data.resetAt).toLocaleTimeString() : 'midnight';
+      resultsPanel.innerHTML = `
+        <div class="result-card" style="text-align:center">
+          <div style="font-size:48px;margin-bottom:15px">🔒</div>
+          <h3 style="color:#fbbf24;margin-bottom:12px">Daily Limit Reached</h3>
+          <p style="color:#aaa;margin-bottom:15px">You've used all 3 free prompt improvements for today.</p>
+          <p style="color:#666;font-size:14px;margin-bottom:20px">Resets at ${resetTime}</p>
+          <button onclick="improvePromptRewarded()" style="background:linear-gradient(135deg,#f59e0b,#f97316)">
+            🎁 Watch Ad for More (Unlimited)
+          </button>
+        </div>
+      `;
+      // Update counter to show 0 remaining
+      updateDailyCounter(0, 3);
+      return;
+    }
 
     resultsPanel.innerHTML =
       `<div class="result-card" style="color:#f87171">
-        Error improving prompt: ${err.message}
+        Error improving prompt: ${errorMessage}
       </div>`;
 
   }

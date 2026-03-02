@@ -16,6 +16,10 @@ export default {
     const MAX_PROMPT_LENGTH = 10000; // characters
     const MIN_PROMPT_LENGTH = 10; // characters
 
+    // Daily free limit configuration
+    const DAILY_FREE_LIMIT = 3; // free improvements per day
+    const DAILY_WINDOW = 86400; // seconds (24 hours)
+
     // Get client IP for rate limiting
     const clientIP = request.headers.get("CF-Connecting-IP") || "unknown";
 
@@ -114,6 +118,50 @@ export default {
             count: 1,
             windowStart: now
           }), { expirationTtl: RATE_LIMIT_WINDOW });
+        }
+      }
+
+      // Daily free limit check (3 free improvements per day)
+      let remainingFree = 0;
+      if (env.RATE_LIMIT_KV) {
+        // Get current date (UTC midnight)
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dailyKey = `daily:${clientIP}:${todayStr}`;
+
+        const dailyData = await env.RATE_LIMIT_KV.get(dailyKey, { type: "json" });
+
+        if (dailyData) {
+          const { count: dailyCount } = dailyData;
+
+          if (dailyCount >= DAILY_FREE_LIMIT) {
+            return new Response(JSON.stringify({
+              error: "Daily free limit reached. You've used all 3 free improvements for today.",
+              limit: DAILY_FREE_LIMIT,
+              resetAt: new Date(today.setHours(24, 0, 0, 0)).toISOString()
+            }), {
+              status: 429,
+              headers: {
+                "Content-Type": "application/json",
+                "X-DailyLimit": String(DAILY_FREE_LIMIT),
+                "X-DailyRemaining": "0",
+                "X-DailyReset": new Date(today.setHours(24, 0, 0, 0)).toISOString(),
+                ...corsHeaders
+              }
+            });
+          }
+
+          // Increment daily counter
+          remainingFree = DAILY_FREE_LIMIT - dailyCount - 1;
+          await env.RATE_LIMIT_KV.put(dailyKey, JSON.stringify({
+            count: dailyCount + 1
+          }), { expirationTtl: DAILY_WINDOW });
+        } else {
+          // First request of the day
+          remainingFree = DAILY_FREE_LIMIT - 1;
+          await env.RATE_LIMIT_KV.put(dailyKey, JSON.stringify({
+            count: 1
+          }), { expirationTtl: DAILY_WINDOW });
         }
       }
 
@@ -243,9 +291,15 @@ export default {
         data?.candidates?.[0]?.content?.parts?.[0]?.text ||
         "Optimization failed";
 
-      return new Response(JSON.stringify({ result }), {
+      return new Response(JSON.stringify({
+        result,
+        remainingFree: remainingFree,
+        dailyLimit: DAILY_FREE_LIMIT
+      }), {
         headers: {
           "Content-Type": "application/json",
+          "X-DailyLimit": String(DAILY_FREE_LIMIT),
+          "X-DailyRemaining": String(remainingFree),
           ...corsHeaders
         }
       });
