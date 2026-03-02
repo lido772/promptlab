@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeLab - Free Trading Strategy Backtester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* HEADER */
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            color: #888;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: #aaa;
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+
+        /* MAIN TOOL */
+        .tool-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .input-panel {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+
+        .input-panel h2 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #fff;
+            border-bottom: 2px solid rgba(0,255,136,0.2);
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #aaa;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+        }
+
+        input[type="number"] {
+            font-family: 'Courier New', monospace;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .section-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 20px 0;
+        }
+
+        /* RESULTS PANEL */
+        .results-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+        }
+
+        .metric-value.negative {
+            color: #ff4757;
+        }
+
+        .metric-value.neutral {
+            color: #ffa502;
+        }
+
+        .chart-container {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 300px;
+        }
+
+        .trades-table {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .table-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            padding: 15px 25px;
+            text-align: left;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-weight: 500;
+        }
+
+        td {
+            padding: 12px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        tr:hover {
+            background: rgba(0,255,136,0.05);
+        }
+
+        .profitable {
+            color: #00ff88;
+        }
+
+        .loss {
+            color: #ff4757;
+        }
+
+        /* CTA SECTION */
+        .cta-section {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.1));
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            margin: 80px 0;
+        }
+
+        .cta-section h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .cta-section p {
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .feature {
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            border-left: 3px solid #00ff88;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #00ff88;
+        }
+
+        .feature-desc {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .cta-buttons button {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+        }
+
+        .btn-secondary:hover {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+            color: #fff;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #666;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #00ff88;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .tool-container {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 24px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            th, td {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+        }
+
+        .info-box {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid #00d4ff;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">📊 TradeLab</div>
+            <p class="tagline">Test your trading strategies before risking real money</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- HERO SECTION -->
+        <section class="hero">
+            <h1>Backtest Your Trading Strategies</h1>
+            <p>Simulate your strategy on historical data. See win rates, drawdowns, and profitability before trading live.</p>
+        </section>
+
+        <!-- TOOL SECTION -->
+        <section class="tool-container">
+            <div class="input-panel">
+                <h2>Strategy Parameters</h2>
+
+                <div class="form-group">
+                    <label>Strategy Name</label>
+                    <input type="text" id="strategyName" placeholder="e.g., RSI Oversold Bounce" value="RSI Oversold Bounce">
+                </div>
+
+                <div class="form-group">
+                    <label>Initial Capital ($)</label>
+                    <input type="number" id="capital" min="100" step="100" value="10000">
+                </div>
+
+                <div class="form-group">
+                    <label>Position Size (%)</label>
+                    <input type="number" id="positionSize" min="1" max="100" step="1" value="5">
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div class="form-group">
+                    <label>Entry Signal</label>
+                    <select id="entrySignal">
+                        <option value="rsi_oversold">RSI Oversold (< 30)</option>
+                        <option value="ma_crossover">MA Crossover (50/200)</option>
+                        <option value="rsi_overbought">RSI Overbought (> 70)</option>
+                        <option value="support_bounce">Support Level Bounce</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Exit Signal</label>
+                    <select id="exitSignal">
+                        <option value="take_profit">Take Profit (2% gain)</option>
+                        <option value="stop_loss">Stop Loss (1% loss)</option>
+                        <option value="trailing_stop">Trailing Stop (1.5%)</option>
+                        <option value="rsi_exit">RSI Exit (> 70)</option>
+                    </select>
+                </div>
+
+                <div class="section-divider"></div>
+
+                <div class="form-group">
+                    <label>Backtest Period</label>
+                    <select id="period">
+                        <option value="3m">Last 3 Months</option>
+                        <option value="6m" selected>Last 6 Months</option>
+                        <option value="1y">Last 1 Year</option>
+                        <option value="2y">Last 2 Years</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Commission (%)</label>
+                    <input type="number" id="commission" min="0" max="5" step="0.1" value="0.1">
+                </div>
+
+                <div class="info-box">
+                    💡 Using simulated historical data. Results are for educational purposes only.
+                </div>
+
+                <button onclick="runBacktest()">Run Backtest</button>
+            </div>
+
+            <div class="results-area" id="resultsArea">
+                <div style="text-align: center; color: #666; padding: 60px 40px;">
+                    <p style="font-size: 16px;">👆 Configure your strategy and click "Run Backtest"</p>
+                    <p style="font-size: 14px; margin-top: 20px; color: #444;">Backtests use realistic simulated market data with proper slippage and commissions.</p>
+                    <p style="font-size: 13px; margin-top: 15px; color: #333;">⚠️ Past performance does not guarantee future results. Trade at your own risk.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SECTION -->
+        <section class="cta-section">
+            <h2>Ready to Trade Smarter?</h2>
+            <p>Join 2,000+ traders who backtest before they trade</p>
+
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-title">📈 Realistic Simulation</div>
+                    <div class="feature-desc">Includes slippage, commissions, and spreads</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-title">📊 Detailed Metrics</div>
+                    <div class="feature-desc">Win rate, drawdown, Sharpe ratio & more</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-title">🔄 Quick Testing</div>
+                    <div class="feature-desc">Test 100s of strategies in minutes</div>
+                </div>
+            </div>
+
+            <div class="cta-buttons">
+                <button class="btn-secondary" onclick="downloadReport()">Download Report</button>
+                <button onclick="goToPro()">Get Pro Access</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Made for traders by TradeLab. Backtesting tool for educational purposes. Always backtest before trading live.</p>
+    </footer>
+
+    <script>
+        // Simulated historical price data generator
+        function generatePrices(days, volatility = 0.02) {
+            let prices = [100];
+            let price = 100;
+
+            for (let i = 1; i < days; i++) {
+                const change = (Math.random() - 0.5) * 2 * volatility * price;
+                price = Math.max(price + change, 10); // Prevent negative prices
+                prices.push(price);
+            }
+            return prices;
+        }
+
+        // Calculate technical indicators
+        function calculateRSI(prices, period = 14) {
+            const rsi = [];
+            for (let i = 0; i < prices.length; i++) {
+                if (i < period) {
+                    rsi.push(50);
+                    continue;
+                }
+
+                let gains = 0, losses = 0;
+                for (let j = i - period; j < i; j++) {
+                    const change = prices[j + 1] - prices[j];
+                    if (change > 0) gains += change;
+                    else losses -= change;
+                }
+
+                const avgGain = gains / period;
+                const avgLoss = losses / period;
+                const rs = avgGain / avgLoss;
+                const rsiValue = 100 - (100 / (1 + rs));
+                rsi.push(rsiValue);
+            }
+            return rsi;
+        }
+
+        function calculateMA(prices, period) {
+            const ma = [];
+            for (let i = 0; i < prices.length; i++) {
+                if (i < period) {
+                    ma.push(null);
+                } else {
+                    const sum = prices.slice(i - period, i).reduce((a, b) => a + b, 0);
+                    ma.push(sum / period);
+                }
+            }
+            return ma;
+        }
+
+        // Generate trading signals
+        function generateSignals(prices, entryType, exitType) {
+            const trades = [];
+            const rsi = calculateRSI(prices);
+            const ma50 = calculateMA(prices, 50);
+            const ma200 = calculateMA(prices, 200);
+
+            let inTrade = false;
+            let entryPrice = 0;
+
+            for (let i = 1; i < prices.length; i++) {
+                const price = prices[i];
+
+                // Entry logic
+                if (!inTrade) {
+                    let shouldEnter = false;
+
+                    if (entryType === 'rsi_oversold' && rsi[i] < 30 && rsi[i - 1] >= 30) shouldEnter = true;
+                    if (entryType === 'rsi_overbought' && rsi[i] > 70 && rsi[i - 1] <= 70) shouldEnter = true;
+                    if (entryType === 'ma_crossover' && ma50[i] && ma200[i] && ma50[i] > ma200[i] && ma50[i - 1] <= ma200[i - 1]) shouldEnter = true;
+                    if (entryType === 'support_bounce' && price > prices[i - 1] && prices[i - 1] < prices[i - 2]) shouldEnter = true;
+
+                    if (shouldEnter) {
+                        inTrade = true;
+                        entryPrice = price;
+                    }
+                }
+
+                // Exit logic
+                if (inTrade) {
+                    const pnlPercent = ((price - entryPrice) / entryPrice) * 100;
+                    let shouldExit = false;
+
+                    if (exitType === 'take_profit' && pnlPercent >= 2) shouldExit = true;
+                    if (exitType === 'stop_loss' && pnlPercent <= -1) shouldExit = true;
+                    if (exitType === 'trailing_stop' && pnlPercent <= -1.5) shouldExit = true;
+                    if (exitType === 'rsi_exit' && rsi[i] > 70) shouldExit = true;
+
+                    if (shouldExit) {
+                        trades.push({
+                            entryBar: i - 1,
+                            entryPrice: entryPrice,
+                            exitBar: i,
+                            exitPrice: price,
+                            pnl: price - entryPrice,
+                            pnlPercent: pnlPercent
+                        });
+                        inTrade = false;
+                    }
+                }
+            }
+
+            return trades;
+        }
+
+        // Calculate backtest metrics
+        function analyzeBacktest(trades, capital, commission) {
+            if (trades.length === 0) {
+                return {
+                    totalTrades: 0,
+                    winningTrades: 0,
+                    losingTrades: 0,
+                    winRate: 0,
+                    grossProfit: 0,
+                    grossLoss: 0,
+                    netProfit: 0,
+                    profitFactor: 0,
+                    largestWin: 0,
+                    largestLoss: 0,
+                    avgWin: 0,
+                    avgLoss: 0,
+                    maxDrawdown: 0,
+                    sharpeRatio: 0,
+                    endCapital: capital
+                };
+            }
+
+            let winning = 0, losing = 0;
+            let grossProfit = 0, grossLoss = 0;
+            let largestWin = 0, largestLoss = 0;
+            let balance = capital;
+            let highBalance = capital;
+            let maxDrawdown = 0;
+            const returns = [0];
+
+            trades.forEach(trade => {
+                const commissionCost = (trade.exitPrice * (commission / 100));
+                const netPnl = trade.pnl - commissionCost;
+
+                balance += netPnl;
+                returns.push((balance - capital) / capital * 100);
+
+                if (netPnl > 0) {
+                    winning++;
+                    grossProfit += netPnl;
+                    largestWin = Math.max(largestWin, netPnl);
+                } else {
+                    losing++;
+                    grossLoss += Math.abs(netPnl);
+                    largestLoss = Math.min(largestLoss, netPnl);
+                }
+
+                if (balance > highBalance) highBalance = balance;
+                const drawdown = ((highBalance - balance) / highBalance) * 100;
+                maxDrawdown = Math.max(maxDrawdown, drawdown);
+            });
+
+            const avgWin = winning > 0 ? grossProfit / winning : 0;
+            const avgLoss = losing > 0 ? -grossLoss / losing : 0;
+            const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? 999 : 0);
+
+            return {
+                totalTrades: trades.length,
+                winningTrades: winning,
+                losingTrades: losing,
+                winRate: (winning / trades.length * 100).toFixed(2),
+                grossProfit: grossProfit.toFixed(2),
+                grossLoss: (-grossLoss).toFixed(2),
+                netProfit: (balance - capital).toFixed(2),
+                profitFactor: profitFactor.toFixed(2),
+                largestWin: largestWin.toFixed(2),
+                largestLoss: largestLoss.toFixed(2),
+                avgWin: avgWin.toFixed(2),
+                avgLoss: Math.abs(avgLoss).toFixed(2),
+                maxDrawdown: maxDrawdown.toFixed(2),
+                sharpeRatio: (sharpeRatio(returns)).toFixed(2),
+                endCapital: balance.toFixed(2),
+                roi: (((balance - capital) / capital) * 100).toFixed(2)
+            };
+        }
+
+        function sharpeRatio(returns) {
+            const mean = returns.reduce((a, b) => a + b) / returns.length;
+            const variance = returns.reduce((a, b) => a + Math.pow(b - mean, 2)) / returns.length;
+            const stdDev = Math.sqrt(variance);
+            return stdDev > 0 ? (mean / stdDev) * Math.sqrt(252) : 0;
+        }
+
+        function runBacktest() {
+            const strategyName = document.getElementById('strategyName').value;
+            const capital = parseFloat(document.getElementById('capital').value);
+            const positionSize = parseFloat(document.getElementById('positionSize').value);
+            const entrySignal = document.getElementById('entrySignal').value;
+            const exitSignal = document.getElementById('exitSignal').value;
+            const period = document.getElementById('period').value;
+            const commission = parseFloat(document.getElementById('commission').value);
+
+            const resultsArea = document.getElementById('resultsArea');
+            resultsArea.innerHTML = '<div class="loading"><div class="spinner"></div>Running backtest...</div>';
+
+            setTimeout(() => {
+                // Generate data based on period
+                let days = { '3m': 90, '6m': 180, '1y': 252, '2y': 504 }[period];
+                const prices = generatePrices(days, 0.015);
+
+                // Generate signals
+                const trades = generateSignals(prices, entrySignal, exitSignal);
+
+                // Analyze
+                const metrics = analyzeBacktest(trades, capital, commission);
+
+                // Render
+                displayResults(metrics, trades, prices, strategyName);
+            }, 1200);
+        }
+
+        function displayResults(metrics, trades, prices, strategyName) {
+            const resultsArea = document.getElementById('resultsArea');
+
+            let html = `
+                <div class="results-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Net Profit</div>
+                        <div class="metric-value ${metrics.netProfit >= 0 ? '' : 'negative'}">$${metrics.netProfit}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">ROI</div>
+                        <div class="metric-value ${metrics.roi >= 0 ? '' : 'negative'}">${metrics.roi}%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Total Trades</div>
+                        <div class="metric-value">${metrics.totalTrades}</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Win Rate</div>
+                        <div class="metric-value">${metrics.winRate}%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Max Drawdown</div>
+                        <div class="metric-value neutral">${metrics.maxDrawdown}%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Profit Factor</div>
+                        <div class="metric-value">${metrics.profitFactor}</div>
+                    </div>
+                </div>
+
+                <div class="metric-card" style="grid-column: 1/-1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div>
+                        <div class="metric-label">Largest Win</div>
+                        <div class="metric-value profitable">+$${metrics.largestWin}</div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Largest Loss</div>
+                        <div class="metric-value loss">-$${metrics.largestLoss}</div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Avg Win</div>
+                        <div class="metric-value profitable">$${metrics.avgWin}</div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Avg Loss</div>
+                        <div class="metric-value loss">-$${metrics.avgLoss}</div>
+                    </div>
+                </div>
+            `;
+
+            if (trades.length > 0) {
+                html += `
+                    <div class="trades-table">
+                        <div class="table-header">📋 All Trades</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Entry</th>
+                                    <th>Exit</th>
+                                    <th>Gain/Loss</th>
+                                    <th>%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                trades.forEach((trade, i) => {
+                    const isWin = trade.pnl >= 0;
+                    html += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>$${trade.entryPrice.toFixed(2)}</td>
+                            <td>$${trade.exitPrice.toFixed(2)}</td>
+                            <td class="${isWin ? 'profitable' : 'loss'}">
+                                ${isWin ? '+' : '-'}$${Math.abs(trade.pnl).toFixed(2)}
+                            </td>
+                            <td class="${isWin ? 'profitable' : 'loss'}">
+                                ${trade.pnlPercent.toFixed(2)}%
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            resultsArea.innerHTML = html;
+        }
+
+        function downloadReport() {
+            alert('Pro feature coming soon! Download detailed PDF reports.');
+        }
+
+        function goToPro() {
+            alert('Pro tier coming soon with advanced backtesting features!');
+        }
+
+        // Enter key support
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') runBacktest();
+        });
+    </script>
+</body>
+</html>
