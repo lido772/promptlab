@@ -655,7 +655,7 @@ That's it. Share this thread if it helped.
 - [ ] Choose deployment method (GitHub Pages recommended)
 - [ ] Deploy website to live URL
 - [ ] Test on mobile, desktop, different browsers
-- [ ] Set up Google Analytics 4
+- [*] Set up Google Analytics 4
 - [ ] Create Twitter account (if needed)
 
 **Time:** 1-2 hours

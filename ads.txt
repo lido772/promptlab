@@ -2,7 +2,6 @@ google.com, pub-5400335063218645, DIRECT, f08c47fec0942fa0
 # ads.txt for PromptLab
 # Google AdSense publisher declaration
 google.com, pub-5400335063218645, DIRECT, f08c47fec0942fa0
-
 # Instructions:
 # 1. Place this file at the root of your domain: https://your-domain/ads.txt
 # 2. Keep exactly one record per line in the format:
