@@ -1,7 +1,7 @@
-# Cloudflare Worker Configuration for PromptLab
+# Cloudflare Worker Configuration for PromptUp
 # Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
 
-name = "promptlab"
+name = "promptup-worker"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
@@ -21,11 +21,11 @@ preview_id = "your-preview-kv-namespace-id-here"
 # Run: wrangler secret put ALLOWED_ORIGINS
 #
 # Example ALLOWED_ORIGINS value:
-# "http://localhost:3000,https://yourdomain.com,https://*.yourdomain.com"
+# "http://localhost:*,https://promptup.cloud,https://www.promptup.cloud,https://promptailab.netlify.app"
 
 # Routes (optional - for custom domain)
 # routes = [
-#   { pattern = "api.yourdomain.com/*", zone_name = "yourdomain.com" }
+#   { pattern = "api.promptup.cloud/*", zone_name = "promptup.cloud" }
 # ]
 
 # Worker limits
@@ -36,10 +36,3 @@ cpu_ms = 50
 # Build configuration
 [build]
 command = ""
-
-# Deployment configuration
-[env.production]
-name = "promptla"
-
-[env.development]
-name = "promptlab-dev"
