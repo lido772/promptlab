@@ -1,4 +1,4 @@
-# PromptLab - Complete Launch Plan
+# PromptUp - Complete Launch Plan
 
 **Created for:** Walid Ben Miled
 **Date:** March 2, 2026
@@ -60,7 +60,7 @@
 
 ### Selected: AI Prompt Testing Suite
 
-**Name:** PromptLab
+**Name:** PromptUp
 
 **One-Sentence Description:**
 Test, optimize, and master your AI prompts with instant scoring and AI-powered suggestions.
@@ -161,14 +161,14 @@ Option 3 - Video Background Remover:
 **Steps (3 minutes):**
 
 1. Go to github.com, create account
-2. Create new public repository named `promptlab`
+2. Create new public repository named `promptup`
 3. Upload `prompt-optimizer.html`
 4. Rename file to `index.html` in GitHub
 5. Go to Settings → Pages
 6. Select `main` branch, `/ (root)` folder
 7. Wait 2 minutes
 
-**Result:** Live at `https://YOUR_USERNAME.github.io/promptlab/`
+**Result:** Live at `https://YOUR_USERNAME.github.io/promptup/` or use your custom domain `promptup.cloud`
 
 **Custom Domain:**
 - Buy domain from Domains.google (~$12/year)
@@ -192,7 +192,7 @@ Option 3 - Video Background Remover:
 
 ```bash
 # Place file in web directory
-cp prompt-optimizer.html /var/www/promptlab/index.html
+cp prompt-optimizer.html /var/www/promptup/index.html
 
 # Simple Python server
 python3 -m http.server 8000
@@ -234,10 +234,10 @@ python3 -m http.server 8000
 
 ### On-Page SEO Checklist
 
-- [ ] Meta title: "PromptLab - Free AI Prompt Tester & Optimizer"
+- [ ] Meta title: "PromptUp - Free AI Prompt Tester & Optimizer"
 - [ ] Meta description: "Test and optimize your ChatGPT, Claude & GPT-4 prompts instantly. Get clarity scores & AI suggestions free."
 - [ ] H1 tag: "Test Your AI Prompts for Free"
-- [ ] Image alt text: "PromptLab AI prompt analyzer interface"
+- [ ] Image alt text: "PromptUp AI prompt analyzer interface"
 - [ ] Internal links (future): Link to keyword pages
 - [ ] Schema markup: FAQPage + Product schema
 
@@ -301,7 +301,7 @@ Hi [Host Name],
 
 I listened to your recent episode on [specific episode topic] and loved your take on [specific point].
 
-I just launched PromptLab - a free tool that tests and scores AI prompts in seconds. Since your audience is deeply interested in AI workflows, I thought they'd find it valuable.
+I just launched PromptUp - a free tool that tests and scores AI prompts in seconds. Since your audience is deeply interested in AI workflows, I thought they'd find it valuable.
 
 The tool:
 - Analyzes prompts for ChatGPT, Claude, GPT-4
@@ -312,7 +312,7 @@ Would this be interesting to cover on your show? I can send you 3 talking points
 
 Best,
 Walid
-promptlab.io
+promptup.cloud
 ```
 
 ### Template 2: Newsletter Outreach
@@ -324,23 +324,23 @@ Hi [Name],
 
 I've been following your [newsletter name] for a while - your recent issue on [topic] was fantastic.
 
-I built PromptLab (free, no signup) because so many people struggle with prompt engineering. It's gotten 2K+ uses in the first week.
+I built PromptUp (free, no signup) because so many people struggle with prompt engineering. It's gotten 2K+ uses in the first week.
 
 If your readers use ChatGPT/Claude, this might be a 1-paragraph mention worth your time:
 
-"PromptLab is a free tool that scores your AI prompts on clarity, specificity, and structure. Tests in seconds."
+"PromptUp is a free tool that scores your AI prompts on clarity, specificity, and structure. Tests in seconds."
 
 Let me know if it's a fit.
 
 Cheers,
 Walid
-promptlab.io
+promptup.cloud
 ```
 
 ### Template 3: Twitter DM / Reply
 
 ```
-@[Handle] – Saw your thread on [topic]. Just shipped something that might interest your audience: PromptLab scores ChatGPT/Claude prompts and suggests improvements in seconds. Free, no signup. What do you think? promptlab.io
+@[Handle] – Saw your thread on [topic]. Just shipped something that might interest your audience: PromptUp scores ChatGPT/Claude prompts and suggests improvements in seconds. Free, no signup. What do you think? promptup.cloud
 
 Would love your feedback!
 ```
@@ -362,7 +362,7 @@ Most people write terrible ChatGPT prompts because they don't know what makes a 
 
 This is why your AI responses suck.
 
-I built a free tool to fix it: promptlab.io
+I built a free tool to fix it: promptup.cloud
 ```
 
 **Tweet 2 - Hack/Tips:**
@@ -377,18 +377,18 @@ Instead try:
 
 Specificity = Better results.
 
-Test your prompts: promptlab.io
+Test your prompts: promptup.cloud
 ```
 
 **Tweet 3 - Social Proof:**
 ```
-2,000+ people tested their prompts on PromptLab this week.
+2,000+ people tested their prompts on PromptUp this week.
 
 Average score: 62/100
 
 Most improvement: Adding specific examples and constraints.
 
-Free → promptlab.io
+Free → promptup.cloud
 
 What's your biggest prompt challenge?
 ```
@@ -404,7 +404,7 @@ Prompt framework that works (AI Breakfast Club method):
 
 This structure = higher quality results.
 
-Check your prompt: promptlab.io
+Check your prompt: promptup.cloud
 ```
 
 **Tweet 5 - Urgency/FOMO:**
@@ -415,9 +415,9 @@ Which one are you using?
 
 Different models respond differently to prompts.
 
-PromptLab tests your prompt across multiple AI models and tells you which one works best.
+PromptUp tests your prompt across multiple AI models and tells you which one works best.
 
-Free tool: promptlab.io
+Free tool: promptup.cloud
 ```
 
 ### Viral Thread (1x per month)
@@ -467,7 +467,7 @@ Actual pros:
 
 This takes 2 minutes. It's the difference between 60% and 95%.
 
-5/ I built PromptLab because manually scoring prompts sucks.
+5/ I built PromptUp because manually scoring prompts sucks.
 
 Now you get:
 - Instant clarity score
@@ -476,7 +476,7 @@ Now you get:
 
 Free. Zero signup. Works with ChatGPT, Claude, GPT-4.
 
-→ promptlab.io
+→ promptup.cloud
 
 6/ The leverage is INSANE.
 
@@ -490,7 +490,7 @@ If you use ChatGPT for:
 
 You should score every prompt.
 
-Test yours: promptlab.io
+Test yours: promptup.cloud
 
 That's it. Share this thread if it helped.
 ```
@@ -667,7 +667,7 @@ That's it. Share this thread if it helped.
 - [ ] Post 3 initial tweets (see Twitter Content Plan)
 - [ ] Identify 10 podcast shows in your niche
 - [ ] Identify 10 newsletter writers
-- [ ] Create media kit / one-pager about PromptLab
+- [ ] Create media kit / one-pager about PromptUp
 
 **Time:** 2-3 hours total
 
@@ -733,7 +733,7 @@ That's it. Share this thread if it helped.
 
 ## QUICK REFERENCE
 
-**Live Website:** `f:\IA_Project\Side Business\prompt-optimizer.html`
+**Live Website:** `promptup.cloud`
 
 **To Deploy:**
 1. Copy HTML file

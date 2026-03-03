@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PromptLab - Test & Optimize AI Prompts</title>
+    <title>PromptUp - Test & Optimize AI Prompts</title>
     <style>
         * {
             margin: 0;
@@ -593,7 +593,7 @@
 <body>
     <header>
         <div class="container">
-            <div class="logo">✨ PromptLab</div>
+            <div class="logo">✨ PromptUp</div>
             <p class="tagline">Test, optimize & master your AI prompts</p>
         </div>
     </header>
@@ -685,15 +685,15 @@
     <!-- REWARDED VIDEO MODAL -->
     <div class="rewarded-overlay" id="rewardedOverlay">
         <div class="rewarded-modal">
-            <h3>🎁 Watch to Unlock Free Improvement</h3>
-            <p class="subtitle">Watch this short video to earn an unlimited prompt improvement</p>
+            <h3>🎁 Watch Ad to Unlock Free Improvement</h3>
+            <p class="subtitle">Watch this 15-second ad to support our service and get unlimited prompt optimization</p>
 
             <div class="rewarded-video-container" id="rewardedVideoContainer">
                 <!-- Placeholder shown while "ad" plays -->
                 <div class="placeholder-content" id="rewardedPlaceholder">
                     <div class="ad-icon">📺</div>
                     <div style="font-size:16px;font-weight:600;">Sponsored Content</div>
-                    <div style="font-size:13px;color:#888;margin-top:4px;">Your improvement is loading...</div>
+                    <div style="font-size:13px;color:#888;margin-top:4px;">Ad revenue supports API costs</div>
                 </div>
             </div>
 
@@ -710,11 +710,15 @@
                 ⏳ Watch the video to unlock...
             </button>
             <button class="rewarded-skip-btn" onclick="cancelReward()">Cancel</button>
+            
+            <div style="margin-top:15px;padding:10px;background:rgba(124,58,237,0.1);border-radius:6px;font-size:12px;color:#888;text-align:center;border-left:2px solid #7c3aed;">
+                💬 Your 15-second ad view generates ~$0.0008 that covers the Gemini API costs ($0.0001) for optimizing your prompt. Everyone wins!
+            </div>
         </div>
     </div>
 
     <footer>
-        <p>Made for AI enthusiasts by PromptLab. No credit card required to test now.</p>
+        <p>Made for AI enthusiasts by PromptUp. No credit card required to test now.</p>
     </footer>
 
     <script>
@@ -728,7 +732,7 @@
 
             // Optional: Custom error handler
             onError: (error) => {
-                console.error('PromptLab Error:', error);
+                console.error('PromptUp Error:', error);
                 // You can add custom error tracking here
             }
         };
@@ -1095,14 +1099,14 @@
         }
 
         function goToPremium() {
-            alert('Premium features coming soon! Join the waitlist: promptlab.io/premium');
+            alert('Premium features coming soon! Join the waitlist: promptup.cloud/premium');
         }
 
         function shareOnTwitter() {
             const prompt = document.getElementById('promptInput').value.trim();
             const score = document.querySelector('.score')?.textContent || '?';
-            const text = prompt ? `I just tested my prompt on PromptLab - Score: ${score}/100. The AI-powered analysis helped me optimize it! Try it free: promptlab.io`
-                               : 'Just discovered PromptLab - a free tool to test and optimize AI prompts. Works with ChatGPT, Claude, and more. promptlab.io';
+            const text = prompt ? `I just tested my prompt on PromptUp - Score: ${score}/100. The AI-powered analysis helped me optimize it! Try it free: promptup.cloud`
+                               : 'Just discovered PromptUp - a free tool to test and optimize AI prompts. Works with ChatGPT, Claude, and more. promptup.cloud';
             window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
         }
 
@@ -1127,7 +1131,7 @@
             try {
                 // Read cached daily usage from localStorage
                 const today = new Date().toISOString().split('T')[0];
-                const cached = JSON.parse(localStorage.getItem('promptlab_daily') || '{}');
+                const cached = JSON.parse(localStorage.getItem('promptup_daily') || '{}');
 
                 if (cached.date === today && typeof cached.remaining === 'number') {
                     updateDailyCounter(cached.remaining, cached.total || 3);
@@ -1144,7 +1148,7 @@
         function cacheDailyLimit(remaining, total) {
             try {
                 const today = new Date().toISOString().split('T')[0];
-                localStorage.setItem('promptlab_daily', JSON.stringify({
+                localStorage.setItem('promptup_daily', JSON.stringify({
                     date: today,
                     remaining: remaining,
                     total: total

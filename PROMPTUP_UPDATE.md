@@ -1,4 +1,4 @@
-# PromptLab - Advanced Model Selection Update
+# PromptUp - Advanced Model Selection Update
 
 **Date Updated:** March 2, 2026
 **Update Type:** Feature Enhancement - Complete Model Database
@@ -7,7 +7,7 @@
 
 ## WHAT'S NEW
 
-PromptLab has been upgraded with **50+ AI models** grouped by provider and content type. No longer limited to 4 models - users now have access to the entire AI ecosystem.
+PromptUp has been upgraded with **50+ AI models** grouped by provider and content type. No longer limited to 4 models - users now have access to the entire AI ecosystem.
 
 ---
 
@@ -357,7 +357,7 @@ Simply redeploy the updated HTML file to GitHub Pages / Netlify.
 
 ## SUMMARY
 
-PromptLab has evolved from a simple GPT-4 prompt tester into a **comprehensive AI prompt optimization platform** covering the entire ecosystem of 50+ models across 5 modalities.
+PromptUp has evolved from a simple GPT-4 prompt tester into a **comprehensive AI prompt optimization platform** covering the entire ecosystem of 50+ models across 5 modalities.
 
 This positions it as a unique, defensible product with massive market coverage and clear monetization pathways.
 

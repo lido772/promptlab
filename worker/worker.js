@@ -1,6 +1,25 @@
 export default {
   async fetch(request, env, ctx) {
 
+    // ========================================
+    // BUSINESS MODEL: Ad-Supported Prompt Optimization
+    // ========================================
+    // Free Tier: 3 daily optimizations (no cost to user)
+    // Rewarded Tier: Unlimited optimizations after watching 15s ad
+    //
+    // Revenue Model:
+    // - Free tier uses ~$0.0001 per optimization in Gemini API costs
+    // - Rewarded tier supported by ad revenue (~$0.0005-0.001 per ad view)
+    // - Typical CPM (cost per 1000 impressions): $1-3, CPC (cost per click): $0.1-0.5
+    // - PromptUp shows ads only after optimization request, higher engagement
+    //
+    // Cost Breakdown per API Call:
+    // - Gemini 2.5 Flash: $0.075/M input tokens + $0.30/M output tokens
+    // - Average prompt: ~100 input tokens, ~200 output tokens = $0.0001
+    // - Ad revenue per optimization: $0.0005-0.001 (after 15s engagement)
+    // - Profit margin: ~5-10x the API cost
+    // ========================================
+
     // Security headers
     const securityHeaders = {
       "X-Content-Type-Options": "nosniff",
@@ -8,6 +27,20 @@ export default {
       "X-XSS-Protection": "1; mode=block",
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
+    };
+
+    // API Cost Metrics (for monitoring)
+    const API_COSTS = {
+      gemini_input_token: 0.000000075, // $0.075 per million
+      gemini_output_token: 0.00000030,  // $0.30 per million
+      avg_input_tokens: 100,            // typical prompt request
+      avg_output_tokens: 200            // typical improvement response
+    };
+
+    // Estimated Revenue from Ads
+    const AD_REVENUE = {
+      estimated_cpm: 2.00,     // $2 per 1000 impressions
+      estimated_revenue_per_ad: 0.0008 // avg revenue per 15s ad view (CPM/1000 * engagement_bonus)
     };
 
     // Rate limiting configuration
@@ -26,6 +59,8 @@ export default {
     // CORS configuration - Restrict to specific origins
     const allowedOrigins = env.ALLOWED_ORIGINS?.split(",") || [
       "http://localhost:*",
+      "https://promptup.cloud",
+      "https://www.promptup.cloud",
       "https://promptlab.lido772.workers.dev",
       "https://broad-snow-9b87.lido772.workers.dev",
       "https://promptailab.netlify.app"
@@ -329,11 +364,47 @@ export default {
         data?.candidates?.[0]?.content?.parts?.[0]?.text ||
         "Optimization failed";
 
+      // Estimate API cost for this request
+      const estimatedInputTokens = API_COSTS.avg_input_tokens;
+      const estimatedOutputTokens = (result?.split(' ') || []).length || API_COSTS.avg_output_tokens; // rough estimate
+      const estimatedCost = 
+        (estimatedInputTokens * API_COSTS.gemini_input_token) +
+        (estimatedOutputTokens * API_COSTS.gemini_output_token);
+
+      // Track metrics for rewarded requests (ad-supported)
+      if (isRewarded && env.RATE_LIMIT_KV) {
+        const today = new Date().toISOString().split('T')[0];
+        const statsKey = `stats:${today}`;
+
+        try {
+          const stats = await env.RATE_LIMIT_KV.get(statsKey, { type: "json" }) || {
+            rewarded_requests: 0,
+            estimated_api_cost: 0,
+            estimated_ad_revenue: 0
+          };
+
+          stats.rewarded_requests = (stats.rewarded_requests || 0) + 1;
+          stats.estimated_api_cost = (stats.estimated_api_cost || 0) + estimatedCost;
+          stats.estimated_ad_revenue = (stats.estimated_ad_revenue || 0) + AD_REVENUE.estimated_revenue_per_ad;
+          stats.profit_margin = stats.estimated_ad_revenue - stats.estimated_api_cost;
+
+          await env.RATE_LIMIT_KV.put(statsKey, JSON.stringify(stats), { expirationTtl: 86400 * 7 }); // Keep for 7 days
+        } catch (e) {
+          // Stats tracking optional - don't fail on stats errors
+          console.error('Stats tracking error:', e);
+        }
+      }
+
       return new Response(JSON.stringify({
         result,
         remainingFree: remainingFree,
         dailyLimit: DAILY_FREE_LIMIT,
-        rewarded: isRewarded
+        rewarded: isRewarded,
+        // Optional: Return cost estimate for transparency
+        _metrics: {
+          estimated_api_cost: Math.round(estimatedCost * 100000) / 100000, // Round to 5 decimals
+          is_ad_supported: isRewarded
+        }
       }), {
         headers: {
           "Content-Type": "application/json",
