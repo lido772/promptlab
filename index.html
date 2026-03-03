@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromptUp - Test & Optimize AI Prompts</title>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645"
+         crossorigin="anonymous"></script>
+
     <style>
         * {
             margin: 0;
@@ -458,6 +463,22 @@
             object-fit: cover;
         }
 
+        .rewarded-video-container .ad-content {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .rewarded-video-container .ad-content ins {
+            width: 100%;
+            height: 100%;
+        }
+
         .rewarded-video-container .placeholder-content {
             position: absolute;
             top: 0; left: 0;
@@ -686,20 +707,32 @@
     <div class="rewarded-overlay" id="rewardedOverlay">
         <div class="rewarded-modal">
             <h3>🎁 Watch Ad to Unlock Free Improvement</h3>
-            <p class="subtitle">Watch this 15-second ad to support our service and get unlimited prompt optimization</p>
+            <p class="subtitle">Watch this 30-second ad to support our service and get unlimited prompt optimization</p>
 
             <div class="rewarded-video-container" id="rewardedVideoContainer">
-                <!-- Placeholder shown while "ad" plays -->
-                <div class="placeholder-content" id="rewardedPlaceholder">
+                <!-- Google AdSense Ad -->
+                <div class="ad-content" id="adContent">
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-5400335063218645"
+                         data-ad-slot="9302843472"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+                <!-- Loading placeholder -->
+                <div class="placeholder-content" id="rewardedPlaceholder" style="display:none;">
                     <div class="ad-icon">📺</div>
-                    <div style="font-size:16px;font-weight:600;">Sponsored Content</div>
-                    <div style="font-size:13px;color:#888;margin-top:4px;">Ad revenue supports API costs</div>
+                    <div style="font-size:16px;font-weight:600;">Loading Ad...</div>
+                    <div style="font-size:13px;color:#888;margin-top:4px;">Please wait while we load the ad</div>
                 </div>
             </div>
 
             <div class="rewarded-countdown" id="rewardedCountdown">
                 <div class="timer-ring"></div>
-                <span id="rewardedTimerText">Please wait <strong id="rewardedSeconds">15</strong>s</span>
+                <span id="rewardedTimerText">Please wait <strong id="rewardedSeconds">30</strong>s</span>
             </div>
 
             <div class="rewarded-progress">
@@ -712,7 +745,7 @@
             <button class="rewarded-skip-btn" onclick="cancelReward()">Cancel</button>
             
             <div style="margin-top:15px;padding:10px;background:rgba(124,58,237,0.1);border-radius:6px;font-size:12px;color:#888;text-align:center;border-left:2px solid #7c3aed;">
-                💬 Your 15-second ad view generates ~$0.0008 that covers the Gemini API costs ($0.0001) for optimizing your prompt. Everyone wins!
+                💬 Your 30-second ad view generates ~$0.0016 that covers the Gemini API costs ($0.0001) for optimizing your prompt. Everyone wins!
             </div>
         </div>
     </div>
@@ -1325,7 +1358,7 @@
 
         // Show the rewarded video modal with countdown
         function showRewardedAd() {
-            const REWARD_DURATION = 15; // seconds to watch
+            const REWARD_DURATION = 30; // seconds to watch - Updated to 30s for Google AdSense
 
             return new Promise((resolve, reject) => {
                 rewardedResolve = resolve;
@@ -1337,16 +1370,61 @@
                 const claimBtn = document.getElementById('rewardedClaimBtn');
                 const secondsEl = document.getElementById('rewardedSeconds');
                 const countdownEl = document.getElementById('rewardedCountdown');
+                const adContent = document.getElementById('adContent');
+                const placeholder = document.getElementById('rewardedPlaceholder');
 
                 progressBar.style.width = '0%';
                 claimBtn.disabled = true;
-                claimBtn.innerHTML = '⏳ Watch the video to unlock...';
+                claimBtn.innerHTML = '⏳ Watch the ad to unlock...';
                 secondsEl.textContent = REWARD_DURATION;
                 countdownEl.style.display = 'inline-flex';
 
                 // Show overlay
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
+
+                // Try to load Google AdSense ad
+                try {
+                    // Refresh AdSense ad when modal opens
+                    if (window.adsbygoogle && window.adsbygoogle.length > 0) {
+                        // Clear existing ads and reload
+                        const adElements = document.querySelectorAll('.adsbygoogle');
+                        adElements.forEach((ad, index) => {
+                            ad.innerHTML = '';
+                            ad.setAttribute('data-ad-status', 'unfilled');
+                        });
+
+                        // Push new ad
+                        (adsbygoogle = window.adsbygoogle || []).push({});
+                    }
+
+                    // Show ad content
+                    adContent.style.display = 'block';
+                    placeholder.style.display = 'none';
+
+                    // Set timeout to show placeholder if ad doesn't load
+                    setTimeout(() => {
+                        const adElements = document.querySelectorAll('.adsbygoogle');
+                        let adLoaded = false;
+                        adElements.forEach(ad => {
+                            if (ad.getAttribute('data-ad-status') === 'filled') {
+                                adLoaded = true;
+                            }
+                        });
+
+                        // If no ad loaded, show placeholder
+                        if (!adLoaded) {
+                            adContent.style.display = 'none';
+                            placeholder.style.display = 'block';
+                            placeholder.querySelector('div:nth-child(2)').textContent = 'Ad Loading...';
+                        }
+                    }, 2000);
+                } catch (error) {
+                    // If AdSense fails, show placeholder
+                    adContent.style.display = 'none';
+                    placeholder.style.display = 'block';
+                    placeholder.querySelector('div:nth-child(2)').textContent = 'Sponsored Content';
+                }
 
                 // Start countdown
                 let remaining = REWARD_DURATION;
