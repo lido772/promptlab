@@ -741,6 +741,10 @@
                          data-ad-format="auto"
                          data-full-width-responsive="true"></ins>
                 </div>
+                <!-- Fallback Ad Network - EffectiveGateCPM -->
+                <div class="ad-content-fallback" id="adContentFallback" style="display:none;">
+                    <div id="effectivegatecpm-ad"></div>
+                </div>
                 <!-- Loading placeholder -->
                 <div class="placeholder-content" id="rewardedPlaceholder" style="display:none;">
                     <div class="ad-icon">📺</div>
@@ -759,6 +763,9 @@
             </div>
         </div>
     </div>
+
+    <!-- EffectiveGateCPM Ad Script -->
+    <script src="https://pl28839096.effectivegatecpm.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
 
     <footer>
         <p>Made for AI enthusiasts by PromptUp. No credit card required to test now.</p>
@@ -1375,13 +1382,14 @@
                 // Reset modal state
                 const overlay = document.getElementById('rewardedOverlay');
                 const adContent = document.getElementById('adContent');
+                const adContentFallback = document.getElementById('adContentFallback');
                 const placeholder = document.getElementById('rewardedPlaceholder');
 
                 // Show overlay
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
 
-                // Try to load Google AdSense ad
+                // Try to load Google AdSense ad first
                 try {
                     // Load the rewarded ad only when modal is open and visible
                     const rewardedAd = adContent.querySelector('.adsbygoogle');
@@ -1389,6 +1397,7 @@
                     // Show ad container first
                     adContent.style.display = 'block';
                     placeholder.style.display = 'none';
+                    adContentFallback.style.display = 'none';
 
                     // Initialize the ad now that the container is visible
                     if (rewardedAd && !rewardedAd.hasAttribute('data-ad-initialized')) {
@@ -1400,18 +1409,20 @@
                     setTimeout(() => {
                         const adStatus = rewardedAd?.getAttribute('data-ad-status');
 
-                        // If no ad loaded, show placeholder
+                        // If no ad loaded, show fallback ad
                         if (adStatus !== 'filled') {
+                            console.log('AdSense not filled, showing fallback ad...');
                             adContent.style.display = 'none';
-                            placeholder.style.display = 'block';
-                            placeholder.querySelector('div:nth-child(2)').textContent = 'Advertisement';
+                            adContentFallback.style.display = 'block';
+                            placeholder.style.display = 'none';
                         }
                     }, 3000);
                 } catch (error) {
-                    // If AdSense fails, show placeholder
+                    // If AdSense fails, show fallback ad
+                    console.log('AdSense error, showing fallback ad:', error);
                     adContent.style.display = 'none';
-                    placeholder.style.display = 'block';
-                    placeholder.querySelector('div:nth-child(2)').textContent = 'Sponsored Content';
+                    adContentFallback.style.display = 'block';
+                    placeholder.style.display = 'none';
                 }
             });
         }
