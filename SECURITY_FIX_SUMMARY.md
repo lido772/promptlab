@@ -68,7 +68,7 @@ Documentation détaillée pour:
 **Ajouté:**
 ```javascript
 const CONFIG = {
-    WORKER_URL: window.env?.WORKER_URL || "https://broad-snow-9b87.lido772.workers.dev",
+    WORKER_URL: window.env?.WORKER_URL || "https://promptlab.lido772.workers.dev",
     onError: (error) => { ... }
 };
 ```

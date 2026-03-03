@@ -150,8 +150,8 @@ const CONFIG = {
   // AVANT:
   WORKER_URL: window.env?.WORKER_URL || "https://broad-snow-9b87.lido772.workers.dev"
   
-  // APRÈS (remplacer par votre worker URL):
-  WORKER_URL: window.env?.WORKER_URL || "https://promptlab.xyz123.workers.dev"
+  // APRÈS:
+  WORKER_URL: window.env?.WORKER_URL || "https://promptlab.lido772.workers.dev"
 };
 ```
 

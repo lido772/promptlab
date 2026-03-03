@@ -72,14 +72,14 @@ wrangler deploy
 
 # Output example:
 # ✓ Uploaded worker.js (15 KB)
-# ✓ Deployed to broad-snow-9b87.lido772.workers.dev
+# ✓ Deployed to promptlab.lido772.workers.dev
 ```
 
 ### 5. Test the Endpoint
 
 ```bash
 # Test free optimization
-curl -X POST https://broad-snow-9b87.lido772.workers.dev \
+curl -X POST https://promptlab.lido772.workers.dev \
   -H "Content-Type: application/json" \
   -d '{"prompt": "Write a blog post about AI for beginners"}'
 
@@ -92,7 +92,7 @@ curl -X POST https://broad-snow-9b87.lido772.workers.dev \
 # }
 
 # Test rewarded optimization (bypasses daily limit)
-curl -X POST https://broad-snow-9b87.lido772.workers.dev \
+curl -X POST https://promptlab.lido772.workers.dev \
   -H "Content-Type: application/json" \
   -d '{"prompt": "...", "rewarded": true}'
 

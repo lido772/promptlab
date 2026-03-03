@@ -62,7 +62,6 @@ export default {
       "https://promptup.cloud",
       "https://www.promptup.cloud",
       "https://promptlab.lido772.workers.dev",
-      "https://broad-snow-9b87.lido772.workers.dev",
       "https://promptailab.netlify.app"
     ];
 
