@@ -27,11 +27,6 @@ id = "f8b12d4d4d5a49e5b0fe87c36f9e16a0"
 #   { pattern = "api.promptup.cloud/*", zone_name = "promptup.cloud" }
 # ]
 
-# Worker limits
-[limits]
-# CPU time limit (ms)
-cpu_ms = 50
-
 # Build configuration
 [build]
 command = ""
