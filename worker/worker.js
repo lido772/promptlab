@@ -157,9 +157,29 @@ export default {
         }
       }
 
-      // Daily free limit check (3 free improvements per day)
+      // Parse and validate request body (must happen before daily limit check to read rewarded flag)
+      let body;
+      try {
+        body = await request.json();
+      } catch (parseError) {
+        return new Response(JSON.stringify({
+          error: "Invalid request body"
+        }), {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders
+          }
+        });
+      }
+
+      const { prompt, rewarded } = body;
+
+      // Daily free limit check (3 free improvements per day) — skip for rewarded requests
       let remainingFree = 0;
-      if (env.RATE_LIMIT_KV) {
+      const isRewarded = rewarded === true;
+
+      if (env.RATE_LIMIT_KV && !isRewarded) {
         // Get current date (UTC midnight)
         const today = new Date();
         const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -200,24 +220,6 @@ export default {
           }), { expirationTtl: DAILY_WINDOW });
         }
       }
-
-      // Parse and validate request body
-      let body;
-      try {
-        body = await request.json();
-      } catch (parseError) {
-        return new Response(JSON.stringify({
-          error: "Invalid request body"
-        }), {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders
-          }
-        });
-      }
-
-      const { prompt } = body;
 
       // Validate prompt
       if (!prompt) {
@@ -330,7 +332,8 @@ export default {
       return new Response(JSON.stringify({
         result,
         remainingFree: remainingFree,
-        dailyLimit: DAILY_FREE_LIMIT
+        dailyLimit: DAILY_FREE_LIMIT,
+        rewarded: isRewarded
       }), {
         headers: {
           "Content-Type": "application/json",
