@@ -400,21 +400,193 @@
             font-size: 14px;
             margin-bottom: 18px;
         }
+
+        /* REWARDED VIDEO MODAL */
+        .rewarded-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .rewarded-overlay.active {
+            display: flex;
+        }
+
+        .rewarded-modal {
+            background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 560px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .rewarded-modal h3 {
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .rewarded-modal .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .rewarded-video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .rewarded-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .rewarded-video-container .placeholder-content {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a3e 100%);
+            color: #fff;
+        }
+
+        .placeholder-content .ad-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .rewarded-countdown {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            color: #fbbf24;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .rewarded-countdown .timer-ring {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(251,191,36,0.3);
+            border-top-color: #fbbf24;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .rewarded-progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .rewarded-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #f97316);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 1s linear;
+        }
+
+        .rewarded-claim-btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+        }
+
+        .rewarded-claim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .rewarded-claim-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(249,115,22,0.3);
+        }
+
+        .rewarded-skip-btn {
+            margin-top: 12px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 6px 12px;
+            width: auto;
+        }
+
+        .rewarded-skip-btn:hover {
+            color: #aaa;
+            transform: none;
+            box-shadow: none;
+        }
     </style>
-    <!-- Example ad scripts (replace with your provider's snippet, e.g., Google AdSense).
-         Uncomment and paste your script below when ready. -->
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645"
-     crossorigin="anonymous"></script>
+    <!-- Ad & analytics scripts — only load on real domains, not file:// -->
+    <script>
+    (function() {
+        if (location.protocol === 'file:') return; // skip on local file
 
-     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-FP5GQJM9KZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+        // Google AdSense
+        var ads = document.createElement('script');
+        ads.async = true;
+        ads.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645';
+        ads.crossOrigin = 'anonymous';
+        document.head.appendChild(ads);
 
-  gtag('config', 'G-FP5GQJM9KZ');
-</script>
+        // Google Analytics (gtag.js)
+        var gtag_s = document.createElement('script');
+        gtag_s.async = true;
+        gtag_s.src = 'https://www.googletagmanager.com/gtag/js?id=G-FP5GQJM9KZ';
+        document.head.appendChild(gtag_s);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-FP5GQJM9KZ');
+        window.gtag = gtag;
+    })();
+    </script>
 
 <meta name="google-adsense-account" content="ca-pub-5400335063218645">
     </head>
@@ -509,6 +681,37 @@
             </div>
         </section>
     </main>
+
+    <!-- REWARDED VIDEO MODAL -->
+    <div class="rewarded-overlay" id="rewardedOverlay">
+        <div class="rewarded-modal">
+            <h3>🎁 Watch to Unlock Free Improvement</h3>
+            <p class="subtitle">Watch this short video to earn an unlimited prompt improvement</p>
+
+            <div class="rewarded-video-container" id="rewardedVideoContainer">
+                <!-- Placeholder shown while "ad" plays -->
+                <div class="placeholder-content" id="rewardedPlaceholder">
+                    <div class="ad-icon">📺</div>
+                    <div style="font-size:16px;font-weight:600;">Sponsored Content</div>
+                    <div style="font-size:13px;color:#888;margin-top:4px;">Your improvement is loading...</div>
+                </div>
+            </div>
+
+            <div class="rewarded-countdown" id="rewardedCountdown">
+                <div class="timer-ring"></div>
+                <span id="rewardedTimerText">Please wait <strong id="rewardedSeconds">15</strong>s</span>
+            </div>
+
+            <div class="rewarded-progress">
+                <div class="rewarded-progress-bar" id="rewardedProgressBar"></div>
+            </div>
+
+            <button class="rewarded-claim-btn" id="rewardedClaimBtn" disabled onclick="claimReward()">
+                ⏳ Watch the video to unlock...
+            </button>
+            <button class="rewarded-skip-btn" onclick="cancelReward()">Cancel</button>
+        </div>
+    </div>
 
     <footer>
         <p>Made for AI enthusiasts by PromptLab. No credit card required to test now.</p>
@@ -910,37 +1113,43 @@
             }
         });
 
-        // Initialize providers on page load
-        window.addEventListener('load', function() {
+        // Initialize providers on page load — use DOMContentLoaded (does not wait for external scripts)
+        document.addEventListener('DOMContentLoaded', function() {
             updateProviders();
             checkDailyLimit();
         });
 
-        // Check daily limit status from worker
+        // Check daily limit status — uses localStorage cache, no server call on load
         async function checkDailyLimit() {
             const dailyCounter = document.getElementById('dailyCounter');
             if (!dailyCounter) return;
 
-            dailyCounter.innerHTML = 'Checking...';
-
             try {
-                // Make a minimal request to check headers
-                const response = await fetch(CONFIG.WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt: "check limit" })
-                });
+                // Read cached daily usage from localStorage
+                const today = new Date().toISOString().split('T')[0];
+                const cached = JSON.parse(localStorage.getItem('promptlab_daily') || '{}');
 
-                const remainingFree = response.headers.get("X-DailyRemaining");
-                const dailyLimit = response.headers.get("X-DailyLimit");
-
-                if (remainingFree !== null && dailyLimit !== null) {
-                    updateDailyCounter(parseInt(remainingFree), parseInt(dailyLimit));
+                if (cached.date === today && typeof cached.remaining === 'number') {
+                    updateDailyCounter(cached.remaining, cached.total || 3);
+                } else {
+                    // New day or no cache — assume full quota
+                    updateDailyCounter(3, 3);
                 }
             } catch (err) {
-                // On error, show unknown status
-                dailyCounter.innerHTML = '?/3 free today';
+                dailyCounter.innerHTML = '3/3 free today';
             }
+        }
+
+        // Save daily limit info to localStorage (called after each successful API response)
+        function cacheDailyLimit(remaining, total) {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                localStorage.setItem('promptlab_daily', JSON.stringify({
+                    date: today,
+                    remaining: remaining,
+                    total: total
+                }));
+            } catch (e) { /* localStorage unavailable */ }
         }
 
         // Update daily counter display
@@ -1011,8 +1220,9 @@
       </div>
     `;
 
-    // Update the daily counter display
+    // Update the daily counter display and cache
     updateDailyCounter(remainingFree, dailyLimit);
+    cacheDailyLimit(remainingFree, dailyLimit);
 
   } catch (err) {
     let errorMessage = err.message;
@@ -1033,6 +1243,7 @@
       `;
       // Update counter to show 0 remaining
       updateDailyCounter(0, 3);
+      cacheDailyLimit(0, 3);
       return;
     }
 
@@ -1057,35 +1268,37 @@
             navigator.clipboard?.writeText(v).then(()=> alert('Copied to clipboard'));
         }
 
-        // Rewarded flow: show a rewarded ad, then call /api/improve
+        // Rewarded flow: show a rewarded video, then call the worker to improve prompt
+        let rewardedResolve = null;
+        let rewardedReject = null;
+        let rewardedTimer = null;
+
         async function improvePromptRewarded() {
             const prompt = document.getElementById('promptInput').value.trim();
-            const model = document.getElementById('modelSelect').value;
-            const modality = document.getElementById('modalitySelect').value;
             if (!prompt) { alert('Please enter a prompt first'); return; }
 
-            // NOTE: integrate your rewarded-ad provider here. This stub simulates reward completion.
+            // Show rewarded video modal and wait for completion
             try {
-                await showRewardedAd(); // resolves when user earned reward
+                await showRewardedAd();
             } catch (e) {
-                alert('Reward not completed — prompt improvement cancelled.');
+                // User cancelled — do nothing
                 return;
             }
 
-            // After reward is granted, reuse the same endpoint
+            // After reward is granted, call the worker with rewarded flag
             const resultsPanel = document.getElementById('resultsPanel');
-            resultsPanel.innerHTML = '<div class="loading"><div class="spinner"></div>Improving prompt after rewarded ad...</div>';
+            resultsPanel.innerHTML = '<div class="loading"><div class="spinner"></div>Improving prompt after reward...</div>';
 
             try {
-                const resp = await fetch('/api/improve', {
+                const resp = await fetch(CONFIG.WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt, model, modality })
+                    body: JSON.stringify({ prompt, rewarded: true })
                 });
                 const json = await resp.json();
                 if (!resp.ok) throw new Error(json.error || 'Failed');
 
-                const improved = json.improvedPrompt || '';
+                const improved = json.result || '';
                 resultsPanel.innerHTML = `
                     <div class="result-card">
                         <h3 style="color:#fff; margin-bottom:12px">🏆 Rewarded Improvement</h3>
@@ -1094,6 +1307,11 @@
                             <button onclick="applyImproved()">Use This Prompt</button>
                             <button onclick="copyImproved()" class="btn-secondary">Copy</button>
                         </div>
+                        <div style="margin-top:15px;padding:10px;background:rgba(249,115,22,0.1);border-radius:6px;text-align:center">
+                            <span style="color:#f97316;font-size:14px">
+                                🎁 Rewarded improvement — no daily limit deducted!
+                            </span>
+                        </div>
                     </div>
                 `;
             } catch (err) {
@@ -1101,14 +1319,78 @@
             }
         }
 
-        // Rewarded ad placeholder — replace with your AdSense/Ad Manager rewarded integration.
+        // Show the rewarded video modal with countdown
         function showRewardedAd() {
+            const REWARD_DURATION = 15; // seconds to watch
+
             return new Promise((resolve, reject) => {
-                // For development we simulate the rewarded flow with a confirmation dialog.
-                const ok = confirm('Simulate watching rewarded ad? Click OK to simulate completion.');
-                if (ok) return resolve();
-                return reject(new Error('User cancelled'));
+                rewardedResolve = resolve;
+                rewardedReject = reject;
+
+                // Reset modal state
+                const overlay = document.getElementById('rewardedOverlay');
+                const progressBar = document.getElementById('rewardedProgressBar');
+                const claimBtn = document.getElementById('rewardedClaimBtn');
+                const secondsEl = document.getElementById('rewardedSeconds');
+                const countdownEl = document.getElementById('rewardedCountdown');
+
+                progressBar.style.width = '0%';
+                claimBtn.disabled = true;
+                claimBtn.innerHTML = '⏳ Watch the video to unlock...';
+                secondsEl.textContent = REWARD_DURATION;
+                countdownEl.style.display = 'inline-flex';
+
+                // Show overlay
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                // Start countdown
+                let remaining = REWARD_DURATION;
+                rewardedTimer = setInterval(() => {
+                    remaining--;
+                    const progress = ((REWARD_DURATION - remaining) / REWARD_DURATION) * 100;
+                    progressBar.style.width = progress + '%';
+                    secondsEl.textContent = remaining;
+
+                    if (remaining <= 0) {
+                        clearInterval(rewardedTimer);
+                        rewardedTimer = null;
+                        countdownEl.style.display = 'none';
+                        progressBar.style.width = '100%';
+                        claimBtn.disabled = false;
+                        claimBtn.innerHTML = '🎉 Claim Your Free Improvement!';
+                    }
+                }, 1000);
             });
+        }
+
+        // Claim reward button clicked
+        function claimReward() {
+            closeRewardedModal();
+            if (rewardedResolve) {
+                rewardedResolve();
+                rewardedResolve = null;
+                rewardedReject = null;
+            }
+        }
+
+        // Cancel / close the rewarded modal
+        function cancelReward() {
+            closeRewardedModal();
+            if (rewardedReject) {
+                rewardedReject(new Error('User cancelled'));
+                rewardedResolve = null;
+                rewardedReject = null;
+            }
+        }
+
+        function closeRewardedModal() {
+            if (rewardedTimer) {
+                clearInterval(rewardedTimer);
+                rewardedTimer = null;
+            }
+            document.getElementById('rewardedOverlay').classList.remove('active');
+            document.body.style.overflow = '';
         }
     </script>
 </body>
