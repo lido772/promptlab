@@ -1,7 +1,7 @@
 # Cloudflare Worker Configuration for PromptLab
 # Documentation: https://developers.cloudflare.com/workers/wrangler/configuration/
 
-name = "promptlab-worker"
+name = "promptlab"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
@@ -39,7 +39,7 @@ command = ""
 
 # Deployment configuration
 [env.production]
-name = "promptlab-worker"
+name = "promptla"
 
 [env.development]
-name = "promptlab-worker-dev"
+name = "promptlab-dev"
