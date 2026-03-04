@@ -14,7 +14,6 @@
             https://*.gstatic.com
             https://www.googletagmanager.com
             https://immoderatescarsheer.com
-            https://*.effectivegatecpm.com
             https://www.instant-gaming.com
             https://protrafficinspector.com
             https://releasewriggle.com
@@ -36,6 +35,7 @@
             https://*.google.com
             https://pagead2.googlesyndication.com
             https://*.google-analytics.com
+            https://immoderatescarsheer.com
             https://protrafficinspector.com
             https://releasewriggle.com
             https://sourshaped.com
@@ -51,7 +51,6 @@
             https://googleads.g.doubleclick.net
             https://tpc.googlesyndication.com
             https://immoderatescarsheer.com
-            https://*.effectivegatecpm.com
             https://ep1.adtrafficquality.google
             https://ep2.adtrafficquality.google;
         frame-ancestors 'self';
@@ -83,23 +82,14 @@
     <!-- ID: AD_DYNAMIC_LOADER -->
     <!-- ============================================== -->
     <!-- Ad & analytics scripts — only load on real domains, not file:// -->
+    <!-- Google Analytics (gtag.js) - loaded dynamically, skip on file:// -->
     <script id="ad-dynamic-loader">
         (function () {
-            if (location.protocol === 'file:') return; // skip on local file
+            if (location.protocol === 'file:') return;
 
-            // Google AdSense
-            var ads = document.createElement('script');
-            ads.async = true;
-            ads.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645';
-            ads.crossOrigin = 'anonymous';
-            ads.id = 'ad-dynamic-adsense';
-            document.head.appendChild(ads);
-
-            // Google Analytics (gtag.js)
             var gtag_s = document.createElement('script');
             gtag_s.async = true;
             gtag_s.src = 'https://www.googletagmanager.com/gtag/js?id=G-FP5GQJM9KZ';
-            gtag_s.id = 'ad-dynamic-gtag';
             document.head.appendChild(gtag_s);
 
             window.dataLayer = window.dataLayer || [];
@@ -197,11 +187,6 @@
                     </div>
                 </div>
                 <!-- ============================================== -->
-                <!-- AD BLOCK #5: CTA Section Banner (Primary + Fallback) -->
-                <!-- ID: AD_CTA_BANNER_WRAPPER -->
-                <!-- ============================================== -->
-            
-                <!-- ============================================== -->
                 <!-- AD BLOCK #6: Top Responsive Banner -->
                 <!-- ID: AD_TOP_RESPONSIVE -->
                 <!-- ============================================== -->
@@ -238,6 +223,7 @@
 
 
             </section>
+        </section>
     </main>
 
     <!-- SUPPORT MODAL - Voluntary Ad Viewing -->
@@ -253,9 +239,9 @@
             <!-- ============================================== -->
             <div class="rewarded-video-container" id="rewardedVideoContainer">
                 <!-- ImmoderateScarSheer Ad (PRIMARY) -->
-                <div class="ad-content" id="adContentISS" data-iss-slot="video-480x360" id-rewaded="ad-rewarded-iss-primary"
+                <div class="ad-content" id="adContentISS" id-rewarded="ad-rewarded-iss-primary"
                     style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
-                    <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
+                    <div id="container-72243473abb5417a0f414d4950c80145"></div>
                 </div>
 
                 <!-- Google AdSense Ad (SECONDARY - Fallback) -->
@@ -264,14 +250,9 @@
                         data-ad-slot="9302843472" data-ad-format="auto" data-full-width-responsive="true" id="ad-rewarded-google-ins"></ins>
                 </div>
 
-                <!-- Fallback Ad Network - EffectiveGateCPM (TERTIARY) -->
-                <div class="ad-content-fallback" id="adContentFallback" id-rewarded="ad-rewarded-effectivegate-fallback" style="display:none;">
-                    <div id="effectivegatecpm-ad"></div>
-                </div>
-
                 <!-- Loading placeholder -->
                 <div class="placeholder-content" id="rewardedPlaceholder" style="display:none;">
-                    <div class="ad-icon">📺</div>
+                    <div class="ad-icon">&#128250;</div>
                     <div style="font-size:16px;font-weight:600;">Loading Ad...</div>
                     <div style="font-size:13px;color:#888;margin-top:4px;">Please wait while we load the ad</div>
                 </div>
@@ -288,14 +269,6 @@
             </div>
         </div>
     </div>
-
-    <!-- ============================================== -->
-    <!-- AD BLOCK #8: EffectiveGateCPM Fallback Script -->
-    <!-- ID: AD_EFFECTIVEGATE_SCRIPT -->
-    <!-- NOTE: This script may attempt to load suspicious domains -->
-    <!-- (e.g., weirdopt.com) but CSP will block them - this is expected -->
-    <!-- ============================================== -->
-    <script src="https://pl28839096.effectivegatecpm.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js" id="ad-effectivegate-script"></script>
 
     <!-- ============================================== -->
     <!-- AD BLOCK #9: Instant-Gaming Configuration Script -->

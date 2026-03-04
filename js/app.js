@@ -749,7 +749,6 @@ function showRewardedAd() {
         const overlay = document.getElementById('rewardedOverlay');
         const adContentISS = document.getElementById('adContentISS');
         const adContent = document.getElementById('adContent');
-        const adContentFallback = document.getElementById('adContentFallback');
         const placeholder = document.getElementById('rewardedPlaceholder');
 
         overlay.classList.add('active');
@@ -758,10 +757,9 @@ function showRewardedAd() {
         if (adContentISS) {
             adContentISS.style.display = 'block';
             if (adContent) adContent.style.display = 'none';
-            if (adContentFallback) adContentFallback.style.display = 'none';
             if (placeholder) placeholder.style.display = 'none';
 
-            window.setupRewardedAdFallback();
+            Ads.setupRewardedAdFallback();
         }
     });
 }
@@ -926,8 +924,6 @@ function init() {
 
     // Initialize ads
     Ads.init();
-    Ads.loadDynamicAds();
-    Ads.monitorAdFallback();
 }
 
 // Export for use in HTML
