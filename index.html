@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromptUp - Test & Optimize AI Prompts</title>
 
+    <!-- ImmoderateScarSheer Ad Network Configuration (MUST be before script load) -->
+    <script>
+        // Configuration object for ImmoderateScarSheer (like Instant-Gaming pattern)
+        window.issConfig = {
+            publisherId: 'f5884e9c86829bc8ec3b68dc085b7e90',
+            autoLoad: true,
+            slots: {
+                'issTopBanner': 'top-728x90',
+                'issHero': 'hero-728x90',
+                'issRectangle': 'rectangle-300x250',
+                'issFooter': 'footer-728x90',
+                'issPostResults': 'post-728x90',
+                'adContentISS': 'video-480x360'
+            }
+        };
+    </script>
+
     <!-- ImmoderateScarSheer Ad Network (PRIMARY) -->
     <script src="https://immoderatescarsheer.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
 
@@ -691,7 +708,7 @@
         <!-- Top banner ad placeholder -->
         <div class="ad-banner" aria-label="Advertisement">
             <!-- ImmoderateScarSheer Top Banner (PRIMARY) -->
-            <div id="issTopBanner" class="ad-banner-iss" style="min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px;">
+            <div id="issTopBanner" class="ad-banner-iss" data-iss-slot="top-728x90" style="min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px;">
                 <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
             </div>
 
@@ -714,7 +731,7 @@
             <p>Test and optimize prompts for 50+ AI models across text, image, video, audio, and code generation. Write better prompts in seconds.</p>
 
             <!-- ImmoderateScarSheer Ad - Hero (PRIMARY) -->
-            <div id="issHero" class="ad-banner-iss" style="margin-top: 30px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px;">
+            <div id="issHero" class="ad-banner-iss" data-iss-slot="hero-728x90" style="margin-top: 30px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px;">
                 <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
             </div>
 
@@ -790,7 +807,7 @@
                 </div>
 
                 <!-- ImmoderateScarSheer Rectangle (PRIMARY) -->
-                <div id="issRectangle" class="ad-banner-iss" style="margin-bottom: 20px; min-height: 280px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
+                <div id="issRectangle" class="ad-banner-iss" data-iss-slot="rectangle-300x250" style="margin-bottom: 20px; min-height: 280px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
                     <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
                 </div>
 
@@ -838,7 +855,7 @@
 
             <div class="rewarded-video-container" id="rewardedVideoContainer">
                 <!-- ImmoderateScarSheer Ad (PRIMARY) -->
-                <div class="ad-content" id="adContentISS" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                <div class="ad-content" id="adContentISS" data-iss-slot="video-480x360" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
                     <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
                 </div>
 
@@ -891,7 +908,7 @@
     <script src="https://www.instant-gaming.com/api/banner/partner/loader.js" defer></script>
 
     <!-- ImmoderateScarSheer Ad - Footer Banner -->
-    <div class="ad-banner-iss" id="issFooter" style="max-width: 1200px; margin: 30px auto; padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px; min-height: 90px; display: flex; align-items: center; justify-content: center;">
+    <div class="ad-banner-iss" id="issFooter" data-iss-slot="footer-728x90" style="max-width: 1200px; margin: 30px auto; padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px; min-height: 90px; display: flex; align-items: center; justify-content: center;">
         <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
     </div>
 
@@ -1275,7 +1292,7 @@
 
             // Add ImmoderateScarSheer ad after results
             html += `
-                <div id="issPostResults" class="ad-banner-iss" style="margin-top: 20px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
+                <div id="issPostResults" class="ad-banner-iss" data-iss-slot="post-728x90" style="margin-top: 20px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
                     <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
                 </div>
             `;
