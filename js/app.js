@@ -574,7 +574,7 @@ async function improvePromptFree() {
 
         // Check if it's a daily limit error
         if (errorMessage.includes('Daily free limit reached')) {
-            const resetTime = data?.resetAt ? new Date(data.resetAt).toLocaleTimeString() : 'midnight';
+            const resetTime = 'midnight';
 
             // Create limit reached message (SECURE: no innerHTML)
             const limitCard = DOM.createElement('div', {
@@ -824,10 +824,15 @@ function updateDailyCounter(remaining, total) {
     const dailyCounter = document.getElementById('dailyCounter');
     if (!dailyCounter) return;
 
-    if (remaining <= 0) {
-        dailyCounter.innerHTML = `<span style="color:#fbbf24">⚠️ Daily limit reached (${total}/${total} used)</span>`;
+    const safeRemaining = parseInt(remaining, 10) || 0;
+    const safeTotal = parseInt(total, 10) || 3;
+
+    if (safeRemaining <= 0) {
+        dailyCounter.textContent = `\u26A0\uFE0F Daily limit reached (${safeTotal}/${safeTotal} used)`;
+        dailyCounter.style.color = '#fbbf24';
     } else {
-        dailyCounter.innerHTML = `✨ ${remaining}/${total} free improvements remaining today`;
+        dailyCounter.textContent = `\u2728 ${safeRemaining}/${safeTotal} free improvements remaining today`;
+        dailyCounter.style.color = '';
     }
 }
 
@@ -838,7 +843,7 @@ function shareOnTwitter() {
     const text = prompt
         ? `I just tested my prompt on PromptUp - Score: ${score}/100. The AI-powered analysis helped me optimize it! Try it free: promptup.cloud`
         : 'Just discovered PromptUp - a free tool to test and optimize AI prompts. Works with ChatGPT, Claude, and more. promptup.cloud';
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
 }
 
 function goToPremium() {

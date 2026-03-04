@@ -5,7 +5,6 @@
 
 const Ads = {
     initialized: false,
-    pendingAds: new Set(),
 
     /**
      * Initialize ad networks after page load

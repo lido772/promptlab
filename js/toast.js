@@ -37,7 +37,7 @@ const Toast = {
         this.init();
 
         const toast = DOM.createElement('div', {
-            className: `toast toast-${type}`,
+            className: `toast ${type}`,
             text: message // Safe: textContent prevents XSS
         });
 

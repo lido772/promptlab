@@ -58,6 +58,19 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="description" content="Test and optimize AI prompts for 50+ models including ChatGPT, Claude, Gemini, DALL-E, and more. Get instant clarity scores, AI-powered suggestions, and free prompt improvements.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://promptup.cloud/">
+    <!-- Open Graph -->
+    <meta property="og:title" content="PromptUp - Test & Optimize AI Prompts">
+    <meta property="og:description" content="Test and optimize prompts for 50+ AI models. Get instant scoring, AI suggestions, and free improvements.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://promptup.cloud/">
+    <meta property="og:site_name" content="PromptUp">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="PromptUp - Test & Optimize AI Prompts">
+    <meta name="twitter:description" content="Test and optimize prompts for 50+ AI models. Free instant scoring and AI-powered improvements.">
     <title>PromptUp - Test & Optimize AI Prompts</title>
 
     <!-- ============================================== -->
@@ -76,6 +89,10 @@
 
     <!-- External Stylesheet -->
     <link rel="stylesheet" href="css/main.css">
+    <!-- Preconnect to third-party domains for performance -->
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="preconnect" href="https://immoderatescarsheer.com" crossorigin>
 
     <!-- ============================================== -->
     <!-- AD BLOCK #3: Dynamic Ad & Analytics Loading Script -->
@@ -127,7 +144,7 @@
                     <h2>Your Prompt</h2>
 
                     <label>Content Type</label>
-                    <select id="modalitySelect" onchange="updateProviders()">
+                    <select id="modalitySelect">
                         <option value="text">📝 Text Generation</option>
                         <option value="image">🖼️ Image Generation</option>
                         <option value="video">🎬 Video Generation</option>
@@ -136,7 +153,7 @@
                     </select>
 
                     <label>Provider</label>
-                    <select id="providerSelect" onchange="updateModels()">
+                    <select id="providerSelect">
                         <option value="">Select Provider...</option>
                     </select>
 
@@ -287,16 +304,19 @@
 
     <footer>
         <p>Made for AI enthusiasts by PromptUp. No credit card required to test now.</p>
-        <!-- Footer -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-5400335063218645"
-     data-ad-slot="3926365469"
-     data-ad-format="auto"
-     data-full-width-responsive="true"></ins>
-<script>
-     (adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+        <p style="font-size:12px;color:#555;margin-top:10px;">This site contains affiliate links and ads. We may earn a commission at no extra cost to you. Your data is analyzed locally and never stored.</p>
+        <!-- Footer Ad -->
+        <div class="ad-banner" aria-label="Advertisement" style="margin-top:20px;">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-5400335063218645"
+                 data-ad-slot="3926365469"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
     </footer>
 
     <!-- Toast Notification Container -->
