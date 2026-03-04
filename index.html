@@ -409,8 +409,14 @@
             text-align: center;
         }
 
-        .ad-banner-partner iframe {
+        #my-banner {
+            width: 100%;
+            min-height: 90px;
+        }
+
+        #my-banner iframe {
             margin: 0 auto;
+            display: block;
         }
 
         .ad-rect {
@@ -758,15 +764,9 @@
 
                 <!-- Instant-Gaming Affiliate Banner -->
                 <div class="ad-banner-partner" style="margin-bottom: 20px;">
-                    <iframe
-                        src="https://www.instant-gaming.com/affiliates/banner/728x90/?igr=gamer-244970"
-                        width="728"
-                        height="90"
-                        scrolling="no"
-                        frameborder="0"
-                        style="border:0; margin:0; padding:0; display:block; max-width:100%;"
-                        allowfullscreen>
-                    </iframe>
+                    <div id="my-banner" style="min-height: 90px; display: flex; align-items: center; justify-content: center;">
+                        <div style="color: #666; font-size: 14px;">Loading...</div>
+                    </div>
                 </div>
 
                 <!-- CTA rectangle ad placeholder -->
@@ -847,6 +847,17 @@
 
     <!-- EffectiveGateCPM Ad Script -->
     <script src="https://pl28839096.effectivegatecpm.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
+
+    <!-- Instant-Gaming Affiliate Banner Configuration -->
+    <script>
+        // Must be before the loading of the script
+        window.igBannerConfig = {
+            lang: 'en',
+            igr: 'gamer-244970',
+            banners: ['my-banner']
+        };
+    </script>
+    <script src="https://www.instant-gaming.com/api/banner/partner/loader.js" defer></script>
 
     <!-- ImmoderateScarSheer Ad - Footer Banner -->
     <div class="ad-banner-iss" id="issFooter" style="max-width: 1200px; margin: 30px auto; padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px; min-height: 90px; display: flex; align-items: center; justify-content: center;">
