@@ -12,7 +12,10 @@
             https://*.googlesyndication.com
             https://pagead2.googlesyndication.com
             https://*.gstatic.com
+            https://www.gstatic.com/firebasejs/
             https://www.googletagmanager.com
+            https://apis.google.com
+            https://connect.facebook.net
             https://immoderatescarsheer.com
             https://www.instant-gaming.com
             https://protrafficinspector.com
@@ -35,6 +38,10 @@
             https://*.google.com
             https://pagead2.googlesyndication.com
             https://*.google-analytics.com
+            https://identitytoolkit.googleapis.com
+            https://securetoken.googleapis.com
+            https://www.googleapis.com
+            https://firebaseinstallations.googleapis.com
             https://immoderatescarsheer.com
             https://protrafficinspector.com
             https://releasewriggle.com
@@ -51,6 +58,9 @@
             https://pagead2.googlesyndication.com
             https://googleads.g.doubleclick.net
             https://tpc.googlesyndication.com
+            https://accounts.google.com
+            https://www.facebook.com
+            https://*.firebaseapp.com
             https://immoderatescarsheer.com
             https://ep1.adtrafficquality.google
             https://ep2.adtrafficquality.google;
@@ -93,6 +103,7 @@
     <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
     <link rel="preconnect" href="https://immoderatescarsheer.com" crossorigin>
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 
     <!-- ============================================== -->
     <!-- AD BLOCK #3: Dynamic Ad & Analytics Loading Script -->
@@ -125,6 +136,7 @@
         <div class="container">
             <div class="logo">✨ PromptUp</div>
             <p class="tagline">Test, optimize & master your AI prompts</p>
+            <div id="authContainer" class="auth-container"></div>
         </div>
     </header>
 
@@ -186,6 +198,15 @@
                             nothing is saved or shared.</p>
                     </div>
                 </div>
+            </section>
+
+            <!-- HISTORY SECTION (visible when logged in) -->
+            <section id="historySection" class="history-section" style="display:none">
+                <div class="history-header">
+                    <h2>My Prompt History</h2>
+                    <button class="btn-secondary history-toggle-btn" data-action="toggle-history" style="width:auto;padding:8px 16px;font-size:14px;">Hide History</button>
+                </div>
+                <div id="historyContent"></div>
             </section>
 
             <!-- CTA SECTION -->

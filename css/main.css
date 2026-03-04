@@ -730,3 +730,204 @@
         .toast-hiding {
             animation: fadeOut 0.3s ease forwards;
         }
+
+        /* AUTH CONTAINER */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+            min-height: 40px;
+        }
+
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            border: none;
+            width: auto;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .auth-btn-google {
+            background: #fff;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .auth-btn-google:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .auth-btn-facebook {
+            background: #1877F2;
+            color: #fff;
+        }
+
+        .auth-btn-facebook:hover {
+            box-shadow: 0 4px 16px rgba(24,119,242,0.4);
+        }
+
+        .auth-btn-signout {
+            background: rgba(255,255,255,0.1);
+            color: #aaa;
+            border: 1px solid rgba(255,255,255,0.15);
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+
+        .auth-btn-signout:hover {
+            color: #fff;
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: none;
+        }
+
+        .auth-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .auth-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,212,255,0.4);
+        }
+
+        .auth-user-name {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* HISTORY SECTION */
+        .history-section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 30px 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-header h2 {
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #666;
+            padding: 30px;
+            font-size: 14px;
+        }
+
+        .history-item {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: rgba(0,212,255,0.2);
+        }
+
+        .history-item-date {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .history-item-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .history-item-original {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            border-left: 2px solid #555;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 80px;
+            overflow: hidden;
+        }
+
+        .history-item-improved {
+            font-size: 13px;
+            color: #aaa;
+            padding: 8px;
+            background: rgba(0,212,255,0.05);
+            border-radius: 4px;
+            border-left: 2px solid #00d4ff;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 120px;
+            overflow: hidden;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .history-actions button {
+            width: auto;
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .history-use-btn {
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            color: #fff;
+            border: none;
+        }
+
+        .history-delete-btn {
+            background: transparent;
+            color: #666;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .history-delete-btn:hover {
+            color: #ef4444;
+            border-color: rgba(239,68,68,0.3);
+            box-shadow: none;
+        }
+
+        .history-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }

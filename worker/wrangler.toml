@@ -18,6 +18,10 @@ id = "f8b12d4d4d5a49e5b0fe87c36f9e16a0"
 # Environment variables (set in wrangler secret for security)
 # Run: wrangler secret put GEMINI_API_KEY
 # Run: wrangler secret put ALLOWED_ORIGINS
+# Run: wrangler secret put FIREBASE_PROJECT_ID
+#
+# FIREBASE_PROJECT_ID: Your Firebase project ID from console.firebase.google.com
+# Required for verifying Firebase ID tokens in auth-protected endpoints (history)
 #
 # Example ALLOWED_ORIGINS value:
 # "http://localhost:*,https://promptup.cloud,https://www.promptup.cloud,https://promptailab.netlify.app"

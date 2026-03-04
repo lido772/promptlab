@@ -6,6 +6,8 @@
 import { DOM } from './dom-builder.js';
 import Toast from './toast.js';
 import Ads from './ads.js';
+import Auth from './auth.js';
+import History from './history.js';
 
 // Configuration
 const CONFIG = {
@@ -500,9 +502,13 @@ async function improvePromptFree() {
     resultsPanel.appendChild(loadingElement);
 
     try {
+        const headers = { "Content-Type": "application/json" };
+        const token = await Auth.getIdToken();
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         const response = await fetch(CONFIG.WORKER_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({ prompt })
         });
 
@@ -668,9 +674,13 @@ async function improvePromptRewarded() {
     resultsPanel.appendChild(loadingElement);
 
     try {
+        const rewardedHeaders = { 'Content-Type': 'application/json' };
+        const rewardedToken = await Auth.getIdToken();
+        if (rewardedToken) rewardedHeaders['Authorization'] = `Bearer ${rewardedToken}`;
+
         const resp = await fetch(CONFIG.WORKER_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: rewardedHeaders,
             body: JSON.stringify({ prompt, rewarded: true })
         });
         const json = await resp.json();
@@ -850,6 +860,77 @@ function goToPremium() {
     Toast.info('Premium features coming soon! Join the waitlist: promptup.cloud/premium');
 }
 
+// Render auth UI in header based on login state
+function renderAuthUI(user) {
+    const container = document.getElementById('authContainer');
+    if (!container) return;
+
+    DOM.clear(container);
+
+    if (user) {
+        // Logged in — show user info + history toggle + sign out
+        const userInfo = DOM.createElement('div', {
+            className: 'auth-user-info',
+            children: [
+                ...(user.photoURL ? [DOM.createElement('img', {
+                    className: 'auth-avatar',
+                    attributes: {
+                        src: user.photoURL,
+                        alt: user.displayName || 'User',
+                        referrerpolicy: 'no-referrer'
+                    }
+                })] : []),
+                DOM.createElement('span', {
+                    className: 'auth-user-name',
+                    text: user.displayName || user.email || 'User'
+                })
+            ]
+        });
+        container.appendChild(userInfo);
+
+        const historyBtn = DOM.createElement('button', {
+            className: 'auth-btn auth-btn-signout',
+            text: 'My History',
+            dataset: { action: 'toggle-history' }
+        });
+        container.appendChild(historyBtn);
+
+        const signOutBtn = DOM.createElement('button', {
+            className: 'auth-btn auth-btn-signout',
+            text: 'Sign Out',
+            dataset: { action: 'sign-out' }
+        });
+        container.appendChild(signOutBtn);
+
+        // Show history section
+        History.show();
+    } else {
+        // Logged out — show sign-in buttons
+        const googleBtn = DOM.createElement('button', {
+            className: 'auth-btn auth-btn-google',
+            dataset: { action: 'sign-in-google' },
+            children: [
+                DOM.createElement('span', { text: 'G', style: { fontWeight: '700', fontSize: '16px' } }),
+                DOM.createElement('span', { text: 'Sign in with Google' })
+            ]
+        });
+        container.appendChild(googleBtn);
+
+        const fbBtn = DOM.createElement('button', {
+            className: 'auth-btn auth-btn-facebook',
+            dataset: { action: 'sign-in-facebook' },
+            children: [
+                DOM.createElement('span', { text: 'f', style: { fontWeight: '700', fontSize: '16px' } }),
+                DOM.createElement('span', { text: 'Sign in with Facebook' })
+            ]
+        });
+        container.appendChild(fbBtn);
+
+        // Hide history when logged out
+        History.hide();
+    }
+}
+
 // Event delegation for action buttons
 function handleActionButtons(e) {
     const button = e.target.closest('[data-action]');
@@ -894,6 +975,34 @@ function handleActionButtons(e) {
         case 'go-premium':
             goToPremium();
             break;
+        case 'sign-in-google':
+            Auth.signInWithGoogle().catch(err => {
+                if (err.code !== 'auth/popup-closed-by-user') {
+                    Toast.error('Google sign-in failed. Please try again.');
+                    console.error('Google sign-in error:', err);
+                }
+            });
+            break;
+        case 'sign-in-facebook':
+            Auth.signInWithFacebook().catch(err => {
+                if (err.code !== 'auth/popup-closed-by-user') {
+                    Toast.error('Facebook sign-in failed. Please try again.');
+                    console.error('Facebook sign-in error:', err);
+                }
+            });
+            break;
+        case 'sign-out':
+            Auth.signOut().then(() => Toast.info('Signed out'));
+            break;
+        case 'toggle-history':
+            History.toggle();
+            break;
+        case 'use-history':
+            History.usePrompt(button.dataset.historyText || '');
+            break;
+        case 'delete-history':
+            History.deleteEntry(button.dataset.historyId);
+            break;
     }
 }
 
@@ -929,6 +1038,10 @@ function init() {
 
     // Initialize ads
     Ads.init();
+
+    // Initialize Firebase Auth
+    Auth.init();
+    Auth.onAuthStateChanged(renderAuthUI);
 }
 
 // Export for use in HTML

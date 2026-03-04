@@ -1,3 +1,187 @@
+// ========================================
+// Firebase Token Verification (no firebase-admin SDK)
+// Verifies Firebase ID tokens using Google's public JWKS keys
+// Works in Cloudflare Workers via Web Crypto API
+// ========================================
+
+async function getGooglePublicKeys(env) {
+  const cacheKey = 'google_jwks_cache';
+  if (env.RATE_LIMIT_KV) {
+    const cached = await env.RATE_LIMIT_KV.get(cacheKey, { type: 'json' });
+    if (cached) return cached;
+  }
+
+  const response = await fetch(
+    'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'
+  );
+  const jwks = await response.json();
+
+  if (env.RATE_LIMIT_KV) {
+    await env.RATE_LIMIT_KV.put(cacheKey, JSON.stringify(jwks), { expirationTtl: 3600 });
+  }
+
+  return jwks;
+}
+
+function base64UrlDecode(str) {
+  const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = base64.length % 4;
+  const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+  const binary = atob(padded);
+  return new Uint8Array([...binary].map(c => c.charCodeAt(0)));
+}
+
+async function verifyFirebaseToken(idToken, projectId, env) {
+  try {
+    const parts = idToken.split('.');
+    if (parts.length !== 3) return { valid: false, error: 'Malformed token' };
+
+    const [headerB64, payloadB64, signatureB64] = parts;
+
+    const headerJson = new TextDecoder().decode(base64UrlDecode(headerB64));
+    const payloadJson = new TextDecoder().decode(base64UrlDecode(payloadB64));
+    const header = JSON.parse(headerJson);
+    const payload = JSON.parse(payloadJson);
+
+    // Validate claims before fetching keys
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp < now) return { valid: false, error: 'Token expired' };
+    if (payload.iat > now + 300) return { valid: false, error: 'Token issued in future' };
+    if (payload.iss !== `https://securetoken.google.com/${projectId}`) {
+      return { valid: false, error: 'Invalid issuer' };
+    }
+    if (payload.aud !== projectId) return { valid: false, error: 'Invalid audience' };
+    if (!payload.sub || typeof payload.sub !== 'string') {
+      return { valid: false, error: 'Invalid subject' };
+    }
+
+    // Fetch Google's public keys
+    const jwks = await getGooglePublicKeys(env);
+    const key = jwks.keys.find(k => k.kid === header.kid);
+    if (!key) return { valid: false, error: 'Key not found' };
+
+    // Import RSA public key via Web Crypto API
+    const cryptoKey = await crypto.subtle.importKey(
+      'jwk', key,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false, ['verify']
+    );
+
+    // Verify signature
+    const signatureBytes = base64UrlDecode(signatureB64);
+    const dataBytes = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+    const isValid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', cryptoKey, signatureBytes, dataBytes);
+
+    if (!isValid) return { valid: false, error: 'Invalid signature' };
+
+    return {
+      valid: true,
+      uid: payload.sub,
+      email: payload.email || null,
+      name: payload.name || null,
+      picture: payload.picture || null
+    };
+  } catch (err) {
+    return { valid: false, error: 'Verification failed' };
+  }
+}
+
+// ========================================
+// Helper: Extract and verify auth from request
+// ========================================
+async function getAuthUser(request, env) {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+
+  const idToken = authHeader.slice(7);
+  if (!env.FIREBASE_PROJECT_ID) return null;
+
+  const result = await verifyFirebaseToken(idToken, env.FIREBASE_PROJECT_ID, env);
+  return result.valid ? result : null;
+}
+
+// ========================================
+// History handlers
+// ========================================
+async function handleGetHistory(request, env, corsHeaders) {
+  const user = await getAuthUser(request, env);
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+
+  const historyKey = `history:${user.uid}`;
+  const history = await env.RATE_LIMIT_KV.get(historyKey, { type: 'json' });
+
+  return new Response(JSON.stringify({
+    entries: history?.entries || [],
+    count: history?.entries?.length || 0
+  }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders }
+  });
+}
+
+async function handleDeleteHistory(request, env, corsHeaders, entryId) {
+  const user = await getAuthUser(request, env);
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+
+  if (!entryId) {
+    return new Response(JSON.stringify({ error: 'Entry ID required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+
+  const historyKey = `history:${user.uid}`;
+  const history = await env.RATE_LIMIT_KV.get(historyKey, { type: 'json' });
+
+  if (history && history.entries) {
+    history.entries = history.entries.filter(e => e.id !== entryId);
+    await env.RATE_LIMIT_KV.put(historyKey, JSON.stringify(history));
+  }
+
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json', ...corsHeaders }
+  });
+}
+
+async function saveToHistory(request, env, originalPrompt, improvedPrompt) {
+  try {
+    const user = await getAuthUser(request, env);
+    if (!user || !env.RATE_LIMIT_KV) return;
+
+    const historyKey = `history:${user.uid}`;
+    const existing = await env.RATE_LIMIT_KV.get(historyKey, { type: 'json' }) || { entries: [] };
+
+    existing.entries.unshift({
+      id: `h_${Date.now()}`,
+      originalPrompt: (originalPrompt || '').substring(0, 2000),
+      improvedPrompt: (improvedPrompt || '').substring(0, 2000),
+      timestamp: new Date().toISOString()
+    });
+
+    // Cap at 50 entries
+    if (existing.entries.length > 50) {
+      existing.entries = existing.entries.slice(0, 50);
+    }
+
+    await env.RATE_LIMIT_KV.put(historyKey, JSON.stringify(existing));
+  } catch (err) {
+    // History save is best-effort
+    console.error('History save error:', err);
+  }
+}
+
+// ========================================
+// Main Worker
+// ========================================
 export default {
   async fetch(request, env, ctx) {
 
@@ -122,8 +306,8 @@ export default {
 
     const corsHeaders = {
       "Access-Control-Allow-Origin": allowedOrigin || "null",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Max-Age": "86400",
       ...securityHeaders
     };
@@ -136,10 +320,25 @@ export default {
       });
     }
 
-    // Only allow POST requests
-    if (request.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), {
-        status: 405,
+    // URL-based routing
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // GET /history — fetch user's prompt history
+    if (request.method === "GET" && path === "/history") {
+      return handleGetHistory(request, env, corsHeaders);
+    }
+
+    // DELETE /history/:id — delete a history entry
+    if (request.method === "DELETE" && path.startsWith("/history/")) {
+      const entryId = path.split("/history/")[1];
+      return handleDeleteHistory(request, env, corsHeaders, entryId);
+    }
+
+    // POST / or /improve — existing improve endpoint
+    if (request.method !== "POST" || (path !== "/" && path !== "/improve")) {
+      return new Response(JSON.stringify({ error: "Not found" }), {
+        status: 404,
         headers: {
           "Content-Type": "application/json",
           ...corsHeaders
@@ -366,7 +565,7 @@ export default {
       // Estimate API cost for this request
       const estimatedInputTokens = API_COSTS.avg_input_tokens;
       const estimatedOutputTokens = (result?.split(' ') || []).length || API_COSTS.avg_output_tokens; // rough estimate
-      const estimatedCost = 
+      const estimatedCost =
         (estimatedInputTokens * API_COSTS.gemini_input_token) +
         (estimatedOutputTokens * API_COSTS.gemini_output_token);
 
@@ -393,6 +592,9 @@ export default {
           console.error('Stats tracking error:', e);
         }
       }
+
+      // Save to history for authenticated users (best-effort)
+      ctx.waitUntil(saveToHistory(request, env, sanitizedPrompt, result));
 
       return new Response(JSON.stringify({
         result,
