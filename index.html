@@ -394,6 +394,21 @@
             font-size: 14px;
         }
 
+        .ad-banner-partner {
+            width: 100%;
+            max-width: 728px;
+            margin: 0 auto 20px auto;
+            padding: 12px;
+            background: linear-gradient(90deg, rgba(139,92,246,0.05), rgba(124,58,237,0.02));
+            border: 1px dashed rgba(139,92,246,0.15);
+            border-radius: 8px;
+            color: #cbd5e1;
+        }
+
+        .ad-banner-partner:empty {
+            display: none;
+        }
+
         .ad-rect {
             width: 100%;
             padding: 18px;
@@ -433,6 +448,35 @@
             text-align: center;
             position: relative;
             box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+
+        .modal-close-btn:active {
+            transform: scale(0.95);
         }
 
         .rewarded-modal h3 {
@@ -673,7 +717,7 @@
                     <span id="dailyCounter">Loading...</span>
                 </div>
                 <div style="height:8px"></div>
-                <button id="improveRewardedBtn" style="background:linear-gradient(135deg,#f59e0b,#f97316);" onclick="improvePromptRewarded()">🎁 Improve (Watch Ad - Unlimited)</button>
+                <button id="improveRewardedBtn" style="background:linear-gradient(135deg,#f59e0b,#f97316);" onclick="improvePromptRewarded()">💜 Continue with Ad Support</button>
             </div>
 
             <div class="results-panel" id="resultsPanel">
@@ -688,6 +732,10 @@
         <section class="cta-section">
             <h2>Ready to Master Prompting?</h2>
             <p>Join 5,000+ users who've improved their AI workflow</p>
+
+                <!-- Instant-Gaming Affiliate Banner -->
+                <div class="ad-banner-partner" id="igBanner" style="margin-bottom: 20px; text-align: center; min-height: 90px; display: flex; align-items: center; justify-content: center;">
+                </div>
 
                 <!-- CTA rectangle ad placeholder -->
                 <div class="ad-rect" aria-label="Advertisement">
@@ -728,8 +776,9 @@
     <!-- SUPPORT MODAL - Voluntary Ad Viewing -->
     <div class="rewarded-overlay" id="rewardedOverlay">
         <div class="rewarded-modal">
-            <h3>💜 Support PromptUp</h3>
-            <p class="subtitle">Watch an ad to help keep our tools free (optional!)</p>
+            <button class="modal-close-btn" onclick="cancelReward()" aria-label="Close modal">✕</button>
+            <h3>💜 Your Optimization is Ready!</h3>
+            <p class="subtitle">Would you like to view an ad to support free tools? (completely optional)</p>
 
             <div class="rewarded-video-container" id="rewardedVideoContainer">
                 <!-- Google AdSense Ad - NOTE: Don't initialize here, will be loaded when modal opens -->
@@ -753,10 +802,10 @@
                 </div>
             </div>
 
+            <button class="rewarded-skip-btn" onclick="cancelReward()">Skip, continue now</button>
             <button class="rewarded-claim-btn" id="rewardedClaimBtn" onclick="claimReward()">
-                Continue to Tool 🚀
+                View ad to support 💜
             </button>
-            <button class="rewarded-skip-btn" onclick="cancelReward()">Skip for now</button>
 
             <div style="margin-top:15px;padding:10px;background:rgba(124,58,237,0.1);border-radius:6px;font-size:12px;color:#888;text-align:center;border-left:2px solid #7c3aed;">
                 💜 Ad revenue helps us provide free AI tools to everyone. Thank you for your support!
@@ -766,6 +815,9 @@
 
     <!-- EffectiveGateCPM Ad Script -->
     <script src="https://pl28839096.effectivegatecpm.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
+
+    <!-- Instant-Gaming Affiliate Banner Script -->
+    <script src="https://www.instant-gaming.com/api/banner/partner/loader.js"></script>
 
     <footer>
         <p>Made for AI enthusiasts by PromptUp. No credit card required to test now.</p>
@@ -1171,6 +1223,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateProviders();
             checkDailyLimit();
+
+            // Initialize Instant-Gaming banner
+            try {
+                if (typeof IG !== 'undefined' && IG.Banner) {
+                    const igContainer = document.getElementById('igBanner');
+                    if (igContainer) {
+                        IG.Banner.create({
+                            container: igContainer,
+                            width: 728,
+                            height: 90,
+                            theme: 'dark',
+                            affiliate: 'gamer-244970'
+                        });
+                    }
+                } else {
+                    console.log('Instant-Gaming banner loader not yet available');
+                }
+            } catch (error) {
+                console.log('Instant-Gaming banner initialization error:', error);
+            }
         });
 
         // Check daily limit status — uses localStorage cache, no server call on load
@@ -1291,7 +1363,7 @@
           <p style="color:#aaa;margin-bottom:15px">You've used all 3 free prompt improvements for today.</p>
           <p style="color:#666;font-size:14px;margin-bottom:20px">Resets at ${resetTime}</p>
           <button onclick="improvePromptRewarded()" style="background:linear-gradient(135deg,#f59e0b,#f97316)">
-            🎁 Watch Ad for More (Unlimited)
+            💜 Continue with Ad Support
           </button>
         </div>
       `;
@@ -1455,6 +1527,16 @@
             document.getElementById('rewardedOverlay').classList.remove('active');
             document.body.style.overflow = '';
         }
+
+        // ESC key handler to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('rewardedOverlay');
+                if (overlay && overlay.classList.contains('active')) {
+                    cancelReward();
+                }
+            }
+        });
     </script>
 </body>
 </html>
