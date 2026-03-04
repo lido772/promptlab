@@ -1,684 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- IMPROVED CSP - Allows ad networks while maintaining security -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline'
+            https://*.google.com
+            https://*.googlesyndication.com
+            https://*.gstatic.com
+            https://www.googletagmanager.com
+            https://immoderatescarsheer.com
+            https://*.effectivegatecpm.com
+            https://www.instant-gaming.com
+            https://protrafficinspector.com
+            https://releasewriggle.com
+            https://preferencenail.com
+            https://sourshaped.com
+            https://manufacturemoustache.com
+            https://skinnycrawlinglax.com
+            http://weirdopt.com
+            https://weirdopt.com
+            https://ep1.adtrafficquality.google
+            https://ep2.adtrafficquality.google;
+        style-src 'self' 'unsafe-inline' https://www.instant-gaming.com;
+        img-src 'self' data: https: http: blob:
+            https://cdn.storageimagedisplay.com
+            http://cdn.storageimagedisplay.com
+            https://flushpersist.com
+            http://flushpersist.com;
+        connect-src 'self'
+            https://promptlab.lido772.workers.dev
+            https://*.google.com
+            https://*.google-analytics.com
+            https://protrafficinspector.com
+            https://releasewriggle.com
+            https://sourshaped.com
+            https://www.instant-gaming.com
+            https://manufacturemoustache.com
+            https://skinnycrawlinglax.com
+            https://ep1.adtrafficquality.google
+            https://ep2.adtrafficquality.google
+            https://weirdopt.com
+            https://locksadvancedrelease.com;
+        font-src 'self' data: https://www.instant-gaming.com;
+        frame-src 'self'
+            https://*.google.com
+            https://googleads.g.doubleclick.net
+            https://tpc.googlesyndication.com
+            https://immoderatescarsheer.com
+            https://*.effectivegatecpm.com
+            https://ep1.adtrafficquality.google
+            https://ep2.adtrafficquality.google;
+        frame-ancestors 'self';
+    ">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <title>PromptUp - Test & Optimize AI Prompts</title>
 
-    <!-- ImmoderateScarSheer Ad Network -->
-    <script async="async" data-cfasync="false" src="https://immoderatescarsheer.com/72243473abb5417a0f414d4950c80145/invoke.js"></script>
+    <!-- ============================================== -->
+    <!-- AD BLOCK #1: ImmoderateScarSheer (PRIMARY) - Head Script -->
+    <!-- ID: AD_HEAD_ISS_PRIMARY -->
+    <!-- ============================================== -->
+    <script async="async" data-cfasync="false"
+        src="https://immoderatescarsheer.com/72243473abb5417a0f414d4950c80145/invoke.js" id="ad-head-iss-primary"></script>
 
-    <!-- Google AdSense (FALLBACK) -->
+    <!-- ============================================== -->
+    <!-- AD BLOCK #2: Google AdSense (FALLBACK) - Head Script -->
+    <!-- ID: AD_HEAD_GOOGLE_FALLBACK -->
+    <!-- ============================================== -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645"
-         crossorigin="anonymous"></script>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-            color: #e0e0e0;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* HEADER */
-        header {
-            text-align: center;
-            padding: 60px 20px 40px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 60px;
-        }
-
-        .logo {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #00d4ff, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .tagline {
-            color: #888;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        /* HERO */
-        .hero {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .hero h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-
-        .hero p {
-            font-size: 18px;
-            color: #aaa;
-            max-width: 600px;
-            margin: 0 auto 30px;
-        }
-
-        /* MAIN TOOL */
-        .tool-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 60px;
-        }
-
-        .input-panel {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-        }
-
-        .input-panel h2 {
-            margin-bottom: 20px;
-            font-size: 20px;
-            color: #fff;
-        }
-
-        textarea {
-            width: 100%;
-            height: 200px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            padding: 15px;
-            color: #e0e0e0;
-            font-family: monospace;
-            font-size: 14px;
-            resize: vertical;
-            margin-bottom: 15px;
-        }
-
-        textarea::placeholder {
-            color: #666;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #aaa;
-            font-weight: 500;
-        }
-
-        select {
-            width: 100%;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #e0e0e0;
-            margin-bottom: 15px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px 20px;
-            background: linear-gradient(135deg, #00d4ff, #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .results-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .result-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .model-name {
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .score {
-            background: linear-gradient(135deg, #00d4ff, #7c3aed);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .score.excellent {
-            background: linear-gradient(135deg, #10b981, #34d399);
-        }
-
-        .score.good {
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-        }
-
-        .score.fair {
-            background: linear-gradient(135deg, #ef4444, #f87171);
-        }
-
-        .feedback {
-            font-size: 14px;
-            color: #aaa;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: rgba(0,0,0,0.2);
-            border-left: 3px solid #00d4ff;
-            border-radius: 4px;
-        }
-
-        .metrics {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 13px;
-        }
-
-        .metric {
-            padding: 8px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 6px;
-            color: #aaa;
-        }
-
-        .metric-label {
-            color: #666;
-            font-size: 12px;
-        }
-
-        .metric-value {
-            color: #00d4ff;
-            font-weight: 600;
-        }
-
-        /* CTA SECTION */
-        .cta-section {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(124, 58, 237, 0.1));
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            margin: 80px 0;
-        }
-
-        .cta-section h2 {
-            font-size: 28px;
-            margin-bottom: 15px;
-            color: #fff;
-        }
-
-        .cta-section p {
-            color: #aaa;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-
-        .feature {
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            border-left: 3px solid #00d4ff;
-        }
-
-        .feature-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #00d4ff;
-        }
-
-        .feature-desc {
-            font-size: 14px;
-            color: #888;
-        }
-
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        .cta-buttons button {
-            flex: 1;
-            max-width: 200px;
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 2px solid rgba(255,255,255,0.2);
-            color: #fff;
-        }
-
-        .btn-secondary:hover {
-            border-color: #00d4ff;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-        }
-
-        /* FOOTER */
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            color: #666;
-            font-size: 14px;
-        }
-
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .logo {
-                font-size: 24px;
-            }
-
-            .hero h1 {
-                font-size: 32px;
-            }
-
-            .tool-section {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .cta-buttons {
-                flex-direction: column;
-            }
-
-            .metrics {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #00d4ff;
-        }
-
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid #00d4ff;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* AD SLOTS */
-        .ad-banner {
-            width: 100%;
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 12px;
-            background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-            border: 1px dashed rgba(255,255,255,0.06);
-            border-radius: 8px;
-            color: #cbd5e1;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .ad-banner-partner {
-            width: 100%;
-            max-width: 728px;
-            margin: 0 auto 20px auto;
-            padding: 12px;
-            background: linear-gradient(90deg, rgba(139,92,246,0.05), rgba(124,58,237,0.02));
-            border: 1px dashed rgba(139,92,246,0.15);
-            border-radius: 8px;
-            color: #cbd5e1;
-            text-align: center;
-        }
-
-        #my-banner {
-            width: 100%;
-            min-height: 90px;
-        }
-
-        #my-banner iframe {
-            margin: 0 auto;
-            display: block;
-        }
-
-        .ad-rect {
-            width: 100%;
-            padding: 18px;
-            background: rgba(255,255,255,0.02);
-            border: 1px dashed rgba(255,255,255,0.05);
-            border-radius: 10px;
-            color: #cbd5e1;
-            text-align: center;
-            font-size: 14px;
-            margin-bottom: 18px;
-        }
-
-        /* ImmoderateScarSheer Ad Network */
-        .ad-banner-iss {
-            width: 100%;
-            position: relative;
-        }
-
-        .ad-banner-iss .iss-placeholder {
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .ad-banner-iss:empty {
-            display: none;
-        }
-
-        /* REWARDED VIDEO MODAL */
-        .rewarded-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .rewarded-overlay.active {
-            display: flex;
-        }
-
-        .rewarded-modal {
-            background: #1a1a2e;
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 560px;
-            width: 90%;
-            text-align: center;
-            position: relative;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-
-        .modal-close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: #fff;
-            font-size: 24px;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            line-height: 1;
-            padding: 0;
-        }
-
-        .modal-close-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: scale(1.1);
-        }
-
-        .modal-close-btn:active {
-            transform: scale(0.95);
-        }
-
-        .rewarded-modal h3 {
-            color: #fff;
-            font-size: 20px;
-            margin-bottom: 8px;
-        }
-
-        .rewarded-modal .subtitle {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-
-        .rewarded-video-container {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .rewarded-video-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .rewarded-video-container .ad-content {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #fff;
-            overflow: hidden;
-        }
-
-        .rewarded-video-container .ad-content ins {
-            width: 100%;
-            height: 100%;
-        }
-
-        .rewarded-video-container .placeholder-content {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a3e 100%);
-            color: #fff;
-        }
-
-        .placeholder-content .ad-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        .rewarded-countdown {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            color: #fbbf24;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .rewarded-countdown .timer-ring {
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(251,191,36,0.3);
-            border-top-color: #fbbf24;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .rewarded-progress {
-            width: 100%;
-            height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        .rewarded-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #f59e0b, #f97316);
-            border-radius: 2px;
-            width: 0%;
-            transition: width 1s linear;
-        }
-
-        .rewarded-claim-btn {
-            width: 100%;
-            padding: 14px 20px;
-            background: linear-gradient(135deg, #f59e0b, #f97316);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
-        }
-
-        .rewarded-claim-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .rewarded-claim-btn:not(:disabled):hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(249,115,22,0.3);
-        }
-
-        .rewarded-skip-btn {
-            margin-top: 12px;
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 13px;
-            cursor: pointer;
-            padding: 6px 12px;
-            width: auto;
-        }
-
-        .rewarded-skip-btn:hover {
-            color: #aaa;
-            transform: none;
-            box-shadow: none;
-        }
-    </style>
+        crossorigin="anonymous" id="ad-head-google-fallback"></script>
+
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="css/main.css">
+
+    <!-- ============================================== -->
+    <!-- AD BLOCK #3: Dynamic Ad & Analytics Loading Script -->
+    <!-- ID: AD_DYNAMIC_LOADER -->
+    <!-- ============================================== -->
     <!-- Ad & analytics scripts — only load on real domains, not file:// -->
-    <script>
-    (function() {
-        if (location.protocol === 'file:') return; // skip on local file
+    <script id="ad-dynamic-loader">
+        (function () {
+            if (location.protocol === 'file:') return; // skip on local file
 
-        // Google AdSense
-        var ads = document.createElement('script');
-        ads.async = true;
-        ads.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645';
-        ads.crossOrigin = 'anonymous';
-        document.head.appendChild(ads);
+            // Google AdSense
+            var ads = document.createElement('script');
+            ads.async = true;
+            ads.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645';
+            ads.crossOrigin = 'anonymous';
+            ads.id = 'ad-dynamic-adsense';
+            document.head.appendChild(ads);
 
-        // Google Analytics (gtag.js)
-        var gtag_s = document.createElement('script');
-        gtag_s.async = true;
-        gtag_s.src = 'https://www.googletagmanager.com/gtag/js?id=G-FP5GQJM9KZ';
-        document.head.appendChild(gtag_s);
+            // Google Analytics (gtag.js)
+            var gtag_s = document.createElement('script');
+            gtag_s.async = true;
+            gtag_s.src = 'https://www.googletagmanager.com/gtag/js?id=G-FP5GQJM9KZ';
+            gtag_s.id = 'ad-dynamic-gtag';
+            document.head.appendChild(gtag_s);
 
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-FP5GQJM9KZ');
-        window.gtag = gtag;
-    })();
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', 'G-FP5GQJM9KZ');
+            window.gtag = gtag;
+        })();
     </script>
 
-<meta name="google-adsense-account" content="ca-pub-5400335063218645">
-    </head>
+    <meta name="google-adsense-account" content="ca-pub-5400335063218645">
+</head>
+
 <body>
     <header>
         <div class="container">
@@ -689,169 +123,149 @@
 
     <main class="container">
         <!-- Top banner ad -->
-        <div class="ad-banner" aria-label="Advertisement">
-            <!-- ImmoderateScarSheer (PRIMARY) -->
-            <div id="container-72243473abb5417a0f414d4950c80145" style="min-height: 250px; display: flex; align-items: center; justify-content: center;"></div>
 
-            <!-- Google AdSense (FALLBACK) -->
-            <div id="googleTopBanner" style="display: none;">
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-5400335063218645"
-                     data-ad-slot="9162913100"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </div>
         <!-- HERO SECTION -->
         <section class="hero">
             <h1>Master Prompts for Any AI Model</h1>
-            <p>Test and optimize prompts for 50+ AI models across text, image, video, audio, and code generation. Write better prompts in seconds.</p>
+            <p>Test and optimize prompts for 50+ AI models across text, image, video, audio, and code generation. Write
+                better prompts in seconds.</p>
 
-            <!-- ImmoderateScarSheer (PRIMARY) -->
-            <div style="margin-top: 30px; min-height: 250px; display: flex; align-items: center; justify-content: center;">
-                <div id="container-72243473abb5417a0f414d4950c80145"></div>
-            </div>
 
-            <!-- Google AdSense (FALLBACK) -->
-            <div id="googleHero" style="margin-top: 30px; display: none;">
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-5400335063218645"
-                     data-ad-slot="9162913100"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </section>
+            <!-- TOOL SECTION -->
+            <section class="tool-section">
+                <div class="input-panel">
+                    <h2>Your Prompt</h2>
 
-        <!-- TOOL SECTION -->
-        <section class="tool-section">
-            <div class="input-panel">
-                <h2>Your Prompt</h2>
+                    <label>Content Type</label>
+                    <select id="modalitySelect" onchange="updateProviders()">
+                        <option value="text">📝 Text Generation</option>
+                        <option value="image">🖼️ Image Generation</option>
+                        <option value="video">🎬 Video Generation</option>
+                        <option value="audio">🎵 Audio/Speech</option>
+                        <option value="code">💻 Code Generation</option>
+                    </select>
 
-                <label>Content Type</label>
-                <select id="modalitySelect" onchange="updateProviders()">
-                    <option value="text">📝 Text Generation</option>
-                    <option value="image">🖼️ Image Generation</option>
-                    <option value="video">🎬 Video Generation</option>
-                    <option value="audio">🎵 Audio/Speech</option>
-                    <option value="code">💻 Code Generation</option>
-                </select>
+                    <label>Provider</label>
+                    <select id="providerSelect" onchange="updateModels()">
+                        <option value="">Select Provider...</option>
+                    </select>
 
-                <label>Provider</label>
-                <select id="providerSelect" onchange="updateModels()">
-                    <option value="">Select Provider...</option>
-                </select>
+                    <label>Model</label>
+                    <select id="modelSelect">
+                        <option value="">Select Model...</option>
+                    </select>
 
-                <label>Model</label>
-                <select id="modelSelect">
-                    <option value="">Select Model...</option>
-                </select>
+                    <label>Paste your prompt below</label>
+                    <textarea id="promptInput"
+                        placeholder="Example: You are an expert copywriter. Write a compelling product description for a fitness tracker..."></textarea>
 
-                <label>Paste your prompt below</label>
-                <textarea id="promptInput" placeholder="Example: You are an expert copywriter. Write a compelling product description for a fitness tracker..."></textarea>
-
-                <button onclick="testPrompt()">Test & Analyze</button>
-                <div style="height:12px"></div>
-                <button id="improveFreeBtn" style="margin-top:8px; background:linear-gradient(135deg,#34d399,#10b981);" onclick="improvePromptFree()">Improve Prompt (Free)</button>
-                <div id="dailyLimitDisplay" style="text-align:center;margin-top:8px;font-size:13px;color:#10b981;">
-                    <span id="dailyCounter">Loading...</span>
+                    <button id="testPromptBtn" data-action="test-prompt">Test & Analyze</button>
+                    <div style="height:12px"></div>
+                    <button id="improveFreeBtn"
+                        style="margin-top:8px; background:linear-gradient(135deg,#34d399,#10b981);"
+                        data-action="improve-free">Improve Prompt (Free)</button>
+                    <div id="dailyLimitDisplay" style="text-align:center;margin-top:8px;font-size:13px;color:#10b981;">
+                        <span id="dailyCounter">Loading...</span>
+                    </div>
+                    <div style="height:8px"></div>
+                    <button id="improveRewardedBtn" style="background:linear-gradient(135deg,#f59e0b,#f97316);"
+                        data-action="improve-rewarded">💜 Continue with Ad Support</button>
                 </div>
-                <div style="height:8px"></div>
-                <button id="improveRewardedBtn" style="background:linear-gradient(135deg,#f59e0b,#f97316);" onclick="improvePromptRewarded()">💜 Continue with Ad Support</button>
-            </div>
 
-            <div class="results-panel" id="resultsPanel">
-                <div style="text-align: center; color: #666; padding: 60px 20px;">
-                    <p>👆 Enter a prompt and click "Test & Analyze"</p>
-                    <p style="font-size: 14px; margin-top: 20px; color: #444;">Your prompts are analyzed locally - nothing is saved or shared.</p>
+                <div class="results-panel" id="resultsPanel">
+                    <div style="text-align: center; color: #666; padding: 60px 20px;">
+                        <p>👆 Enter a prompt and click "Test & Analyze"</p>
+                        <p style="font-size: 14px; margin-top: 20px; color: #444;">Your prompts are analyzed locally -
+                            nothing is saved or shared.</p>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- CTA SECTION -->
-        <section class="cta-section">
-            <h2>Ready to Master Prompting?</h2>
-            <p>Join 5,000+ users who've improved their AI workflow</p>
+            <!-- CTA SECTION -->
+            <section class="cta-section">
+                <h2>Ready to Master Prompting?</h2>
+                <p>Join 5,000+ users who've improved their AI workflow</p>
 
-                <!-- Instant-Gaming Affiliate Banner -->
-                <div class="ad-banner-partner" style="margin-bottom: 20px;">
-                    <div id="my-banner" style="min-height: 90px; display: flex; align-items: center; justify-content: center;">
+                <!-- ============================================== -->
+                <!-- AD BLOCK #4: Instant-Gaming Affiliate Banner -->
+                <!-- ID: AD_INSTANT_GAMING_BANNER -->
+                <!-- ============================================== -->
+                <div class="ad-banner-partner" style="margin-bottom: 20px;" id="ad-instant-gaming-banner">
+                    <div id="my-banner"
+                        style="min-height: 90px; display: flex; align-items: center; justify-content: center;">
                         <div style="color: #666; font-size: 14px;">Loading...</div>
                     </div>
                 </div>
-
-                <!-- ImmoderateScarSheer Rectangle (PRIMARY) -->
-                <div style="margin-bottom: 20px; min-height: 280px; display: flex; align-items: center; justify-content: center;">
-                    <div id="container-72243473abb5417a0f414d4950c80145"></div>
-                </div>
-
-                <!-- Google AdSense Rectangle (FALLBACK) -->
-                <div id="googleRectangle" style="display: none; margin-bottom: 20px;">
+                <!-- ============================================== -->
+                <!-- AD BLOCK #5: CTA Section Banner (Primary + Fallback) -->
+                <!-- ID: AD_CTA_BANNER_WRAPPER -->
+                <!-- ============================================== -->
+            
+                <!-- ============================================== -->
+                <!-- AD BLOCK #6: Top Responsive Banner -->
+                <!-- ID: AD_TOP_RESPONSIVE -->
+                <!-- ============================================== -->
+                <div class="ad-banner" aria-label="Advertisement" id="ad-top-responsive-wrapper" style="min-height: 90px;">
                     <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-5400335063218645"
-                         data-ad-slot="1508113939"
-                         data-ad-format="auto"
-                         data-full-width-responsive="true"></ins>
-                    <script>
-                         (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
+                        style="display:block; width: 100%; min-width: 200px;"
+                        data-ad-client="ca-pub-5400335063218645"
+                        data-ad-slot="9162913100"
+                        data-ad-format="auto"
+                        data-full-width-responsive="true"
+                        id="ad-top-responsive-ins"
+                        data-ad-initialization="pending"></ins>
                 </div>
 
                 <div class="features-grid">
-                <div class="feature">
-                    <div class="feature-title">🎯 Instant Scoring</div>
-                    <div class="feature-desc">Get clarity scores for every prompt instantly</div>
+                    <div class="feature">
+                        <div class="feature-title">🎯 Instant Scoring</div>
+                        <div class="feature-desc">Get clarity scores for every prompt instantly</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-title">💡 AI Suggestions</div>
+                        <div class="feature-desc">Specific recommendations to improve results</div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-title">📚 Prompt Library</div>
+                        <div class="feature-desc">Access 500+ proven prompts (coming soon)</div>
+                    </div>
                 </div>
-                <div class="feature">
-                    <div class="feature-title">💡 AI Suggestions</div>
-                    <div class="feature-desc">Specific recommendations to improve results</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-title">📚 Prompt Library</div>
-                    <div class="feature-desc">Access 500+ proven prompts (coming soon)</div>
-                </div>
-            </div>
 
-            <div class="cta-buttons">
-                <button class="btn-secondary" onclick="shareOnTwitter()">Share on Twitter</button>
-                <button onclick="goToPremium()">Get Premium Access</button>
-            </div>
-        </section>
+                <div class="cta-buttons">
+                    <button class="btn-secondary" id="shareTwitterBtn" data-action="share-twitter">Share on Twitter</button>
+                    <button id="premiumBtn" data-action="go-premium">Get Premium Access</button>
+                </div>
+
+
+            </section>
     </main>
 
     <!-- SUPPORT MODAL - Voluntary Ad Viewing -->
     <div class="rewarded-overlay" id="rewardedOverlay">
         <div class="rewarded-modal">
-            <button class="modal-close-btn" onclick="cancelReward()" aria-label="Close modal">✕</button>
+            <button class="modal-close-btn" data-action="close-modal" aria-label="Close modal">✕</button>
             <h3>💜 Your Optimization is Ready!</h3>
             <p class="subtitle">Would you like to view an ad to support free tools? (completely optional)</p>
 
+            <!-- ============================================== -->
+            <!-- AD BLOCK #7: Rewarded Video Modal (Multi-tier Fallback) -->
+            <!-- ID: AD_REWARDED_VIDEO_CONTAINER -->
+            <!-- ============================================== -->
             <div class="rewarded-video-container" id="rewardedVideoContainer">
                 <!-- ImmoderateScarSheer Ad (PRIMARY) -->
-                <div class="ad-content" id="adContentISS" data-iss-slot="video-480x360" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                <div class="ad-content" id="adContentISS" data-iss-slot="video-480x360" id-rewaded="ad-rewarded-iss-primary"
+                    style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
                     <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
                 </div>
 
                 <!-- Google AdSense Ad (SECONDARY - Fallback) -->
-                <div class="ad-content" id="adContent" style="display:none;">
-                    <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-5400335063218645"
-                         data-ad-slot="9302843472"
-                         data-ad-format="auto"
-                         data-full-width-responsive="true"></ins>
+                <div class="ad-content" id="adContent" id-rewarded="ad-rewarded-google-fallback" style="display:none;">
+                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5400335063218645"
+                        data-ad-slot="9302843472" data-ad-format="auto" data-full-width-responsive="true" id="ad-rewarded-google-ins"></ins>
                 </div>
 
                 <!-- Fallback Ad Network - EffectiveGateCPM (TERTIARY) -->
-                <div class="ad-content-fallback" id="adContentFallback" style="display:none;">
+                <div class="ad-content-fallback" id="adContentFallback" id-rewarded="ad-rewarded-effectivegate-fallback" style="display:none;">
                     <div id="effectivegatecpm-ad"></div>
                 </div>
 
@@ -863,22 +277,29 @@
                 </div>
             </div>
 
-            <button class="rewarded-skip-btn" onclick="cancelReward()">Skip, continue now</button>
-            <button class="rewarded-claim-btn" id="rewardedClaimBtn" onclick="claimReward()">
+            <button class="rewarded-skip-btn" data-action="cancel-reward">Skip, continue now</button>
+            <button class="rewarded-claim-btn" id="rewardedClaimBtn" data-action="claim-reward">
                 View ad to support 💜
             </button>
 
-            <div style="margin-top:15px;padding:10px;background:rgba(124,58,237,0.1);border-radius:6px;font-size:12px;color:#888;text-align:center;border-left:2px solid #7c3aed;">
+            <div
+                style="margin-top:15px;padding:10px;background:rgba(124,58,237,0.1);border-radius:6px;font-size:12px;color:#888;text-align:center;border-left:2px solid #7c3aed;">
                 💜 Ad revenue helps us provide free AI tools to everyone. Thank you for your support!
             </div>
         </div>
     </div>
 
-    <!-- EffectiveGateCPM Ad Script -->
-    <script src="https://pl28839096.effectivegatecpm.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
+    <!-- ============================================== -->
+    <!-- AD BLOCK #8: EffectiveGateCPM Fallback Script -->
+    <!-- ID: AD_EFFECTIVEGATE_SCRIPT -->
+    <!-- ============================================== -->
+    <script src="https://pl28839096.effectivegatecpm.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js" id="ad-effectivegate-script"></script>
 
-    <!-- Instant-Gaming Affiliate Banner Configuration -->
-    <script>
+    <!-- ============================================== -->
+    <!-- AD BLOCK #9: Instant-Gaming Configuration Script -->
+    <!-- ID: AD_INSTANT_GAMING_CONFIG -->
+    <!-- ============================================== -->
+    <script id="ad-instant-gaming-config">
         // Must be before the loading of the script
         window.igBannerConfig = {
             lang: 'en',
@@ -886,779 +307,28 @@
             banners: ['my-banner']
         };
     </script>
-    <script src="https://www.instant-gaming.com/api/banner/partner/loader.js" defer></script>
+    <script src="https://www.instant-gaming.com/api/banner/partner/loader.js" defer id="ad-instant-gaming-loader"></script>
 
-    <!-- ImmoderateScarSheer Ad - Footer Banner -->
-    <div class="ad-banner-iss" id="issFooter" data-iss-slot="footer-728x90" style="max-width: 1200px; margin: 30px auto; padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px; min-height: 90px; display: flex; align-items: center; justify-content: center;">
-        <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
-    </div>
 
     <footer>
         <p>Made for AI enthusiasts by PromptUp. No credit card required to test now.</p>
+        <!-- Footer -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-5400335063218645"
+     data-ad-slot="3926365469"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
     </footer>
 
-    <script>
-        // ========================================
-        // CONFIGURATION
-        // ========================================
-        const CONFIG = {
-            // Cloudflare Worker URL for prompt improvement
-            // Set this via environment variable or update directly
-            WORKER_URL: window.env?.WORKER_URL || "https://promptlab.lido772.workers.dev",
-
-            // Optional: Custom error handler
-            onError: (error) => {
-                console.error('PromptUp Error:', error);
-                // You can add custom error tracking here
-            }
-        };
-
-        // ========================================
-        // COMPLETE AI MODELS DATABASE
-        // ========================================
-        const modelsDatabase = {
-            text: {
-                'OpenAI': [
-                    { value: 'gpt4-turbo', label: 'GPT-4 Turbo' },
-                    { value: 'gpt4o', label: 'GPT-4o' },
-                    { value: 'gpt4o-mini', label: 'GPT-4o Mini' },
-                    { value: 'gpt35-turbo', label: 'GPT-3.5 Turbo' },
-                    { value: 'o1', label: 'o1 (Reasoning)' }
-                ],
-                'Anthropic': [
-                    { value: 'claude-35-sonnet', label: 'Claude 3.5 Sonnet' },
-                    { value: 'claude-3-opus', label: 'Claude 3 Opus' },
-                    { value: 'claude-3-haiku', label: 'Claude 3 Haiku' }
-                ],
-                'Google': [
-                    { value: 'gemini-20-flash', label: 'Gemini 2.0 Flash' },
-                    { value: 'gemini-pro', label: 'Gemini Pro' },
-                    { value: 'palm-2', label: 'PaLM 2' }
-                ],
-                'Meta': [
-                    { value: 'llama-31-405b', label: 'Llama 3.1 405B' },
-                    { value: 'llama-31-70b', label: 'Llama 3.1 70B' },
-                    { value: 'llama-3-70b', label: 'Llama 3 70B' }
-                ],
-                'Mistral': [
-                    { value: 'mistral-large', label: 'Mistral Large' },
-                    { value: 'mistral-medium', label: 'Mistral Medium' },
-                    { value: 'mistral-small', label: 'Mistral Small (7B)' }
-                ],
-                'xAI': [
-                    { value: 'grok-3', label: 'Grok 3' },
-                    { value: 'grok-2', label: 'Grok 2' }
-                ],
-                'Cohere': [
-                    { value: 'command-r-plus', label: 'Command R+' },
-                    { value: 'command-r', label: 'Command R' }
-                ],
-                'AWS': [
-                    { value: 'titan-text-premier', label: 'Titan Text Premier' },
-                    { value: 'titan-text-express', label: 'Titan Text Express' }
-                ],
-                'Alibaba': [
-                    { value: 'qwen-max', label: 'Qwen Max' },
-                    { value: 'qwen-plus', label: 'Qwen Plus' }
-                ]
-            },
-            image: {
-                'OpenAI': [
-                    { value: 'dalle3', label: 'DALL-E 3' },
-                    { value: 'dalle2', label: 'DALL-E 2' }
-                ],
-                'Stability AI': [
-                    { value: 'sdxl', label: 'Stable Diffusion XL 1.0' },
-                    { value: 'sd3', label: 'Stable Diffusion 3' },
-                    { value: 'sd3-turbo', label: 'Stable Diffusion 3 Turbo' }
-                ],
-                'Midjourney': [
-                    { value: 'mj-v6', label: 'Midjourney v6' },
-                    { value: 'mj-v5.2', label: 'Midjourney v5.2' }
-                ],
-                'Google': [
-                    { value: 'imagen-3', label: 'Imagen 3' },
-                    { value: 'imagen-2', label: 'Imagen 2' }
-                ],
-                'Adobe': [
-                    { value: 'firefly-v3', label: 'Firefly v3' }
-                ],
-                'Leonardo.AI': [
-                    { value: 'leonardo-diffusion', label: 'Leonardo Diffusion' },
-                    { value: 'leonardo-vision', label: 'Leonardo Vision' }
-                ]
-            },
-            video: {
-                'OpenAI': [
-                    { value: 'sora', label: 'Sora' }
-                ],
-                'Google': [
-                    { value: 'gemini-video', label: 'Gemini Video' },
-                    { value: 'veo', label: 'Veo' }
-                ],
-                'Runway': [
-                    { value: 'gen3-alpha', label: 'Gen-3 Alpha' },
-                    { value: 'gen2', label: 'Gen-2' }
-                ],
-                'Pika': [
-                    { value: 'pika-20', label: 'Pika 2.0' }
-                ],
-                'HeyGen': [
-                    { value: 'heygen-avatar', label: 'HeyGen Avatar' }
-                ],
-                'Synthesia': [
-                    { value: 'synthesia-v1', label: 'Synthesia v1' }
-                ]
-            },
-            audio: {
-                'OpenAI': [
-                    { value: 'whisper', label: 'Whisper (Speech-to-Text)' },
-                    { value: 'tts-1', label: 'TTS-1 (Text-to-Speech)' },
-                    { value: 'tts-1-hd', label: 'TTS-1 HD' }
-                ],
-                'Google': [
-                    { value: 'google-stt', label: 'Speech-to-Text' },
-                    { value: 'google-tts', label: 'Text-to-Speech' }
-                ],
-                'ElevenLabs': [
-                    { value: 'eleven-v3', label: 'ElevenLabs v3' },
-                    { value: 'eleven-v2', label: 'ElevenLabs v2' }
-                ],
-                'Anthropic': [
-                    { value: 'claude-audio', label: 'Claude Audio (Native)' }
-                ],
-                'Deepgram': [
-                    { value: 'deepgram-nova-2', label: 'Nova-2' },
-                    { value: 'deepgram-nova', label: 'Nova' }
-                ]
-            },
-            code: {
-                'OpenAI': [
-                    { value: 'gpt4-code', label: 'GPT-4 Turbo' },
-                    { value: 'gpt4o-code', label: 'GPT-4o' },
-                    { value: 'codex', label: 'Codex (Legacy)' }
-                ],
-                'GitHub': [
-                    { value: 'copilot', label: 'GitHub Copilot X' }
-                ],
-                'Anthropic': [
-                    { value: 'claude-code', label: 'Claude 3.5 Sonnet' },
-                    { value: 'claude-opus-code', label: 'Claude 3 Opus' }
-                ],
-                'Meta': [
-                    { value: 'codellama-34b', label: 'Code Llama 34B' },
-                    { value: 'codellama-13b', label: 'Code Llama 13B' },
-                    { value: 'codellama-7b', label: 'Code Llama 7B' }
-                ],
-                'Google': [
-                    { value: 'codey', label: 'Codey (PaLM)' }
-                ]
-            }
-        };
-
-        function updateProviders() {
-            const modality = document.getElementById('modalitySelect').value;
-            const providers = Object.keys(modelsDatabase[modality]);
-
-            const providerSelect = document.getElementById('providerSelect');
-            providerSelect.innerHTML = '<option value="">Select Provider...</option>';
-
-            providers.forEach(provider => {
-                const option = document.createElement('option');
-                option.value = provider;
-                option.textContent = provider;
-                providerSelect.appendChild(option);
-            });
-
-            updateModels();
-        }
-
-        function updateModels() {
-            const modality = document.getElementById('modalitySelect').value;
-            const provider = document.getElementById('providerSelect').value;
-
-            const modelSelect = document.getElementById('modelSelect');
-            modelSelect.innerHTML = '<option value="">Select Model...</option>';
-
-            if (!provider) return;
-
-            const models = modelsDatabase[modality][provider];
-            if (models) {
-                models.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model.value;
-                    option.textContent = model.label;
-                    modelSelect.appendChild(option);
-                });
-            }
-        }
-
-        // AI Prompt Analyzer - Client-side only
-        function analyzePrompt(prompt, model, modality) {
-            // Scoring heuristics based on prompt quality and modality
-            const metrics = {
-                clarity: calculateClarity(prompt),
-                specificity: calculateSpecificity(prompt, modality),
-                structure: calculateStructure(prompt, modality),
-                actionability: calculateActionability(prompt, modality)
-            };
-
-            const overallScore = Math.round(
-                (metrics.clarity + metrics.specificity + metrics.structure + metrics.actionability) / 4
-            );
-
-            return {
-                score: overallScore,
-                metrics: metrics,
-                feedback: generateFeedback(prompt, metrics, modality),
-                suggestions: generateSuggestions(prompt, metrics, modality)
-            };
-        }
-
-        function calculateClarity(prompt) {
-            const words = prompt.split(/\s+/).length;
-            const clarity = Math.min(100, (words / 50) * 100);
-            return Math.round(clarity);
-        }
-
-        function calculateSpecificity(prompt, modality) {
-            let score = 50;
-
-            // Common specificity indicators
-            if (prompt.match(/\d+/)) score += 15;
-            if (prompt.includes('specific') || prompt.includes('exactly') || prompt.includes('detailed')) score += 10;
-
-            // Modality-specific checks
-            if (modality === 'image') {
-                if (prompt.includes('style') || prompt.includes('color') || prompt.includes('size')) score += 10;
-            } else if (modality === 'video') {
-                if (prompt.includes('duration') || prompt.includes('speed') || prompt.includes('scene')) score += 10;
-            } else if (modality === 'audio') {
-                if (prompt.includes('voice') || prompt.includes('tone') || prompt.includes('accent')) score += 10;
-            } else if (modality === 'code') {
-                if (prompt.includes('language') || prompt.includes('function') || prompt.includes('format')) score += 10;
-            }
-
-            return Math.min(100, score);
-        }
-
-        function calculateStructure(prompt, modality) {
-            let score = 50;
-            const hasContext = prompt.match(/[A-Z]{2,}/) || prompt.includes('You are') || prompt.includes('As a');
-            const hasTask = prompt.includes('create') || prompt.includes('write') || prompt.includes('generate') || prompt.includes('show') || prompt.includes('make');
-            const hasConstraints = prompt.includes('don\'t') || prompt.includes('avoid') || prompt.includes('must') || prompt.includes('should');
-
-            if (hasContext) score += 20;
-            if (hasTask) score += 20;
-            if (hasConstraints) score += 10;
-            return Math.min(100, score);
-        }
-
-        function calculateActionability(prompt, modality) {
-            let score = 50;
-            const actionVerbs = {
-                text: ['write', 'create', 'generate', 'analyze', 'explain', 'summarize', 'list', 'compare', 'design', 'build'],
-                image: ['create', 'generate', 'design', 'draw', 'paint', 'render', 'illustrate', 'visualize'],
-                video: ['create', 'generate', 'produce', 'show', 'make', 'film', 'animate'],
-                audio: ['create', 'generate', 'speak', 'voice', 'narrate', 'produce', 'synthesize'],
-                code: ['write', 'create', 'generate', 'build', 'develop', 'implement', 'code']
-            };
-
-            const verbs = actionVerbs[modality] || actionVerbs.text;
-            const hasActionVerb = verbs.some(verb => prompt.toLowerCase().includes(verb));
-
-            if (hasActionVerb) score += 25;
-            if (prompt.split('.').length > 2) score += 15;
-            return Math.min(100, score);
-        }
-
-        function generateFeedback(prompt, metrics, modality) {
-            const lowest = Math.min(...Object.values(metrics));
-            const modalityName = { text: 'text', image: 'image', video: 'video', audio: 'audio', code: 'code' }[modality];
-
-            if (lowest >= 80) return `Excellent ${modalityName} prompt! You've included clear context, specific requirements, and actionable instructions.`;
-            if (lowest >= 60) return `Good work. Your ${modalityName} prompt is clear but could benefit from more specific details.`;
-            return `Your ${modalityName} prompt has potential. Add more specific details about what you want.`;
-        }
-
-        function generateSuggestions(prompt, metrics, modality) {
-            const suggestions = [];
-
-            if (metrics.clarity < 70) suggestions.push("Add more context at the beginning");
-            if (metrics.specificity < 70) {
-                if (modality === 'image') suggestions.push("Describe style, colors, and composition details");
-                else if (modality === 'video') suggestions.push("Specify duration, scene details, and transitions");
-                else if (modality === 'audio') suggestions.push("Describe voice type, tone, and accent preferences");
-                else if (modality === 'code') suggestions.push("Specify programming language, output format, and requirements");
-                else suggestions.push("Include specific numbers, formats, or example outputs");
-            }
-            if (metrics.structure < 70) suggestions.push("Organize: Context → Task → Constraints → Details");
-            if (metrics.actionability < 70) suggestions.push("Start with a clear action verb (Create, Generate, Build, etc.)");
-
-            if (suggestions.length === 0) suggestions.push("This is a solid prompt! Consider adding more edge cases or specific examples.");
-
-            return suggestions;
-        }
-
-        function testPrompt() {
-            const prompt = document.getElementById('promptInput').value.trim();
-            const model = document.getElementById('modelSelect').value;
-            const modality = document.getElementById('modalitySelect').value;
-            const resultsPanel = document.getElementById('resultsPanel');
-
-            if (!prompt) {
-                alert('Please enter a prompt to analyze');
-                return;
-            }
-
-            if (!model) {
-                alert('Please select a model');
-                return;
-            }
-
-            // Show loading state
-            resultsPanel.innerHTML = '<div class="loading"><div class="spinner"></div>Analyzing your prompt...</div>';
-
-            // Simulate processing delay
-            setTimeout(() => {
-                const result = analyzePrompt(prompt, model, modality);
-                displayResults(result, model, modality);
-            }, 800);
-        }
-
-        function displayResults(result, model, modality) {
-            const resultsPanel = document.getElementById('resultsPanel');
-            const scoreClass = result.score >= 80 ? 'excellent' : result.score >= 60 ? 'good' : 'fair';
-
-            // Get selected model label
-            const modelSelect = document.getElementById('modelSelect');
-            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-            const modelLabel = selectedOption.text;
-
-            let html = `
-                <div class="result-card">
-                    <div class="result-header">
-                        <div class="model-name">${modelLabel} Analysis</div>
-                        <div class="score ${scoreClass}">${result.score}/100</div>
-                    </div>
-                    <div class="feedback">${result.feedback}</div>
-                    <div class="metrics">
-                        <div class="metric">
-                            <div class="metric-label">Clarity</div>
-                            <div class="metric-value">${result.metrics.clarity}%</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Specificity</div>
-                            <div class="metric-value">${result.metrics.specificity}%</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Structure</div>
-                            <div class="metric-value">${result.metrics.structure}%</div>
-                        </div>
-                        <div class="metric">
-                            <div class="metric-label">Actionability</div>
-                            <div class="metric-value">${result.metrics.actionability}%</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            if (result.suggestions.length > 0) {
-                html += '<div class="result-card"><h3 style="margin-bottom: 15px; color: #fff;">💡 Optimization Tips</h3>';
-                result.suggestions.forEach((suggestion, i) => {
-                    html += `<div style="margin-bottom: 12px; padding: 12px; background: rgba(0,212,255,0.1); border-left: 2px solid #00d4ff; border-radius: 4px; color: #aaa; font-size: 14px;">${i + 1}. ${suggestion}</div>`;
-                });
-                html += '</div>';
-            }
-
-            // Add ImmoderateScarSheer ad after results
-            html += `
-                <div id="issPostResults" class="ad-banner-iss" data-iss-slot="post-728x90" style="margin-top: 20px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
-                    <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
-                </div>
-            `;
-
-            resultsPanel.innerHTML = html;
-        }
-
-        function goToPremium() {
-            alert('Premium features coming soon! Join the waitlist: promptup.cloud/premium');
-        }
-
-        function shareOnTwitter() {
-            const prompt = document.getElementById('promptInput').value.trim();
-            const score = document.querySelector('.score')?.textContent || '?';
-            const text = prompt ? `I just tested my prompt on PromptUp - Score: ${score}/100. The AI-powered analysis helped me optimize it! Try it free: promptup.cloud`
-                               : 'Just discovered PromptUp - a free tool to test and optimize AI prompts. Works with ChatGPT, Claude, and more. promptup.cloud';
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-        }
-
-        // Initialize
-        document.getElementById('promptInput').addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                testPrompt();
-            }
-        });
-
-        // Initialize providers on page load — use DOMContentLoaded (does not wait for external scripts)
-        document.addEventListener('DOMContentLoaded', function() {
-            updateProviders();
-            checkDailyLimit();
-        });
-
-        // Check daily limit status — uses localStorage cache, no server call on load
-        async function checkDailyLimit() {
-            const dailyCounter = document.getElementById('dailyCounter');
-            if (!dailyCounter) return;
-
-            try {
-                // Read cached daily usage from localStorage
-                const today = new Date().toISOString().split('T')[0];
-                const cached = JSON.parse(localStorage.getItem('promptup_daily') || '{}');
-
-                if (cached.date === today && typeof cached.remaining === 'number') {
-                    updateDailyCounter(cached.remaining, cached.total || 3);
-                } else {
-                    // New day or no cache — assume full quota
-                    updateDailyCounter(3, 3);
-                }
-            } catch (err) {
-                dailyCounter.innerHTML = '3/3 free today';
-            }
-        }
-
-        // Save daily limit info to localStorage (called after each successful API response)
-        function cacheDailyLimit(remaining, total) {
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                localStorage.setItem('promptup_daily', JSON.stringify({
-                    date: today,
-                    remaining: remaining,
-                    total: total
-                }));
-            } catch (e) { /* localStorage unavailable */ }
-        }
-
-        // Update daily counter display
-        function updateDailyCounter(remaining, total) {
-            const dailyCounter = document.getElementById('dailyCounter');
-            if (!dailyCounter) return;
-
-            if (remaining <= 0) {
-                dailyCounter.innerHTML = `<span style="color:#fbbf24">⚠️ Daily limit reached (${total}/${total} used)</span>`;
-            } else {
-                dailyCounter.innerHTML = `✨ ${remaining}/${total} free improvements remaining today`;
-            }
-        }
-
-        // Improve prompt via server endpoint (free flow)
-        async function improvePromptFree() {
-
-  const prompt = document.getElementById('promptInput').value.trim();
-
-  if (!prompt) {
-    alert('Please enter a prompt first');
-    return;
-  }
-
-  const resultsPanel = document.getElementById('resultsPanel');
-
-  resultsPanel.innerHTML =
-    '<div class="loading"><div class="spinner"></div>Improving prompt...</div>';
-
-  try {
-
-        const response = await fetch(
-            CONFIG.WORKER_URL,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          prompt: prompt
-        })
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Request failed");
-    }
-
-    const improved = data.result;
-    const remainingFree = data.remainingFree ?? 0;
-    const dailyLimit = data.dailyLimit ?? 3;
-
-    resultsPanel.innerHTML = `
-      <div class="result-card">
-        <h3 style="color:#fff;margin-bottom:12px">🔧 Improved Prompt</h3>
-        <textarea id="improvedOutput" style="height:160px">${improved}</textarea>
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button onclick="applyImproved()">Use This Prompt</button>
-          <button onclick="copyImproved()" class="btn-secondary">Copy</button>
-        </div>
-        <div style="margin-top:15px;padding:10px;background:rgba(16,185,129,0.1);border-radius:6px;text-align:center">
-          <span style="color:#10b981;font-size:14px">
-            🎉 Free improvements remaining today: <strong>${remainingFree}/${dailyLimit}</strong>
-          </span>
-        </div>
-      </div>
-    `;
-
-    // Update the daily counter display and cache
-    updateDailyCounter(remainingFree, dailyLimit);
-    cacheDailyLimit(remainingFree, dailyLimit);
-
-  } catch (err) {
-    let errorMessage = err.message;
-
-    // Check if it's a daily limit error
-    if (errorMessage.includes('Daily free limit reached')) {
-      const resetTime = data?.resetAt ? new Date(data.resetAt).toLocaleTimeString() : 'midnight';
-      resultsPanel.innerHTML = `
-        <div class="result-card" style="text-align:center">
-          <div style="font-size:48px;margin-bottom:15px">🔒</div>
-          <h3 style="color:#fbbf24;margin-bottom:12px">Daily Limit Reached</h3>
-          <p style="color:#aaa;margin-bottom:15px">You've used all 3 free prompt improvements for today.</p>
-          <p style="color:#666;font-size:14px;margin-bottom:20px">Resets at ${resetTime}</p>
-          <button onclick="improvePromptRewarded()" style="background:linear-gradient(135deg,#f59e0b,#f97316)">
-            💜 Continue with Ad Support
-          </button>
-        </div>
-      `;
-      // Update counter to show 0 remaining
-      updateDailyCounter(0, 3);
-      cacheDailyLimit(0, 3);
-      return;
-    }
-
-    resultsPanel.innerHTML =
-      `<div class="result-card" style="color:#f87171">
-        Error improving prompt: ${errorMessage}
-      </div>`;
-
-  }
-}
-
-        function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-        function applyImproved() {
-            const v = document.getElementById('improvedOutput')?.value;
-            if (v) document.getElementById('promptInput').value = v;
-        }
-
-        function copyImproved() {
-            const v = document.getElementById('improvedOutput')?.value;
-            if (!v) return alert('Nothing to copy');
-            navigator.clipboard?.writeText(v).then(()=> alert('Copied to clipboard'));
-        }
-
-        // Rewarded flow: show a rewarded video, then call the worker to improve prompt
-        let rewardedResolve = null;
-        let rewardedReject = null;
-        let rewardedTimer = null;
-
-        async function improvePromptRewarded() {
-            const prompt = document.getElementById('promptInput').value.trim();
-            if (!prompt) { alert('Please enter a prompt first'); return; }
-
-            // Show rewarded video modal and wait for completion
-            try {
-                await showRewardedAd();
-            } catch (e) {
-                // User cancelled — do nothing
-                return;
-            }
-
-            // After reward is granted, call the worker with rewarded flag
-            const resultsPanel = document.getElementById('resultsPanel');
-            resultsPanel.innerHTML = '<div class="loading"><div class="spinner"></div>Improving prompt after reward...</div>';
-
-            try {
-                const resp = await fetch(CONFIG.WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt, rewarded: true })
-                });
-                const json = await resp.json();
-                if (!resp.ok) throw new Error(json.error || 'Failed');
-
-                const improved = json.result || '';
-                resultsPanel.innerHTML = `
-                    <div class="result-card">
-                        <h3 style="color:#fff; margin-bottom:12px">🏆 Rewarded Improvement</h3>
-                        <textarea id="improvedOutput" style="height:160px">${escapeHtml(improved)}</textarea>
-                        <div style="display:flex; gap:10px; margin-top:10px">
-                            <button onclick="applyImproved()">Use This Prompt</button>
-                            <button onclick="copyImproved()" class="btn-secondary">Copy</button>
-                        </div>
-                        <div style="margin-top:15px;padding:10px;background:rgba(249,115,22,0.1);border-radius:6px;text-align:center">
-                            <span style="color:#f97316;font-size:14px">
-                                🎁 Rewarded improvement — no daily limit deducted!
-                            </span>
-                        </div>
-                    </div>
-                `;
-            } catch (err) {
-                resultsPanel.innerHTML = `<div class="result-card" style="color:#f87171">Error improving prompt: ${escapeHtml(err.message)}</div>`;
-            }
-        }
-
-        // Show the voluntary support modal
-        function showRewardedAd() {
-            return new Promise((resolve, reject) => {
-                rewardedResolve = resolve;
-                rewardedReject = reject;
-
-                // Reset modal state
-                const overlay = document.getElementById('rewardedOverlay');
-                const adContentISS = document.getElementById('adContentISS');
-                const adContent = document.getElementById('adContent');
-                const adContentFallback = document.getElementById('adContentFallback');
-                const placeholder = document.getElementById('rewardedPlaceholder');
-
-                // Show overlay
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-
-                // PRIMARY: Show ImmoderateScarSheer ad first
-                try {
-                    if (adContentISS) {
-                        adContentISS.style.display = 'block';
-                        adContent.style.display = 'none';
-                        adContentFallback.style.display = 'none';
-                        placeholder.style.display = 'none';
-
-                        // Setup fallback mechanism for rewarded ad
-                        window.setupRewardedAdFallback();
-                    }
-                } catch (error) {
-                    console.log('Error showing ImmoderateScarSheer ad:', error);
-                    // Fallback to Google AdSense
-                    if (adContent) {
-                        adContent.style.display = 'block';
-                        adContentISS.style.display = 'none';
-
-                        const rewardedAd = adContent.querySelector('.adsbygoogle');
-                        if (rewardedAd && !rewardedAd.hasAttribute('data-ad-initialized')) {
-                            (adsbygoogle = window.adsbygoogle || []).push({});
-                            rewardedAd.setAttribute('data-ad-initialized', 'true');
-                        }
-                    }
-                }
-            });
-        }
-
-        // Claim reward button clicked
-        function claimReward() {
-            closeRewardedModal();
-            if (rewardedResolve) {
-                rewardedResolve();
-                rewardedResolve = null;
-                rewardedReject = null;
-            }
-        }
-
-        // Cancel / close the rewarded modal
-        function cancelReward() {
-            closeRewardedModal();
-            if (rewardedReject) {
-                rewardedReject(new Error('User cancelled'));
-                rewardedResolve = null;
-                rewardedReject = null;
-            }
-        }
-
-        function closeRewardedModal() {
-            if (rewardedTimer) {
-                clearInterval(rewardedTimer);
-                rewardedTimer = null;
-            }
-            document.getElementById('rewardedOverlay').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // ESC key handler to close modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const overlay = document.getElementById('rewardedOverlay');
-                if (overlay && overlay.classList.contains('active')) {
-                    cancelReward();
-                }
-            }
-        });
-
-        // ========================================
-        // AD PRIORITY MANAGEMENT
-        // ========================================
-        // Monitor ImmoderateScarSheer ad loading and fallback to Google AdSense if needed
-        (function() {
-            const adContainers = [
-                { issElement: 'issTopBanner', googleElement: 'googleTopBanner' },
-                { issElement: 'issHero', googleElement: 'googleHero' },
-                { issElement: 'issRectangle', googleElement: 'googleRectangle' }
-            ];
-
-            // Wait for page to fully load before checking ads
-            window.addEventListener('load', function() {
-                setTimeout(function() {
-                    // Check each ad container
-                    adContainers.forEach(function(container) {
-                        const issEl = document.getElementById(container.issElement);
-                        const googleEl = document.getElementById(container.googleElement);
-
-                        if (!issEl) return;
-
-                        // Check if ImmoderateScarSheer ad has loaded by checking for nested iframes or ad content
-                        const hasAdContent = issEl.querySelector('iframe') ||
-                                           issEl.querySelector('img') ||
-                                           issEl.querySelector('[data-ad-format]') ||
-                                           (issEl.innerHTML.includes('ins') && issEl.querySelector('ins.adsbygoogle'));
-
-                        // If no ad content after 5 seconds, show Google AdSense fallback
-                        if (!hasAdContent && googleEl) {
-                            console.log('ImmoderateScarSheer not loaded for container:', container.issElement, '- showing Google AdSense fallback');
-                            issEl.style.display = 'none';
-                            googleEl.style.display = 'block';
-
-                            // Initialize Google AdSense if it exists
-                            if (window.adsbygoogle && googleEl.querySelector('.adsbygoogle')) {
-                                (adsbygoogle = window.adsbygoogle || []).push({});
-                            }
-                        }
-                    });
-                }, 5000);
-            });
-
-            // Monitor rewarded ad loading separately
-            window.setupRewardedAdFallback = function() {
-                const adISS = document.getElementById('adContentISS');
-                const adGoogle = document.getElementById('adContent');
-                const adFallback = document.getElementById('adContentFallback');
-
-                if (!adISS) return;
-
-                // Wait for ImmoderateScarSheer to load
-                setTimeout(function() {
-                    const hasISSAd = adISS.querySelector('iframe') ||
-                                    adISS.querySelector('img') ||
-                                    adISS.innerHTML.includes('<script');
-
-                    if (!hasISSAd && adGoogle) {
-                        console.log('ImmoderateScarSheer not loaded in rewarded - showing Google AdSense fallback');
-                        adISS.style.display = 'none';
-                        adGoogle.style.display = 'block';
-
-                        // Initialize Google AdSense
-                        if (window.adsbygoogle && adGoogle.querySelector('.adsbygoogle')) {
-                            (adsbygoogle = window.adsbygoogle || []).push({});
-                        }
-                    }
-                }, 3000);
-            };
-        })();
-    </script>
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Application Script - Modern ES6 Modules -->
+    <script type="module" src="js/app.js"></script>
 </body>
+
 </html>
