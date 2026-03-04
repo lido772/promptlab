@@ -9,6 +9,9 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645"
          crossorigin="anonymous"></script>
 
+    <!-- ImmoderateScarSheer Ad Network -->
+    <script src="https://immoderatescarsheer.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -403,10 +406,11 @@
             border: 1px dashed rgba(139,92,246,0.15);
             border-radius: 8px;
             color: #cbd5e1;
+            text-align: center;
         }
 
-        .ad-banner-partner:empty {
-            display: none;
+        .ad-banner-partner iframe {
+            margin: 0 auto;
         }
 
         .ad-rect {
@@ -419,6 +423,20 @@
             text-align: center;
             font-size: 14px;
             margin-bottom: 18px;
+        }
+
+        /* ImmoderateScarSheer Ad Network */
+        .ad-banner-iss {
+            width: 100%;
+            position: relative;
+        }
+
+        .ad-banner-iss .iss-placeholder {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .ad-banner-iss:empty {
+            display: none;
         }
 
         /* REWARDED VIDEO MODAL */
@@ -681,6 +699,11 @@
         <section class="hero">
             <h1>Master Prompts for Any AI Model</h1>
             <p>Test and optimize prompts for 50+ AI models across text, image, video, audio, and code generation. Write better prompts in seconds.</p>
+
+            <!-- ImmoderateScarSheer Ad - Hero -->
+            <div class="ad-banner-iss" id="issHero" style="margin-top: 30px; min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                <div class="iss-placeholder" style="color: #666; font-size: 14px;">Advertisement</div>
+            </div>
         </section>
 
         <!-- TOOL SECTION -->
@@ -734,7 +757,16 @@
             <p>Join 5,000+ users who've improved their AI workflow</p>
 
                 <!-- Instant-Gaming Affiliate Banner -->
-                <div class="ad-banner-partner" id="igBanner" style="margin-bottom: 20px; text-align: center; min-height: 90px; display: flex; align-items: center; justify-content: center;">
+                <div class="ad-banner-partner" style="margin-bottom: 20px;">
+                    <iframe
+                        src="https://www.instant-gaming.com/affiliates/banner/728x90/?igr=gamer-244970"
+                        width="728"
+                        height="90"
+                        scrolling="no"
+                        frameborder="0"
+                        style="border:0; margin:0; padding:0; display:block; max-width:100%;"
+                        allowfullscreen>
+                    </iframe>
                 </div>
 
                 <!-- CTA rectangle ad placeholder -->
@@ -816,8 +848,10 @@
     <!-- EffectiveGateCPM Ad Script -->
     <script src="https://pl28839096.effectivegatecpm.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
 
-    <!-- Instant-Gaming Affiliate Banner Script -->
-    <script src="https://www.instant-gaming.com/api/banner/partner/loader.js"></script>
+    <!-- ImmoderateScarSheer Ad - Footer Banner -->
+    <div class="ad-banner-iss" id="issFooter" style="max-width: 1200px; margin: 30px auto; padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px; min-height: 90px; display: flex; align-items: center; justify-content: center;">
+        <div class="iss-placeholder" style="color: #666; font-size: 14px;">Advertisement</div>
+    </div>
 
     <footer>
         <p>Made for AI enthusiasts by PromptUp. No credit card required to test now.</p>
@@ -1197,6 +1231,13 @@
                 html += '</div>';
             }
 
+            // Add ImmoderateScarSheer ad after results
+            html += `
+                <div class="ad-banner-iss" style="margin-top: 20px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
+                    <div class="iss-placeholder" style="color: #666; font-size: 14px;">Advertisement</div>
+                </div>
+            `;
+
             resultsPanel.innerHTML = html;
         }
 
@@ -1223,26 +1264,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             updateProviders();
             checkDailyLimit();
-
-            // Initialize Instant-Gaming banner
-            try {
-                if (typeof IG !== 'undefined' && IG.Banner) {
-                    const igContainer = document.getElementById('igBanner');
-                    if (igContainer) {
-                        IG.Banner.create({
-                            container: igContainer,
-                            width: 728,
-                            height: 90,
-                            theme: 'dark',
-                            affiliate: 'gamer-244970'
-                        });
-                    }
-                } else {
-                    console.log('Instant-Gaming banner loader not yet available');
-                }
-            } catch (error) {
-                console.log('Instant-Gaming banner initialization error:', error);
-            }
         });
 
         // Check daily limit status — uses localStorage cache, no server call on load
