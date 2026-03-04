@@ -7,10 +7,10 @@
 // Firebase config — these are public client-side identifiers (safe to expose)
 // Replace with your actual Firebase project values from console.firebase.google.com
 const FIREBASE_CONFIG = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBHA4b-8tXrZrzkI_PNJwsyYoNLi0KDOoI",
+    authDomain: "promptup-fedad.firebaseapp.com",
+    projectId: "promptup-fedad",
+    appId: "1:511896531795:web:40a6de61c573073d0ae7a6"
 };
 
 let firebaseApp = null;
