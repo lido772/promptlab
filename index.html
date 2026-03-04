@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromptUp - Test & Optimize AI Prompts</title>
 
-    <!-- Google AdSense -->
+    <!-- ImmoderateScarSheer Ad Network (PRIMARY) -->
+    <script src="https://immoderatescarsheer.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
+
+    <!-- Google AdSense (SECONDARY) -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5400335063218645"
          crossorigin="anonymous"></script>
-
-    <!-- ImmoderateScarSheer Ad Network -->
-    <script src="https://immoderatescarsheer.com/f5/88/4e/f5884e9c86829bc8ec3b68dc085b7e90.js"></script>
 
     <style>
         * {
@@ -690,25 +690,45 @@
     <main class="container">
         <!-- Top banner ad placeholder -->
         <div class="ad-banner" aria-label="Advertisement">
-            <!-- Google AdSense Top Banner -->
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-5400335063218645"
-                 data-ad-slot="9162913100"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
-            <script>
-                 (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <!-- ImmoderateScarSheer Top Banner (PRIMARY) -->
+            <div id="issTopBanner" class="ad-banner-iss" style="min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
+            </div>
+
+            <!-- Google AdSense Top Banner (SECONDARY - Fallback) -->
+            <div id="googleTopBanner" style="display: none;">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-5400335063218645"
+                     data-ad-slot="9162913100"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
         </div>
         <!-- HERO SECTION -->
         <section class="hero">
             <h1>Master Prompts for Any AI Model</h1>
             <p>Test and optimize prompts for 50+ AI models across text, image, video, audio, and code generation. Write better prompts in seconds.</p>
 
-            <!-- ImmoderateScarSheer Ad - Hero -->
-            <div class="ad-banner-iss" id="issHero" style="margin-top: 30px; min-height: 250px; display: flex; align-items: center; justify-content: center;">
-                <div class="iss-placeholder" style="color: #666; font-size: 14px;">Advertisement</div>
+            <!-- ImmoderateScarSheer Ad - Hero (PRIMARY) -->
+            <div id="issHero" class="ad-banner-iss" style="margin-top: 30px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
+            </div>
+
+            <!-- Google AdSense Hero (SECONDARY - Fallback) -->
+            <div id="googleHero" style="margin-top: 30px; display: none;">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-5400335063218645"
+                     data-ad-slot="9162913100"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
             </div>
         </section>
 
@@ -769,9 +789,13 @@
                     </div>
                 </div>
 
-                <!-- CTA rectangle ad placeholder -->
-                <div class="ad-rect" aria-label="Advertisement">
-                    <!-- Google AdSense Rectangle -->
+                <!-- ImmoderateScarSheer Rectangle (PRIMARY) -->
+                <div id="issRectangle" class="ad-banner-iss" style="margin-bottom: 20px; min-height: 280px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
+                    <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
+                </div>
+
+                <!-- Google AdSense Rectangle (SECONDARY - Fallback) -->
+                <div id="googleRectangle" style="display: none; margin-bottom: 20px;">
                     <ins class="adsbygoogle"
                          style="display:block"
                          data-ad-client="ca-pub-5400335063218645"
@@ -813,8 +837,13 @@
             <p class="subtitle">Would you like to view an ad to support free tools? (completely optional)</p>
 
             <div class="rewarded-video-container" id="rewardedVideoContainer">
-                <!-- Google AdSense Ad - NOTE: Don't initialize here, will be loaded when modal opens -->
-                <div class="ad-content" id="adContent">
+                <!-- ImmoderateScarSheer Ad (PRIMARY) -->
+                <div class="ad-content" id="adContentISS" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
+                </div>
+
+                <!-- Google AdSense Ad (SECONDARY - Fallback) -->
+                <div class="ad-content" id="adContent" style="display:none;">
                     <ins class="adsbygoogle"
                          style="display:block"
                          data-ad-client="ca-pub-5400335063218645"
@@ -822,10 +851,12 @@
                          data-ad-format="auto"
                          data-full-width-responsive="true"></ins>
                 </div>
-                <!-- Fallback Ad Network - EffectiveGateCPM -->
+
+                <!-- Fallback Ad Network - EffectiveGateCPM (TERTIARY) -->
                 <div class="ad-content-fallback" id="adContentFallback" style="display:none;">
                     <div id="effectivegatecpm-ad"></div>
                 </div>
+
                 <!-- Loading placeholder -->
                 <div class="placeholder-content" id="rewardedPlaceholder" style="display:none;">
                     <div class="ad-icon">📺</div>
@@ -861,7 +892,7 @@
 
     <!-- ImmoderateScarSheer Ad - Footer Banner -->
     <div class="ad-banner-iss" id="issFooter" style="max-width: 1200px; margin: 30px auto; padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px; min-height: 90px; display: flex; align-items: center; justify-content: center;">
-        <div class="iss-placeholder" style="color: #666; font-size: 14px;">Advertisement</div>
+        <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
     </div>
 
     <footer>
@@ -1244,8 +1275,8 @@
 
             // Add ImmoderateScarSheer ad after results
             html += `
-                <div class="ad-banner-iss" style="margin-top: 20px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
-                    <div class="iss-placeholder" style="color: #666; font-size: 14px;">Advertisement</div>
+                <div id="issPostResults" class="ad-banner-iss" style="margin-top: 20px; min-height: 250px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
+                    <div class="iss-placeholder" style="color: #666; font-size: 14px;">Loading Ad...</div>
                 </div>
             `;
 
@@ -1485,6 +1516,7 @@
 
                 // Reset modal state
                 const overlay = document.getElementById('rewardedOverlay');
+                const adContentISS = document.getElementById('adContentISS');
                 const adContent = document.getElementById('adContent');
                 const adContentFallback = document.getElementById('adContentFallback');
                 const placeholder = document.getElementById('rewardedPlaceholder');
@@ -1493,40 +1525,30 @@
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
 
-                // Try to load Google AdSense ad first
+                // PRIMARY: Show ImmoderateScarSheer ad first
                 try {
-                    // Load the rewarded ad only when modal is open and visible
-                    const rewardedAd = adContent.querySelector('.adsbygoogle');
+                    if (adContentISS) {
+                        adContentISS.style.display = 'block';
+                        adContent.style.display = 'none';
+                        adContentFallback.style.display = 'none';
+                        placeholder.style.display = 'none';
 
-                    // Show ad container first
-                    adContent.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    adContentFallback.style.display = 'none';
-
-                    // Initialize the ad now that the container is visible
-                    if (rewardedAd && !rewardedAd.hasAttribute('data-ad-initialized')) {
-                        (adsbygoogle = window.adsbygoogle || []).push({});
-                        rewardedAd.setAttribute('data-ad-initialized', 'true');
+                        // Setup fallback mechanism for rewarded ad
+                        window.setupRewardedAdFallback();
                     }
-
-                    // Set timeout to check if ad loaded
-                    setTimeout(() => {
-                        const adStatus = rewardedAd?.getAttribute('data-ad-status');
-
-                        // If no ad loaded, show fallback ad
-                        if (adStatus !== 'filled') {
-                            console.log('AdSense not filled, showing fallback ad...');
-                            adContent.style.display = 'none';
-                            adContentFallback.style.display = 'block';
-                            placeholder.style.display = 'none';
-                        }
-                    }, 3000);
                 } catch (error) {
-                    // If AdSense fails, show fallback ad
-                    console.log('AdSense error, showing fallback ad:', error);
-                    adContent.style.display = 'none';
-                    adContentFallback.style.display = 'block';
-                    placeholder.style.display = 'none';
+                    console.log('Error showing ImmoderateScarSheer ad:', error);
+                    // Fallback to Google AdSense
+                    if (adContent) {
+                        adContent.style.display = 'block';
+                        adContentISS.style.display = 'none';
+
+                        const rewardedAd = adContent.querySelector('.adsbygoogle');
+                        if (rewardedAd && !rewardedAd.hasAttribute('data-ad-initialized')) {
+                            (adsbygoogle = window.adsbygoogle || []).push({});
+                            rewardedAd.setAttribute('data-ad-initialized', 'true');
+                        }
+                    }
                 }
             });
         }
@@ -1569,6 +1591,76 @@
                 }
             }
         });
+
+        // ========================================
+        // AD PRIORITY MANAGEMENT
+        // ========================================
+        // Monitor ImmoderateScarSheer ad loading and fallback to Google AdSense if needed
+        (function() {
+            const adContainers = [
+                { issElement: 'issTopBanner', googleElement: 'googleTopBanner' },
+                { issElement: 'issHero', googleElement: 'googleHero' },
+                { issElement: 'issRectangle', googleElement: 'googleRectangle' }
+            ];
+
+            // Wait for page to fully load before checking ads
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    // Check each ad container
+                    adContainers.forEach(function(container) {
+                        const issEl = document.getElementById(container.issElement);
+                        const googleEl = document.getElementById(container.googleElement);
+
+                        if (!issEl) return;
+
+                        // Check if ImmoderateScarSheer ad has loaded by checking for nested iframes or ad content
+                        const hasAdContent = issEl.querySelector('iframe') ||
+                                           issEl.querySelector('img') ||
+                                           issEl.querySelector('[data-ad-format]') ||
+                                           (issEl.innerHTML.includes('ins') && issEl.querySelector('ins.adsbygoogle'));
+
+                        // If no ad content after 5 seconds, show Google AdSense fallback
+                        if (!hasAdContent && googleEl) {
+                            console.log('ImmoderateScarSheer not loaded for container:', container.issElement, '- showing Google AdSense fallback');
+                            issEl.style.display = 'none';
+                            googleEl.style.display = 'block';
+
+                            // Initialize Google AdSense if it exists
+                            if (window.adsbygoogle && googleEl.querySelector('.adsbygoogle')) {
+                                (adsbygoogle = window.adsbygoogle || []).push({});
+                            }
+                        }
+                    });
+                }, 5000);
+            });
+
+            // Monitor rewarded ad loading separately
+            window.setupRewardedAdFallback = function() {
+                const adISS = document.getElementById('adContentISS');
+                const adGoogle = document.getElementById('adContent');
+                const adFallback = document.getElementById('adContentFallback');
+
+                if (!adISS) return;
+
+                // Wait for ImmoderateScarSheer to load
+                setTimeout(function() {
+                    const hasISSAd = adISS.querySelector('iframe') ||
+                                    adISS.querySelector('img') ||
+                                    adISS.innerHTML.includes('<script');
+
+                    if (!hasISSAd && adGoogle) {
+                        console.log('ImmoderateScarSheer not loaded in rewarded - showing Google AdSense fallback');
+                        adISS.style.display = 'none';
+                        adGoogle.style.display = 'block';
+
+                        // Initialize Google AdSense
+                        if (window.adsbygoogle && adGoogle.querySelector('.adsbygoogle')) {
+                            (adsbygoogle = window.adsbygoogle || []).push({});
+                        }
+                    }
+                }, 3000);
+            };
+        })();
     </script>
 </body>
 </html>
