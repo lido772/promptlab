@@ -1,0 +1,16 @@
+# Temp files
+tmpclaude-*-cwd
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
