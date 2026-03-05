@@ -50,14 +50,13 @@ function AppContent() {
 }
 
 function App() {
+  // Temporarily disable AuthProvider to avoid Firebase errors
   return (
-    <AuthProvider>
-      <AdsProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
-      </AdsProvider>
-    </AuthProvider>
+    <AdsProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
+    </AdsProvider>
   );
 }
 
