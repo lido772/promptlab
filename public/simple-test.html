@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #050506;
+            color: #EDEDEF;
+        }
+        h1 { color: #5E6AD2; }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        .success { background: rgba(16, 185, 129, 0.2); border-color: #10b981; }
+        .error { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; }
+        .info { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>✨ PromptUp - Deployment Diagnostic</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function addTest(name, success, message) {
+            const div = document.createElement('div');
+            div.className = `status ${success ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${success ? '✓' : '✗'} ${name}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+
+        // Test 1: JavaScript works
+        addTest('JavaScript', true, 'Running correctly');
+
+        // Test 2: DOM is ready
+        addTest('DOM', true, 'DOM is ready');
+
+        // Test 3: Page URL
+        addTest('URL', true, window.location.href);
+
+        // Test 4: Check assets
+        const assets = [
+            '/assets/index.css',
+            '/assets/index.js',
+            '/assets/vendor.js',
+            '/assets/react-vendor.js',
+            '/assets/framer-motion.js',
+            '/assets/firebase.js'
+        ];
+
+        let assetCount = 0;
+        assets.forEach(asset => {
+            fetch(asset, { method: 'HEAD' })
+                .then(r => {
+                    addTest(`Asset ${asset}`, r.ok, `Status: ${r.status}`);
+                    assetCount++;
+                    if (assetCount === assets.length) {
+                        addTest('Summary', assetCount === assets.length, `${assetCount}/${assets.length} assets found`);
+                    }
+                })
+                .catch(e => {
+                    addTest(`Asset ${asset}`, false, `Not found or blocked`);
+                    assetCount++;
+                    if (assetCount === assets.length) {
+                        addTest('Summary', false, `Only ${assetCount}/${assets.length} assets found`);
+                    }
+                });
+        });
+
+        // Test 5: ES Modules support
+        const testModule = document.createElement('script');
+        testModule.type = 'module';
+        testModule.textContent = `
+            addTest('ES Modules', true, 'Supported and working');
+        `;
+        document.head.appendChild(testModule);
+
+        // Test 6: React test
+        const testReact = document.createElement('script');
+        testReact.type = 'module';
+        testReact.textContent = `
+            try {
+                import('/assets/react-vendor.js').then(module => {
+                    addTest('React Module', true, 'React loaded successfully');
+                }).catch(e => {
+                    addTest('React Module', false, e.message);
+                });
+            } catch(e) {
+                addTest('React Module', false, e.message);
+            }
+        `;
+        document.head.appendChild(testReact);
+
+        // Test 7: Build info
+        addTest('Build Version', true, '1.0.1 - No Hash');
+        addTest('Deployment', true, new Date().toISOString());
+
+        setTimeout(() => {
+            const summary = document.createElement('div');
+            summary.className = 'status info';
+            summary.innerHTML = '<strong>If all assets show green, the deployment is working. Check the main page for React errors.</strong>';
+            results.appendChild(summary);
+        }, 3000);
+    </script>
+</body>
+</html>
