@@ -32,6 +32,10 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
+        // Disable hash for consistent file names
+        entryFileNames: 'assets/[name].js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: 'assets/[name].[ext]',
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
             if (id.includes('react') || id.includes('react-dom')) {
