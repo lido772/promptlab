@@ -30,7 +30,6 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    target: 'esnext',
     rollupOptions: {
       output: {
         // Disable hash for consistent file names
@@ -40,8 +39,12 @@ export default defineConfig({
         // Force ES module format
         format: 'es',
         manualChunks: (id) => {
+          // Separate scheduler to avoid CommonJS pollution
+          if (id.includes('scheduler')) {
+            return 'scheduler';
+          }
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+            if (id.includes('react') || id.includes('react-dom')) {
               return 'react-vendor';
             }
             if (id.includes('firebase')) {
