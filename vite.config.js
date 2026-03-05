@@ -59,14 +59,16 @@ export default defineConfig({
       onwarn(warning, warn) {
         if (warning.code === 'THIS_IS_UNDEFINED') return;
         if (warning.code === 'EVAL') return;
+        if (warning.code === 'CIRCULAR_DEPENDENCY') return;
         warn(warning);
       },
     },
     // Ensure assets have relative paths for GitHub Pages
     assetsInlineLimit: 4096,
     commonjsOptions: {
-      include: [/node_modules\/firebase/, /node_modules\/react/, /node_modules\/react-dom/],
+      // Transform all CommonJS to ES modules
       transformMixedEsModules: true,
+      include: [/node_modules/],
     },
   },
   server: {
