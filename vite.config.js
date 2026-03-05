@@ -30,15 +30,18 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
+    target: 'esnext',
     rollupOptions: {
       output: {
         // Disable hash for consistent file names
         entryFileNames: 'assets/[name].js',
         chunkFileNames: 'assets/[name].js',
         assetFileNames: 'assets/[name].[ext]',
+        // Force ES module format
+        format: 'es',
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
               return 'react-vendor';
             }
             if (id.includes('firebase')) {
@@ -52,6 +55,12 @@ export default defineConfig({
         },
       },
       external: [],
+      // Ensure ES modules are handled correctly
+      onwarn(warning, warn) {
+        if (warning.code === 'THIS_IS_UNDEFINED') return;
+        if (warning.code === 'EVAL') return;
+        warn(warning);
+      },
     },
     // Ensure assets have relative paths for GitHub Pages
     assetsInlineLimit: 4096,
