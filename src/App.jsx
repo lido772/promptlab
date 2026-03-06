@@ -11,17 +11,13 @@ import HistorySection from './components/HistorySection';
 import RewardedModal from './components/RewardedModal';
 import ToastContainer from './components/ToastContainer';
 import Background from './components/ui/Background';
-import { AuthProvider } from './contexts/AuthContext';
 import { AdsProvider } from './contexts/AdsContext';
 import { ToastProvider } from './contexts/ToastContext';
-import { useAuth } from './hooks/useAuth';
 
 // Toggle between landing page and original app
 const USE_LANDING_PAGE = true;
 
 function AppContent() {
-  const { user } = useAuth();
-
   if (USE_LANDING_PAGE) {
     return <LandingPage />;
   }
@@ -36,13 +32,11 @@ function AppContent() {
         <main className="container">
           <Hero />
           <PromptTool />
-          {user && <HistorySection />}
           <CTASection />
         </main>
 
         <Footer />
 
-        <RewardedModal />
         <ToastContainer />
       </div>
     </div>
@@ -50,7 +44,7 @@ function AppContent() {
 }
 
 function App() {
-  // Temporarily disable AuthProvider to avoid Firebase errors
+  // Removed AuthProvider and RewardedModal to avoid Firebase errors
   return (
     <AdsProvider>
       <ToastProvider>
