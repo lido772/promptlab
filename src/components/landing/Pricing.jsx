@@ -71,7 +71,7 @@ export default function Pricing() {
   const [yearly, setYearly] = useState(false);
 
   return (
-    <section id="pricing" className="section relative border-t border-border">
+    <section id="pricing" className="section relative overflow-hidden border-t border-border">
       {/* Background Elements */}
       <div
         className="absolute inset-0 opacity-[0.02]"
@@ -106,7 +106,7 @@ export default function Pricing() {
           </div>
 
           {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-12">
+          <div className="mb-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <span className={`text-sm font-medium ${!yearly ? 'text-foreground' : 'text-foreground-muted'}`}>
               Monthly
             </span>

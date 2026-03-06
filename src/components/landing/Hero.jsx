@@ -1,26 +1,18 @@
 import { motion } from 'framer-motion';
 
-const words = ['Smarter', 'Faster', 'Better'];
-
 export default function Hero({ onStartClick }) {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[100svh] md:min-h-screen flex items-start justify-center overflow-hidden pt-24 pb-12 md:items-center md:pt-0 md:pb-0">
       {/* Background Layers */}
       <div className="absolute inset-0 bg-gradient-radial from-[#0a0a0f] via-[#050506] to-[#020203]" />
 
       {/* Animated Gradient Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Primary blob - Top center */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[1400px] bg-accent opacity-[0.25] blur-[150px] animate-float rounded-full" />
-
-        {/* Secondary blob - Left side */}
-        <div className="absolute top-1/4 left-0 -translate-x-1/4 w-[600px] h-[800px] bg-purple-600 opacity-[0.15] blur-[120px] animate-float-delayed rounded-full" />
-
-        {/* Tertiary blob - Right side */}
-        <div className="absolute top-1/3 right-0 translate-x-1/4 w-[500px] h-[700px] bg-indigo-500 opacity-[0.12] blur-[100px] animate-float rounded-full" />
-
-        {/* Bottom accent - Pulsing */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-[400px] h-[600px] bg-accent opacity-[0.10] blur-[100px] animate-glow-pulse rounded-full" />
+        <div className="absolute inset-x-4 top-12 h-64 rounded-full bg-accent/15 blur-3xl md:hidden" />
+        <div className="absolute top-0 left-1/2 hidden h-[1400px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent opacity-[0.25] blur-[150px] animate-float md:block" />
+        <div className="absolute top-1/4 left-0 hidden h-[800px] w-[600px] -translate-x-1/4 rounded-full bg-purple-600 opacity-[0.15] blur-[120px] animate-float-delayed md:block" />
+        <div className="absolute top-1/3 right-0 hidden h-[700px] w-[500px] translate-x-1/4 rounded-full bg-indigo-500 opacity-[0.12] blur-[100px] animate-float md:block" />
+        <div className="absolute bottom-0 left-1/2 hidden h-[600px] w-[400px] -translate-x-1/2 translate-y-1/2 rounded-full bg-accent opacity-[0.10] blur-[100px] animate-glow-pulse md:block" />
       </div>
 
       {/* Grid Pattern */}
@@ -36,21 +28,21 @@ export default function Hero({ onStartClick }) {
       />
 
       {/* Content */}
-      <div className="container relative z-10 pt-20">
+      <div className="container relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 mb-8"
+            className="mb-6 inline-flex max-w-full items-center gap-2"
           >
-            <span className="badge">
+            <span className="badge max-w-full">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
               </span>
-              Now with GPT-4 Turbo Support
+              <span className="truncate">Now with GPT-4 Turbo Support</span>
             </span>
           </motion.div>
 
@@ -59,7 +51,7 @@ export default function Hero({ onStartClick }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-6xl lg:text-7xl font-semibold text-gradient mb-6 leading-tight tracking-tight"
+            className="mb-6 text-4xl font-semibold leading-tight tracking-tight text-gradient sm:text-5xl md:text-6xl lg:text-7xl"
           >
             Build AI Prompts
             <br />
@@ -71,7 +63,7 @@ export default function Hero({ onStartClick }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg md:text-xl text-foreground-muted mb-10 max-w-2xl mx-auto leading-relaxed"
+            className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-foreground-muted sm:text-lg md:mb-10 md:text-xl"
           >
             The intelligent prompt engineering platform that helps you craft,
             test, and optimize AI prompts with real-time analytics.
@@ -82,11 +74,11 @@ export default function Hero({ onStartClick }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
+            className="mb-10 flex flex-col items-stretch justify-center gap-3 sm:mb-12 sm:flex-row sm:items-center"
           >
             <motion.button
               onClick={onStartClick}
-              className="btn-primary text-lg px-8 py-4"
+              className="btn-primary px-6 py-4 text-base sm:px-8 sm:text-lg"
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -96,7 +88,7 @@ export default function Hero({ onStartClick }) {
               </svg>
             </motion.button>
             <motion.button
-              className="btn-secondary text-lg px-8 py-4"
+              className="btn-secondary px-6 py-4 text-base sm:px-8 sm:text-lg"
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -116,9 +108,9 @@ export default function Hero({ onStartClick }) {
             className="flex flex-col items-center gap-4"
           >
             <p className="text-sm text-foreground-subtle">Trusted by teams at</p>
-            <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 opacity-40">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 opacity-40 lg:gap-12">
               {['Stripe', 'Vercel', 'Linear', 'Notion', 'Figma'].map((company) => (
-                <span key={company} className="text-lg font-semibold text-foreground-muted">
+                <span key={company} className="text-base font-semibold text-foreground-muted sm:text-lg">
                   {company}
                 </span>
               ))}
@@ -131,7 +123,7 @@ export default function Hero({ onStartClick }) {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-16 lg:mt-24 max-w-5xl mx-auto"
+          className="mx-auto mt-12 max-w-5xl lg:mt-24"
         >
           <div className="relative">
             {/* Glow behind */}
@@ -146,7 +138,7 @@ export default function Hero({ onStartClick }) {
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                   <div className="w-3 h-3 rounded-full bg-green-500/80" />
                 </div>
-                <div className="flex-1 flex justify-center">
+                <div className="hidden flex-1 justify-center sm:flex">
                   <div className="flex gap-6 text-xs text-foreground-muted">
                     <span className="text-foreground">Prompts</span>
                     <span>Analytics</span>
@@ -156,8 +148,8 @@ export default function Hero({ onStartClick }) {
               </div>
 
               {/* Mock Content */}
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-4 p-4 sm:p-6">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                   {/* Stats Cards */}
                   {[1, 2, 3].map((i) => (
                     <div
@@ -165,7 +157,7 @@ export default function Hero({ onStartClick }) {
                       className="card p-4 animate-float"
                       style={{ animationDelay: `${i * 0.2}s` }}
                     >
-                      <div className="text-2xl font-semibold text-gradient">
+                      <div className="text-xl font-semibold text-gradient sm:text-2xl">
                         {i === 1 ? '2.4K' : i === 2 ? '94%' : '847'}
                       </div>
                       <div className="text-sm text-foreground-muted mt-1">
@@ -194,7 +186,7 @@ export default function Hero({ onStartClick }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex"
       >
         <span className="text-xs text-foreground-subtle">Scroll to explore</span>
         <motion.div

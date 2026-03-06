@@ -75,7 +75,7 @@ const itemVariants = {
 
 export default function Features() {
   return (
-    <section id="features" className="section relative border-t border-border">
+    <section id="features" className="section relative overflow-hidden border-t border-border">
       {/* Background Grid */}
       <div
         className="absolute inset-0 opacity-[0.02]"

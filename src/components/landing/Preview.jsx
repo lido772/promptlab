@@ -2,11 +2,11 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 
 const sidebarItems = [
-  { icon: '📊', label: 'Dashboard', active: true },
-  { icon: '⚡', label: 'Prompts', active: false },
-  { icon: '📈', label: 'Analytics', active: false },
-  { icon: '🔄', label: 'History', active: false },
-  { icon: '⚙️', label: 'Settings', active: false },
+  { icon: 'Dashboard', label: 'Dashboard', active: true },
+  { icon: 'Prompts', label: 'Prompts', active: false },
+  { icon: 'Analytics', label: 'Analytics', active: false },
+  { icon: 'History', label: 'History', active: false },
+  { icon: 'Settings', label: 'Settings', active: false },
 ];
 
 const promptItems = [
@@ -22,14 +22,13 @@ export default function Preview() {
     target: ref,
     offset: ['start end', 'end start'],
   });
-  const y = useTransform(scrollYProgress, [0, 1], ['10%', '-10%']);
-  const rotate = useTransform(scrollYProgress, [0, 1], [2, -2]);
+  const y = useTransform(scrollYProgress, [0, 1], ['6%', '-6%']);
+  const rotate = useTransform(scrollYProgress, [0, 1], [1, -1]);
 
   return (
     <section id="preview" className="section relative overflow-hidden border-t border-border">
-      {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background-deep to-transparent" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent opacity-[0.08] blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent opacity-[0.08] blur-[120px] pointer-events-none" />
 
       <div className="container relative z-10">
         <motion.div
@@ -39,7 +38,6 @@ export default function Preview() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {/* Section Header */}
           <div className="section-header">
             <span className="badge mb-4">Preview</span>
             <h2 className="section-title">
@@ -54,47 +52,38 @@ export default function Preview() {
           </div>
         </motion.div>
 
-        {/* Dashboard Preview */}
-        <motion.div
-          style={{ y, rotate }}
-          className="max-w-6xl mx-auto"
-        >
+        <motion.div style={{ y, rotate }} className="mx-auto max-w-6xl">
           <div className="relative">
-            {/* Glow Effect */}
-            <div className="absolute -inset-8 bg-accent/20 blur-3xl rounded-[3rem]" />
+            <div className="absolute -inset-6 rounded-[2rem] bg-accent/20 blur-3xl" />
 
-            {/* Main Dashboard */}
-            <div className="relative rounded-2xl overflow-hidden border border-border bg-background-elevated/80 backdrop-blur-xl shadow-card">
-              {/* Top Bar */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface/50">
-                <div className="flex items-center gap-4">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-background-elevated/80 backdrop-blur-xl shadow-card">
+              <div className="flex flex-col gap-3 border-b border-border bg-surface/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-4">
                   <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                    <div className="h-3 w-3 rounded-full bg-red-500/80" />
+                    <div className="h-3 w-3 rounded-full bg-yellow-500/80" />
+                    <div className="h-3 w-3 rounded-full bg-green-500/80" />
                   </div>
-                  <div className="flex items-center gap-2 text-foreground-subtle text-sm">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="hidden min-w-0 items-center gap-2 text-sm text-foreground-subtle sm:flex">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                    <span>promptup.app/dashboard</span>
+                    <span className="truncate">promptup.app/dashboard</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-surface rounded-lg">
-                    <div className="w-6 h-6 rounded-full bg-accent" />
+                <div className="flex items-center gap-3 self-start sm:self-auto">
+                  <div className="flex items-center gap-2 rounded-lg bg-surface px-3 py-1.5">
+                    <div className="h-6 w-6 rounded-full bg-accent" />
                     <span className="text-sm text-foreground-muted">John D.</span>
                   </div>
                 </div>
               </div>
 
-              {/* Dashboard Content */}
               <div className="flex">
-                {/* Sidebar */}
-                <div className="w-56 border-r border-border p-4 hidden md:block">
-                  <div className="flex items-center gap-2 mb-8 px-2">
-                    <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                      <span className="text-white text-sm font-semibold">P</span>
+                <div className="hidden w-56 border-r border-border p-4 md:block">
+                  <div className="mb-8 flex items-center gap-2 px-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
+                      <span className="text-sm font-semibold text-white">P</span>
                     </div>
                     <span className="font-semibold text-foreground">PromptUp</span>
                   </div>
@@ -103,52 +92,48 @@ export default function Preview() {
                     {sidebarItems.map((item) => (
                       <div
                         key={item.label}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                        className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                           item.active
-                            ? 'bg-accent/20 text-foreground border border-accent/30'
-                            : 'text-foreground-muted hover:text-foreground hover:bg-surface'
+                            ? 'border border-accent/30 bg-accent/20 text-foreground'
+                            : 'text-foreground-muted hover:bg-surface hover:text-foreground'
                         }`}
                       >
-                        <span>{item.icon}</span>
-                        <span className="text-sm font-medium">{item.label}</span>
+                        {item.icon}
                       </div>
                     ))}
                   </nav>
 
-                  <div className="mt-auto pt-8 px-2">
+                  <div className="mt-8 px-2">
                     <div className="card p-3">
-                      <div className="text-xs text-foreground-subtle mb-2">Monthly Usage</div>
-                      <div className="text-lg font-semibold text-foreground mb-2">8,437 / 10k</div>
-                      <div className="h-1.5 bg-surface rounded-full overflow-hidden">
+                      <div className="mb-2 text-xs text-foreground-subtle">Monthly Usage</div>
+                      <div className="mb-2 text-lg font-semibold text-foreground">8,437 / 10k</div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-surface">
                         <motion.div
                           initial={{ width: 0 }}
                           whileInView={{ width: '84%' }}
                           transition={{ duration: 1, delay: 0.5 }}
-                          className="h-full bg-accent rounded-full"
+                          className="h-full rounded-full bg-accent"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Main Content */}
-                <div className="flex-1 p-6">
-                  {/* Page Header */}
-                  <div className="flex items-center justify-between mb-6">
+                <div className="flex-1 p-4 sm:p-6">
+                  <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h3 className="text-xl font-semibold text-foreground">Your Prompts</h3>
                       <p className="text-sm text-foreground-muted">Manage and optimize your AI prompts</p>
                     </div>
-                    <button className="btn-primary text-sm px-4 py-2">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button className="btn-primary w-full px-4 py-2 text-sm sm:w-auto">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                       New Prompt
                     </button>
                   </div>
 
-                  {/* Stats Row */}
-                  <div className="grid grid-cols-4 gap-4 mb-6">
+                  <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
                     {[
                       { label: 'Total Prompts', value: '247', change: '+12%' },
                       { label: 'Avg Score', value: '91%', change: '+3%' },
@@ -163,7 +148,7 @@ export default function Preview() {
                         transition={{ duration: 0.3 }}
                         className="card p-4"
                       >
-                        <div className="text-sm text-foreground-muted mb-1">{stat.label}</div>
+                        <div className="mb-1 text-sm text-foreground-muted">{stat.label}</div>
                         <div className="flex items-end justify-between">
                           <span className="text-2xl font-semibold text-foreground">{stat.value}</span>
                           <span className="text-xs text-emerald-400">{stat.change}</span>
@@ -172,9 +157,8 @@ export default function Preview() {
                     ))}
                   </div>
 
-                  {/* Prompt List */}
                   <div className="card overflow-hidden">
-                    <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border text-xs text-foreground-subtle uppercase tracking-wider">
+                    <div className="hidden grid-cols-12 gap-4 border-b border-border px-4 py-3 text-xs uppercase tracking-wider text-foreground-subtle md:grid">
                       <div className="col-span-4">Prompt Name</div>
                       <div className="col-span-2">Model</div>
                       <div className="col-span-2">Success Rate</div>
@@ -189,31 +173,34 @@ export default function Preview() {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.3, delay: index * 0.1 }}
-                        className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border hover:bg-surface transition-colors duration-200 items-center"
+                        className="grid grid-cols-1 gap-3 border-b border-border px-4 py-4 transition-colors duration-200 hover:bg-surface md:grid-cols-12 md:gap-4 md:items-center md:py-3"
                       >
-                        <div className="col-span-4">
+                        <div className="md:col-span-4">
                           <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg ${index % 2 === 0 ? 'bg-accent/20' : 'bg-purple-500/20'} flex items-center justify-center`}>
-                              <span className="text-sm">⚡</span>
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${index % 2 === 0 ? 'bg-accent/20' : 'bg-purple-500/20'}`}>
+                              <span className="text-sm">P</span>
                             </div>
-                            <span className="text-foreground font-medium">{item.name}</span>
+                            <div className="min-w-0">
+                              <span className="block truncate font-medium text-foreground">{item.name}</span>
+                              <span className="mt-1 block text-xs text-foreground-subtle md:hidden">{item.updated}</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded bg-surface text-foreground-muted text-xs">
+                        <div className="md:col-span-2">
+                          <span className="inline-flex items-center rounded bg-surface px-2 py-1 text-xs text-foreground-muted">
                             {item.model}
                           </span>
                         </div>
-                        <div className="col-span-2">
+                        <div className="md:col-span-2">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 h-1.5 bg-surface rounded-full overflow-hidden max-w-[60px]">
+                            <div className="h-1.5 max-w-[60px] flex-1 overflow-hidden rounded-full bg-surface">
                               <div
                                 className={`h-full rounded-full ${
-                                  parseInt(item.success) > 90
+                                  parseInt(item.success, 10) > 90
                                     ? 'bg-emerald-500'
-                                    : parseInt(item.success) > 85
-                                    ? 'bg-accent'
-                                    : 'bg-yellow-500'
+                                    : parseInt(item.success, 10) > 85
+                                      ? 'bg-accent'
+                                      : 'bg-yellow-500'
                                 }`}
                                 style={{ width: item.success }}
                               />
@@ -221,15 +208,15 @@ export default function Preview() {
                             <span className="text-sm text-foreground-muted">{item.success}</span>
                           </div>
                         </div>
-                        <div className="col-span-2 text-sm text-foreground-muted">{item.updated}</div>
-                        <div className="col-span-2 flex items-center gap-2">
-                          <button className="p-1.5 hover:bg-surface rounded-lg transition-colors duration-200">
-                            <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="hidden text-sm text-foreground-muted md:block md:col-span-2">{item.updated}</div>
+                        <div className="flex items-center gap-2 md:col-span-2">
+                          <button className="rounded-lg p-1.5 transition-colors duration-200 hover:bg-surface">
+                            <svg className="h-4 w-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
                           </button>
-                          <button className="p-1.5 hover:bg-surface rounded-lg transition-colors duration-200">
-                            <svg className="w-4 h-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <button className="rounded-lg p-1.5 transition-colors duration-200 hover:bg-surface">
+                            <svg className="h-4 w-4 text-foreground-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
                           </button>
@@ -241,15 +228,14 @@ export default function Preview() {
               </div>
             </div>
 
-            {/* Floating Elements */}
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute -right-4 top-1/4 card p-3 shadow-xl"
+              className="absolute -right-4 top-1/4 hidden card p-3 shadow-xl lg:block"
             >
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
+                  <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -263,11 +249,11 @@ export default function Preview() {
             <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-              className="absolute -left-4 bottom-1/4 card p-3 shadow-xl"
+              className="absolute -left-4 bottom-1/4 hidden card p-3 shadow-xl lg:block"
             >
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/20">
+                  <svg className="h-4 w-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
