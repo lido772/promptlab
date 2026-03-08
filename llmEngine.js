@@ -45,22 +45,34 @@ export const initLLM = async (modelPath, progressCallback) => {
 /**
  * Improve a prompt using the loaded model
  * @param {string} prompt - The user's original prompt
+ * @param {string} lang - The current language code
  */
-export const improvePromptLocal = async (prompt) => {
+export const improvePromptLocal = async (prompt, lang = 'en') => {
     if (!generator) {
         throw new Error('LLM not initialized.');
     }
 
     let inputPrompt = '';
+    const langNames = { 
+        en: 'English', 
+        fr: 'French', 
+        es: 'Spanish',
+        de: 'German',
+        ar: 'Arabic',
+        hi: 'Hindi',
+        zh: 'Chinese',
+        ja: 'Japanese'
+    };
+    const currentLangName = langNames[lang] || 'English';
     
     // Different formatting based on model type
     if (currentModelPath.includes('TinyLlama')) {
-        inputPrompt = `<|system|>\nYou are an expert prompt engineer. Your task is to rewrite the given prompt to be more clear, specific, and structured for an AI. Always use "You are" to define a role, and "Context:" to provide background.</s>\n<|user|>\nImprove this prompt: "${prompt}"</s>\n<|assistant|>\n`;
+        inputPrompt = `<|system|>\nYou are an expert prompt engineer. Your task is to rewrite the given prompt in ${currentLangName} to be more clear, specific, and structured for an AI. Always use "You are" (or translation) to define a role, and "Context:" to provide background.</s>\n<|user|>\nImprove this ${currentLangName} prompt: "${prompt}"</s>\n<|assistant|>\n`;
     } else if (currentModelPath.includes('Phi-3')) {
-        inputPrompt = `<|user|>\nYou are an expert prompt engineer. Rewrite this prompt to be more clear, specific, and structured: "${prompt}"\n<|assistant|>\n`;
+        inputPrompt = `<|user|>\nYou are an expert prompt engineer. Rewrite this ${currentLangName} prompt to be more clear, specific, and structured while keeping it in ${currentLangName}: "${prompt}"\n<|assistant|>\n`;
     } else {
         // Simple fallback (DistilGPT2)
-        inputPrompt = `Role: Expert Prompt Engineer. Instructions: Improve the following prompt for better AI results. Original: "${prompt}" Improved: `;
+        inputPrompt = `Role: Expert Prompt Engineer. Instructions: Improve the following ${currentLangName} prompt for better AI results. Original: "${prompt}" Improved: `;
     }
 
     try {
@@ -90,3 +102,40 @@ export const improvePromptLocal = async (prompt) => {
 };
 
 export const isLLMLoaded = () => isLoaded;
+
+/**
+ * Delete specific or all Transformer.js models from browser cache
+ * @param {string} [modelPath] - Optional path of the specific model to delete
+ */
+export const clearModelCache = async (modelPath = null) => {
+    try {
+        const cacheNames = await caches.keys();
+        for (const name of cacheNames) {
+            if (name.includes('transformers-cache') || name.includes('xenova')) {
+                if (modelPath) {
+                    // Only delete if the cache name is related to the specific model path
+                    // Transformers.js often includes the model name in the cache key
+                    if (name.includes(modelPath)) {
+                        await caches.delete(name);
+                        console.log(`Deleted cache: ${name}`);
+                    }
+                } else {
+                    // If no modelPath specified, delete all related caches
+                    await caches.delete(name);
+                    console.log(`Deleted cache: ${name}`);
+                }
+            }
+        }
+
+        // Reset LLM state if the current model was deleted or all caches were cleared
+        if (!modelPath || (modelPath === currentModelPath)) {
+            generator = null;
+            isLoaded = false;
+            currentModelPath = null;
+        }
+        return true;
+    } catch (err) {
+        console.error('Error clearing cache:', err);
+        return false;
+    }
+};
