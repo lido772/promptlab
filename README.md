@@ -1,302 +1,154 @@
-# PromptUp - Ready for Production 🚀
+# Prompt Analyzer - Linear Design System
 
-**Status:** ✅ Fully Configured & Ready to Deploy  
-**Created:** March 3, 2026  
-**Domain:** promptup.cloud  
-**Business Model:** Ad-Supported AI Prompt Optimization  
+A stunning, 100% local AI prompt optimization tool with a premium Linear-inspired design system.
 
----
+![Prompt Analyzer](https://img.shields.io/badge/Design-Linear%20Modern-blue)
+![Offline First](https://img.shields.io/badge/Features-Offline%20First-green)
+![Privacy Focused](https://img.shields.io/badge/Privacy-100%25%20Local-orange)
 
-## 📋 Project Overview
+## ✨ Features
 
-PromptUp is a **free AI prompt optimization tool** funded by advertising. Users get:
-- ✅ 3 free AI prompt optimizations per day
-- ✅ Unlimited optimizations by watching 15-second ads (ad-supported)
-- ✅ Powered by Google Gemini 2.5 Flash
-- ✅ No paywall, no signup required
+### 🎨 Linear Design System
+- **Cinematic Ambient Lighting**: 4 animated gradient blobs create atmospheric depth
+- **Mouse-Tracking Spotlights**: Interactive cards respond to cursor position
+- **Multi-Layer Glass Morphism**: Cards with gradient backgrounds and subtle borders
+- **Gradient Typography**: Headlines with vertical fade and shimmer effects
+- **Precision Micro-Interactions**: 200-300ms animations with expo-out easing
 
----
+### 🤖 Local AI Engine
+- **100% Browser-Based**: Runs entirely in your browser using Transformers.js
+- **Multi-Model Support**: Choose from DistilGPT2 (~80MB), TinyLlama (~650MB), or Phi-3 Mini (~2.2GB)
+- **Offline Capable**: Works without internet after initial model download
+- **Privacy First**: No data leaves your device
 
-## 💰 Revenue Model
+### 🌍 Multi-Language Support
+- 8 languages: English, French, Spanish, German, Arabic, Hindi, Chinese, Japanese
+- Language-specific heuristic analysis
+- Instant UI switching
 
-### How It Works
-1. User enters prompt → Gets instant AI improvement
-2. Free tier: 3 daily optimizations (cost: $0.0003)
-3. Hits limit → Watches 15s ad (generates $0.0008 revenue)
-4. Ad revenue covers API costs + 7x profit margin
+### 📊 Heuristic Scoring
+- **Role Definition**: Detects persona/expert role setup
+- **Format Specification**: Identifies output format requirements
+- **Constraints**: Evaluates limitations and boundaries
+- **Context Clarity**: Measures contextual information quality
+- **Real-time Analysis**: Instant scoring without server requests
 
-### Financial Summary
-| Metric | Value |
-|--------|-------|
-| API Cost per optimization | $0.0001 |
-| Ad Revenue per optimization | $0.0008 |
-| **Profit per optimization** | **$0.0007 (7x ROI)** |
-| Break-even users | 2 active |
-| Estimated monthly (1K users) | **+$260 profit** |
+## 🚀 Quick Start
 
----
+1. **Open `index.html`** in a modern browser
+2. **Enter your prompt** in the text area
+3. **Click "Analyze Instantly"** for heuristic scoring
+4. **Optional**: Load a local AI model for AI-powered prompt rewriting
+5. **Copy** the optimized version
 
-## 🏗️ Project Structure
+## 🎯 Design System Highlights
+
+### Color Palette
+- **Background Deep**: `#020203` - Deepest layers
+- **Background Base**: `#050506` - Primary canvas
+- **Foreground**: `#EDEDEF` - Primary text
+- **Accent**: `#5E6AD2` - Interactive elements
+- **Accent Glow**: `rgba(94, 106, 210, 0.3)` - Ambient lighting
+
+### Typography
+- **Font**: Inter (Google Fonts)
+- **Scale**: Display (7xl-8xl) → H1 (5xl-6xl) → H2 (3xl-4xl) → Body (sm-base)
+- **Gradient Text**: Vertical fade from white to semi-transparent
+
+### Components
+- **Cards**: Glass morphism with gradient backgrounds, multi-layer shadows
+- **Buttons**: Primary with glow effect, secondary with inset shadow
+- **Inputs**: Dark background with accent focus ring
+- **Spotlight Effect**: Mouse-tracking radial gradient on hover
+
+### Animations
+- **Ambient Blobs**: 8-10s float animation with 150px blur
+- **Parallax**: Hero fades and scales on scroll
+- **Stagger Reveals**: 80ms delay between elements
+- **Easing**: Expo-out `cubic-bezier(0.16, 1, 0.3, 1)`
+
+## 📁 File Structure
 
 ```
-promptup/
-├── index.html                          # Main app (client-side)
-├── worker/
-│   ├── worker.js                       # Cloudflare Worker (API server)
-│   ├── wrangler.toml                   # Deployment config
-│   ├── DEPLOYMENT_CHECKLIST.md         # Step-by-step deployment
-│   ├── WORKER_GUIDE.md                 # Worker documentation
-│   └── DEPLOYMENT.md                   # Original docs
-├── API_MONETIZATION.md                 # Business model docs
-├── PROMPTUP_LAUNCH_PLAN.md             # Full launch strategy
-├── PROMPTUP_UPDATE.md                  # Feature details
-├── ads.txt                             # Ad network config
-└── CNAME                               # DNS config
+├── index.html              # Main application
+├── app.js                  # Application logic
+├── animations.js           # Animation system (spotlight, parallax)
+├── styles.css              # Linear design system
+├── i18n.js                 # Internationalization
+├── llmEngine.js            # Local LLM engine
+├── modelSelector.js        # Model selection logic
+├── promptAnalyzer.js       # Heuristic scoring engine
+├── README.md               # This file
+├── assets/                 # Images and static assets
+├── css/                    # Additional stylesheets
+└── js/                     # Additional scripts
 ```
 
----
+## 🎨 Customization
 
-## 🚀 Quick Start (for Deployment)
+### Change Accent Color
+Update CSS custom properties in `styles.css`:
 
-### 1. Deploy Frontend (2 minutes)
-
-**GitHub Pages Option:**
-```bash
-# Your website is already ready
-# Just push to GitHub:
-git add .
-git commit -m "Deploy PromptUp production"
-git push origin main
-
-# Then enable GitHub Pages:
-# Settings > Pages > Source: main branch
-# Custom Domain: promptup.cloud
+```css
+:root {
+    --accent: #5E6AD2;          /* Main accent */
+    --accent-bright: #6872D9;   /* Hover state */
+    --accent-glow: rgba(94, 106, 210, 0.3);  /* Glow effect */
+}
 ```
 
-**Or Netlify:**
-```bash
-npm install -g netlify-cli
-netlify deploy --production
-# Follow prompts, connect to your repo
+### Adjust Animation Speed
+Modify animation durations:
+
+```css
+:root {
+    --duration-fast: 200ms;     /* Quick interactions */
+    --duration-normal: 300ms;   /* Standard transitions */
+    --duration-slow: 600ms;     /* Entrance animations */
+}
 ```
 
-### 2. Deploy Worker (5 minutes)
+### Disable Animations
+The system respects `prefers-reduced-motion`:
 
-```bash
-cd worker/
-
-# 1. Login to Cloudflare
-wrangler login
-
-# 2. Create KV namespace
-wrangler kv:namespace create "RATE_LIMIT_KV"
-# Copy the ID to wrangler.toml
-
-# 3. Set secrets
-wrangler secret put GEMINI_API_KEY
-# Paste from: https://aistudio.google.com/app/apikey
-
-wrangler secret put ALLOWED_ORIGINS
-# Paste: http://localhost:*,https://promptup.cloud,https://www.promptup.cloud
-
-# 4. Deploy
-wrangler deploy
-
-# ✅ Done! Worker URL shown in output
+```css
+@media (prefers-reduced-motion: reduce) {
+    /* Animations automatically disabled */
+}
 ```
 
-### 3. Update index.html (1 minute)
+## 🔧 Technical Details
 
-```javascript
-// In index.html, update the worker URL:
-const CONFIG = {
-  WORKER_URL: "https://YOUR-WORKER-URL.workers.dev"
-};
-```
+### Browser Compatibility
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
-### 4. Test (2 minutes)
+### Performance Optimizations
+- CSS-only animations (no heavy JS libraries)
+- `will-change` hints for GPU acceleration
+- Lazy loading for AI models
+- Passive scroll listeners
+- RequestAnimationFrame for parallax
 
-```bash
-# Test the API
-curl https://YOUR-WORKER-URL.workers.dev \
-  -X POST \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Write a book title about AI"}'
+### Accessibility Features
+- WCAG AA contrast ratios
+- Visible focus indicators
+- Keyboard navigation support
+- Screen reader friendly
+- Reduced motion support
 
-# Should return improved prompt
-```
+## 📝 License
 
----
+MIT License - Feel free to use this design system in your projects!
 
-## 📚 Documentation Files
+## 🙏 Credits
 
-### For Business Stakeholders
-- **[PROMPTUP_LAUNCH_PLAN.md](PROMPTUP_LAUNCH_PLAN.md)** - Complete launch strategy
-  - Target audience & market size
-  - Monetization roadmap
-  - 7-day launch checklist
-  - Twitter content templates
-
-### For Developers
-- **[worker/DEPLOYMENT_CHECKLIST.md](worker/DEPLOYMENT_CHECKLIST.md)** - Step-by-step deployment
-  - Pre-requisites & setup
-  - Secrets configuration
-  - Testing procedures
-  - Troubleshooting
-
-- **[worker/WORKER_GUIDE.md](worker/WORKER_GUIDE.md)** - Technical details
-  - Request/response format
-  - Rate limiting & quotas
-  - Monitoring & logging
-  - Advanced configuration
-
-### For Financial Planning
-- **[API_MONETIZATION.md](API_MONETIZATION.md)** - Complete business model
-  - Cost breakdown (Gemini API)
-  - Revenue models (ads, premium, affiliate)
-  - Profitability analysis
-  - Scaling scenarios
+- **Transformers.js** by Hugging Face
+- **Inter Font** by Rasmus Andersson
+- **Design Inspiration** from Linear, Vercel, and Raycast
 
 ---
 
-## ✨ Key Features Implemented
-
-### Frontend (index.html)
-✅ 50+ AI models (text, image, video, audio, code)  
-✅ Real-time prompt analysis & scoring  
-✅ 4 quality metrics (clarity, specificity, structure, actionability)  
-✅ Free tier: 3 daily optimizations  
-✅ Rewarded tier: Unlimited with ads  
-✅ Google Analytics 4 integration  
-✅ Google AdSense ready  
-✅ Mobile responsive design  
-✅ Dark theme with gradient UI  
-
-### Backend (Cloudflare Worker)
-✅ Gemini 2.5 Flash API integration  
-✅ IP-based rate limiting (60 requests/hour)  
-✅ Daily quota tracking (3 free per IP)  
-✅ Rewarded request handling  
-✅ Cost estimation per request  
-✅ Revenue tracking (daily stats)  
-✅ CORS security (whitelisted origins)  
-✅ XSS prevention (prompt sanitization)  
-✅ Error handling & graceful degradation  
-
----
-
-## 🎯 Deployment Checklist
-
-- [x] Rename project from PromptLab → PromptUp
-- [x] Update domain references (promptlab.io → promptup.cloud)
-- [x] Fix GitHub Pages issue (Index.html → index.html)
-- [x] Implement ad-supported optimization flow
-- [x] Add cost tracking to worker
-- [x] Add revenue tracking to worker
-- [x] Fix wrangler.toml configuration
-- [x] Create deployment guide
-- [x] Create business model documentation
-- [ ] Deploy frontend (GitHub Pages / Netlify)
-- [ ] Deploy worker (Cloudflare)
-- [ ] Configure Google AdSense
-- [ ] Test end-to-end flow
-- [ ] Monitor daily stats
-
----
-
-## 🔐 Secrets Required
-
-Before deploying, you'll need:
-
-1. **GEMINI_API_KEY** (Free tier available)
-   - Get from: https://aistudio.google.com/app/apikey
-   - Free quota: 60 requests/minute
-
-2. **ALLOWED_ORIGINS** (pre-configured)
-   - Values: `http://localhost:*,https://promptup.cloud,https://www.promptup.cloud`
-
-3. **RATE_LIMIT_KV namespace** (created via Cloudflare)
-   - Tracks daily quotas & stats
-   - Expires after 7 days
-
----
-
-## 📊 Expected Performance
-
-### Load Times
-- Index.html: < 2 seconds (single file)
-- Free optimization: < 1 second (local analysis)
-- Rewarded optimization: 2-3 seconds (API call)
-
-### Cost per User (Monthly)
-- 10 active users: $0.21 cost, $0.48 revenue = +$0.27 profit
-- 100 active users: $2.10 cost, $4.80 revenue = +$2.70 profit
-- 1K active users: $21 cost, $48 revenue = +$27 profit
-
-### Scaling Potential
-- Gemini API quota: 15M requests/month (free tier)
-- Could handle: 150K+ optimizations/month
-- Maximum monthly profit: $1,200+ at scale
-
----
-
-## 🎬 Next Steps
-
-### Immediate (Week 1)
-1. Deploy frontend to GitHub Pages or Netlify
-2. Deploy worker to Cloudflare
-3. Test end-to-end flow
-4. Monitor first 24 hours
-
-### Short-term (Week 2-4)
-1. Set up Google AdSense
-2. Create Twitter account
-3. Post first tweets
-4. Send outreach emails to podcasts/newsletters
-
-### Medium-term (Month 2-3)
-1. Monitor daily stats & profitability
-2. A/B test ad placements
-3. Launch premium tier ($9.99/month)
-4. Target 100+ daily active users
-
-### Long-term (Month 4+)
-1. Scale to 1K+ daily users
-2. Launch enterprise API ($99-999/month)
-3. Explore B2B partnerships
-4. Target $1K+ monthly revenue
-
----
-
-## 💬 Support
-
-### For Deployment Issues
-→ Check [worker/DEPLOYMENT_CHECKLIST.md](worker/DEPLOYMENT_CHECKLIST.md)
-
-### For Technical Questions
-→ See [worker/WORKER_GUIDE.md](worker/WORKER_GUIDE.md)
-
-### For Business Planning
-→ Read [API_MONETIZATION.md](API_MONETIZATION.md)
-
-### For Launch Strategy
-→ Follow [PROMPTUP_LAUNCH_PLAN.md](PROMPTUP_LAUNCH_PLAN.md)
-
----
-
-## 📝 Version History
-
-- **v1.0** (March 3, 2026)
-  - Initial release
-  - Ad-supported optimization
-  - 50+ AI models
-  - Gemini 2.5 Flash integration
-  - Ready for production
-
----
-
-**Status:** ✅ Live & Profitable  
-**Domain:** promptup.cloud  
-**Business:** Ad-supported AI optimization  
-
-Ready to launch! 🚀
+Built with ❤️ using the Linear Design System

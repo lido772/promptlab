@@ -3,10 +3,15 @@
  * 100% Offline & Local
  */
 
-export const analyzePromptHeuristics = (prompt) => {
+import { i18n } from './i18n.js';
+
+export const analyzePromptHeuristics = (prompt, lang = 'en') => {
     const p = prompt.toLowerCase();
     const words = prompt.trim().split(/\s+/).filter(w => w.length > 0);
     const wordCount = words.length;
+    const config = i18n[lang] || i18n.en;
+    const patterns = config.heuristics.patterns;
+    const langIssues = config.heuristics.issues;
 
     const scores = {
         role: 0,
@@ -22,45 +27,40 @@ export const analyzePromptHeuristics = (prompt) => {
     const issues = [];
 
     // 1. Role Definition (15 pts)
-    const rolePatterns = ['you are', 'act as', 'as a', 'expert', 'specialist', 'persona', 'professional', 'consultant'];
-    if (rolePatterns.some(pattern => p.includes(pattern))) {
+    if (patterns.role.some(pattern => p.includes(pattern))) {
         scores.role = 15;
     } else {
-        issues.push("Missing a clear role definition (e.g., 'You are an expert...')");
+        issues.push(langIssues.role);
     }
 
     // 2. Output Format (15 pts)
-    const formatPatterns = ['format', 'json', 'table', 'list', 'markdown', 'return', 'output as', 'bullet point', 'structured', 'csv', 'html', 'xml'];
-    if (formatPatterns.some(pattern => p.includes(pattern))) {
+    if (patterns.format.some(pattern => p.includes(pattern))) {
         scores.outputFormat = 15;
     } else {
-        issues.push("No specific output format requested (e.g., 'Return as a JSON')");
+        issues.push(langIssues.format);
     }
 
     // 3. Constraints (15 pts)
-    const constraintPatterns = ['must', 'do not', 'only', 'avoid', 'limit', 'never', 'strictly', 'without', 'requirements', 'negative prompt'];
-    if (constraintPatterns.some(pattern => p.includes(pattern))) {
+    if (patterns.constraints.some(pattern => p.includes(pattern))) {
         scores.constraints = 15;
     } else {
-        issues.push("No constraints defined (e.g., 'Do not use technical jargon')");
+        issues.push(langIssues.constraints);
     }
 
     // 4. Context Presence (15 pts)
-    const contextPatterns = ['context', 'background', 'given', 'scenario', 'situation', 'example', 'here is', 'audience', 'purpose'];
-    if (contextPatterns.some(pattern => p.includes(pattern))) {
+    if (patterns.context.some(pattern => p.includes(pattern))) {
         scores.context = 15;
     } else {
-        issues.push("Lack of background context for the AI");
+        issues.push(langIssues.context);
     }
 
     // 5. Specificity (10 pts)
     const hasNumbers = /\d+/.test(prompt);
     const hasQuotes = /["']/.test(prompt);
-    const specificKeywords = ['specifically', 'exactly', 'detailed', 'precise', 'minute', 'particular', 'instance'];
-    if (hasNumbers || hasQuotes || specificKeywords.some(k => p.includes(k))) {
+    if (hasNumbers || hasQuotes || patterns.specificity.some(k => p.includes(k))) {
         scores.specificity = 10;
     } else {
-        issues.push("Prompt seems vague; add more specific details, numbers, or data");
+        issues.push(langIssues.specificity);
     }
 
     // 6. Clarity (10 pts)
@@ -69,7 +69,7 @@ export const analyzePromptHeuristics = (prompt) => {
         scores.clarity = 10;
     } else if (wordCount <= 10) {
         scores.clarity = 5;
-        issues.push("Prompt is too short to be clear");
+        issues.push(langIssues.short);
     } else {
         scores.clarity = 7;
     }
@@ -83,7 +83,7 @@ export const analyzePromptHeuristics = (prompt) => {
     } else if (hasNewlines) {
         scores.structure = 7;
     } else {
-        issues.push("Improve structure using line breaks, bullet points, or headers");
+        issues.push(langIssues.structure);
     }
 
     // 8. Length Optimization (10 pts)
