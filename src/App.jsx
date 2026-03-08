@@ -13,6 +13,7 @@ import ToastContainer from './components/ToastContainer';
 import Background from './components/ui/Background';
 import { AdsProvider } from './contexts/AdsContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Toggle between landing page and original app
 const USE_LANDING_PAGE = true;
@@ -44,13 +45,15 @@ function AppContent() {
 }
 
 function App() {
-  // Removed AuthProvider and RewardedModal to avoid Firebase errors
   return (
-    <AdsProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </AdsProvider>
+    <AuthProvider>
+      <AdsProvider>
+        <ToastProvider>
+          <AppContent />
+          <RewardedModal />
+        </ToastProvider>
+      </AdsProvider>
+    </AuthProvider>
   );
 }
 

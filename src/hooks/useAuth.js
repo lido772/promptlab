@@ -1,4 +1,3 @@
-// Firebase Auth temporarily disabled
-export function useAuth() {
-  return { user: null };
-}
+import { useAuth as useAuthFromContext } from '../contexts/AuthContext';
+
+export const useAuth = useAuthFromContext;
