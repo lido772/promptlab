@@ -21,8 +21,7 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'framer-motion'],
-    exclude: ['firebase', '@firebase/app', '@firebase/auth', '@firebase/database'],
+    include: ['react', 'react-dom', 'framer-motion', 'firebase/app', 'firebase/auth', 'firebase/database'],
   },
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
@@ -40,10 +39,6 @@ export default defineConfig({
         // Force ES module format
         format: 'es',
         manualChunks: (id) => {
-          // Completely exclude Firebase from build
-          if (id.includes('firebase') || id.includes('@firebase')) {
-            return 'firebase-excluded';
-          }
           // Separate scheduler to avoid CommonJS pollution
           if (id.includes('scheduler')) {
             return 'scheduler';
@@ -55,11 +50,13 @@ export default defineConfig({
             if (id.includes('framer-motion')) {
               return 'framer-motion';
             }
+            if (id.includes('firebase') || id.includes('@firebase')) {
+              return 'firebase-vendor';
+            }
             return 'vendor';
           }
         },
       },
-      external: ['firebase/app', 'firebase/auth', 'firebase/database'],
       // Ensure ES modules are handled correctly
       onwarn(warning, warn) {
         if (warning.code === 'THIS_IS_UNDEFINED') return;
