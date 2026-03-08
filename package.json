@@ -1,0 +1,34 @@
+{
+  "name": "side-business",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A stunning, 100% local AI prompt optimization tool with a premium Linear-inspired design system.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lido772/promptlab.git"
+  },
+  "keywords": [
+    "prompt",
+    "ai",
+    "tailwind",
+    "vite"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lido772/promptlab/issues"
+  },
+  "homepage": "https://github.com/lido772/promptlab#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.6",
+    "vite": "^5.4.21"
+  }
+}
