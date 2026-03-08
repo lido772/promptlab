@@ -58,11 +58,11 @@ export default function Navbar({ onHomeClick }) {
           {/* CTA Buttons & Theme Toggle - Desktop */}
           <div className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
-            <button className="btn-ghost hover:scale-105 transition-transform duration-200">
-              Sign In
-            </button>
-            <button className="btn-primary hover:scale-102 transition-transform duration-200">
-              Get Started Free
+            <button 
+              onClick={() => onHomeClick && onHomeClick()}
+              className="btn-primary hover:scale-102 transition-transform duration-200"
+            >
+              Launch App
             </button>
           </div>
 

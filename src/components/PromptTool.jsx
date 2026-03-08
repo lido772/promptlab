@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { modelsDatabase } from '../data/models';
 import ResultCard from './ResultCard';
 import { useToast } from '../hooks/useToast';
-import { useAuth } from '../hooks/useAuth';
 import { useDailyLimit } from '../hooks/useDailyLimit';
-import { useRewardedModal } from '../hooks/useRewardedModal';
 import { analyzePrompt } from '../lib/promptAnalyzer';
 
 const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'https://promptlab.lido772.workers.dev';
@@ -19,9 +17,7 @@ export default function PromptTool() {
   const [improvedPrompt, setImprovedPrompt] = useState(null);
 
   const { toast } = useToast();
-  const { user } = useAuth();
   const { remaining, total, checkLimit, updateRemaining } = useDailyLimit();
-  const { showRewardedAd } = useRewardedModal();
 
   useEffect(() => {
     checkLimit();
@@ -68,8 +64,6 @@ export default function PromptTool() {
 
     try {
       const headers = { 'Content-Type': 'application/json' };
-      const token = await user?.getIdToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
 
       const response = await fetch(WORKER_URL, {
         method: 'POST',
@@ -86,44 +80,6 @@ export default function PromptTool() {
       setImprovedPrompt(data.result);
       updateRemaining(data.remainingFree ?? remaining - 1, data.dailyLimit ?? total);
       setLoading(false);
-    } catch (err) {
-      setLoading(false);
-      toast.error(err.message || 'Failed to improve prompt');
-    }
-  };
-
-  const handleImproveRewarded = async () => {
-    if (!prompt.trim()) {
-      toast.warning('Please enter a prompt first');
-      return;
-    }
-
-    try {
-      await showRewardedAd();
-    } catch {
-      return; // User cancelled
-    }
-
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const headers = { 'Content-Type': 'application/json' };
-      const token = await user?.getIdToken();
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const response = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ prompt, rewarded: true }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed');
-
-      setImprovedPrompt(data.result);
-      setLoading(false);
-      toast.success('Prompt improved with ad support!');
     } catch (err) {
       setLoading(false);
       toast.error(err.message || 'Failed to improve prompt');
@@ -216,31 +172,17 @@ export default function PromptTool() {
           className="w-full h-52 p-4 bg-background-elevated border border-border rounded-lg text-foreground font-mono text-sm resize-y mb-4 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent-glow"
         />
 
-        {/* Test Button */}
-        <button onClick={handleTest} className="btn-primary w-full">
-          Test & Analyze
-        </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Test Button */}
+          <button onClick={handleTest} className="btn-secondary w-full">
+            Test & Analyze
+          </button>
 
-        {/* Free Improve Button */}
-        <div className="h-3" />
-        <button onClick={handleImproveFree} className="btn-primary w-full bg-emerald-600 hover:bg-emerald-700">
-          Improve Prompt (Free)
-        </button>
-
-        {/* Daily Limit Display */}
-        <div className="text-center mt-2 text-sm text-emerald-400">
-          {remaining <= 0 ? (
-            <span>⚠️ Daily limit reached ({total}/{total} used)</span>
-          ) : (
-            <span>✨ {remaining}/{total} free improvements remaining today</span>
-          )}
+          {/* Improve Button */}
+          <button onClick={handleImproveFree} className="btn-primary w-full">
+            Improve Prompt (Free)
+          </button>
         </div>
-
-        {/* Rewarded Button */}
-        <div className="h-2" />
-        <button onClick={handleImproveRewarded} className="btn-primary w-full bg-orange-600 hover:bg-orange-700">
-          💜 Continue with Ad Support
-        </button>
       </div>
 
       {/* Results Panel */}

@@ -8,10 +8,8 @@ import Footer from './Footer';
 import Background from '../ui/Background';
 import PromptTool from '../PromptTool';
 import HistorySection from '../HistorySection';
-import { useAuth } from '../../hooks/useAuth';
 
 export default function LandingPage() {
-  const { user } = useAuth();
   const [showApp, setShowApp] = useState(false);
 
   if (showApp) {
@@ -25,7 +23,7 @@ export default function LandingPage() {
             <div className="pt-8 lg:pt-12">
               <PromptTool />
             </div>
-            {user && <HistorySection />}
+            <HistorySection />
           </main>
           <Footer />
         </div>

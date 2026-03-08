@@ -11,9 +11,7 @@ import HistorySection from './components/HistorySection';
 import RewardedModal from './components/RewardedModal';
 import ToastContainer from './components/ToastContainer';
 import Background from './components/ui/Background';
-import { AdsProvider } from './contexts/AdsContext';
 import { ToastProvider } from './contexts/ToastContext';
-import { AuthProvider } from './contexts/AuthContext';
 
 // Toggle between landing page and original app
 const USE_LANDING_PAGE = true;
@@ -45,13 +43,8 @@ function AppContent() {
 function App() {
   return (
     <ToastProvider>
-      <AuthProvider>
-        <AdsProvider>
-          <AppContent />
-          <ToastContainer />
-          <RewardedModal />
-        </AdsProvider>
-      </AuthProvider>
+      <AppContent />
+      <ToastContainer />
     </ToastProvider>
   );
 }

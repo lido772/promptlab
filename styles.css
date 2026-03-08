@@ -1,0 +1,33 @@
+/* Custom Base Styles */
+@layer base {
+    body {
+        background-color: #050506;
+        color: #EDEDEF;
+    }
+}
+
+@layer components {
+    .card {
+        @apply bg-[#111114] border border-[#202023] rounded-2xl p-8;
+    }
+
+    .btn-primary {
+        @apply bg-[#3B82F6] text-white font-bold py-4 px-8 rounded-xl hover:-translate-y-0.5 hover:shadow-[0_0_15px_-3px_rgba(59,130,246,0.4)] active:scale-95 transition-all duration-200;
+    }
+
+    .btn-secondary {
+        @apply bg-white text-[#050506] font-bold py-4 px-8 rounded-xl hover:-translate-y-0.5 hover:shadow-[0_0_15px_-3px_rgba(255,255,255,0.2)] active:scale-95 transition-all duration-200;
+    }
+
+    .input-field {
+        @apply w-full p-6 bg-[#0C0C0E] border border-[#202023] rounded-xl text-foreground font-mono text-sm resize-y focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-blue-900/20 transition-all duration-300;
+    }
+
+    .spinner {
+        @apply w-5 h-5 border-2 border-white/10 border-t-[#3B82F6] rounded-full animate-spin;
+    }
+}
+
+.text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-400 to-blue-700;
+}
