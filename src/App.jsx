@@ -37,8 +37,6 @@ function AppContent() {
         </main>
 
         <Footer />
-
-        <ToastContainer />
       </div>
     </div>
   );
@@ -46,14 +44,15 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AdsProvider>
-        <ToastProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AdsProvider>
           <AppContent />
+          <ToastContainer />
           <RewardedModal />
-        </ToastProvider>
-      </AdsProvider>
-    </AuthProvider>
+        </AdsProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

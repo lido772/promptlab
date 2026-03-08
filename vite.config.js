@@ -50,9 +50,6 @@ export default defineConfig({
             if (id.includes('framer-motion')) {
               return 'framer-motion';
             }
-            if (id.includes('firebase') || id.includes('@firebase')) {
-              return 'firebase-vendor';
-            }
             return 'vendor';
           }
         },
