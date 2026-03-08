@@ -1,0 +1,8 @@
+PromptUp Build v1.0.2 - Firebase Disabled
+Date: 2026-03-06
+Status: Firebase dependencies disabled, app should load without errors
+Changes:
+- Disabled AuthContext to prevent Firebase initialization errors
+- Simplified useAuth hook to return null user
+- Disabled HistorySection to avoid Firebase import errors
+- Build succeeds with no Firebase errors

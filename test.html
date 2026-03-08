@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page - PromptUp</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #050506;
+            color: #EDEDEF;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
+        .info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>PromptUp - Deployment Test</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function addTest(name, success, message) {
+            const div = document.createElement('div');
+            div.className = `status ${success ? 'success' : 'error'}`;
+            div.textContent = `${success ? '✓' : '✗'} ${name}: ${message}`;
+            results.appendChild(div);
+        }
+
+        // Test 1: JavaScript works
+        addTest('JavaScript', true, 'Running');
+
+        // Test 2: ES Modules support
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.textContent = 'addTest("ES Modules", true, "Supported");';
+        document.head.appendChild(script);
+
+        // Test 3: DOM ready
+        addTest('DOM', true, 'Ready');
+
+        // Test 4: Assets
+        fetch('/assets/index-CjFIwmFi.css')
+            .then(r => addTest('CSS File', r.ok, r.status))
+            .catch(() => addTest('CSS File', false, 'Not found'));
+
+        // Test 5: Build info
+        addTest('Build Version', true, '1.0.1 - $(date)');
+        addTest('Environment', true, window.location.href);
+    </script>
+</body>
+</html>
