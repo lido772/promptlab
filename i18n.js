@@ -53,6 +53,7 @@ export const i18n = {
             fallbackMode: 'Fallback mode activated',
             cacheCleared: 'Cache cleared successfully!',
             footer: 'Built with <span class="text-blue-400">Transformers.js</span> • Offline First • Privacy Optimized'
+        },
         heuristics: {
             patterns: {
                 role: ['you are', 'act as', 'as a', 'expert', 'specialist', 'persona', 'professional', 'consultant'],
@@ -117,10 +118,11 @@ export const i18n = {
             copiedToClipboard: 'Copié dans le presse-papiers !',
             noPromptToCopy: 'Rien à copier pour le moment.',
             rewriteFailed: 'La réécriture a échoué. Essayez de rafraîchir.',
-            retryBtn: 'Retry',
-            fallbackMode: 'Fallback mode activated',
-            cacheCleared: 'Cache cleared successfully!',
+            retryBtn: 'Réessayer',
+            fallbackMode: 'Mode dégradé activé',
+            cacheCleared: 'Cache vidé avec succès !',
             footer: 'Propulsé par <span class="text-blue-400">Transformers.js</span> • Hors-ligne • Privé'
+        },
         heuristics: {
             patterns: {
                 role: ['tu es', 'vous êtes', 'agis en tant que', 'expert', 'spécialiste', 'persona', 'professionnel', 'consultant'],
@@ -186,10 +188,11 @@ export const i18n = {
             copiedToClipboard: '¡Copiado al portapapeles!',
             noPromptToCopy: 'Nada para copiar todavía.',
             rewriteFailed: 'Error al reescribir. Intenta refrescar.',
-            retryBtn: 'Retry',
-            fallbackMode: 'Fallback mode activated',
-            cacheCleared: 'Cache cleared successfully!',
+            retryBtn: 'Reintentar',
+            fallbackMode: 'Modo degradado activado',
+            cacheCleared: '¡Caché borrado exitosamente!',
             footer: 'Desarrollado con <span class="text-blue-400">Transformers.js</span> • Offline primero • Privacidad optimizada'
+        },
         heuristics: {
             patterns: {
                 role: ['eres', 'actúa como', 'como un', 'experto', 'especialista', 'persona', 'profesional', 'consultor'],
@@ -255,9 +258,9 @@ export const i18n = {
             copiedToClipboard: 'In die Zwischenablage kopiert!',
             noPromptToCopy: 'Noch nichts zum Kopieren.',
             rewriteFailed: 'Umschreiben fehlgeschlagen. Bitte aktualisieren.',
-            retryBtn: 'Retry',
-            fallbackMode: 'Fallback mode activated',
-            cacheCleared: 'Cache cleared successfully!',
+            retryBtn: 'Erneut versuchen',
+            fallbackMode: 'Fallback-Modus aktiviert',
+            cacheCleared: 'Cache erfolgreich gelöscht!',
             footer: 'Erstellt mit <span class="text-blue-400">Transformers.js</span> • Zuerst Offline • Datenschutz optimiert'
         },
         heuristics: {
