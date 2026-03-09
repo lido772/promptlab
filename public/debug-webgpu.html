@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Debug Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #64B5F6;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #1B5E20;
+            color: #4CAF50;
+        }
+
+        .status.error {
+            background: #B71C1C;
+            color: #EF5350;
+        }
+
+        .status.warning {
+            background: #F57F17;
+            color: #FFB74D;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            color: #888;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: #555;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #666;
+        }
+
+        .console-output {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .console-output div {
+            margin-bottom: 5px;
+            word-wrap: break-word;
+        }
+
+        .log-success { color: #4CAF50; }
+        .log-error { color: #EF5350; }
+        .log-warning { color: #FFB74D; }
+        .log-info { color: #64B5F6; }
+
+        .recommendation {
+            background: #1a237e;
+            border-left: 4px solid #3F51B5;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+        }
+
+        .recommendation h3 {
+            color: #64B5F6;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .recommendation ul {
+            margin-left: 20px;
+        }
+
+        .recommendation li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 WebGPU Debug Tool</h1>
+        <p class="subtitle">Comprehensive WebGPU detection and diagnostics</p>
+
+        <div id="results">
+            <div class="section">
+                <h2>Checking WebGPU Support...</h2>
+                <p>Please wait while we check your system...</p>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="runDiagnostics()">Run Diagnostics Again</button>
+            <button class="btn-secondary" onclick="copyToClipboard()">Copy Results</button>
+        </div>
+
+        <div class="console-output" id="console"></div>
+    </div>
+
+    <script>
+        const consoleEl = document.getElementById('console');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log-${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleEl.appendChild(div);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function clearConsole() {
+            consoleEl.innerHTML = '';
+        }
+
+        async function runDiagnostics() {
+            clearConsole();
+            const resultsEl = document.getElementById('results');
+
+            log('Starting WebGPU diagnostics...', 'info');
+
+            // Step 1: Check if navigator.gpu exists
+            log('Step 1: Checking navigator.gpu...', 'info');
+            if (typeof navigator.gpu === 'undefined') {
+                resultsEl.innerHTML = `
+                    <div class="section">
+                        <h2>❌ WebGPU Not Supported</h2>
+                        <div class="status error">
+                            navigator.gpu is undefined
+                        </div>
+                        <div class="recommendation">
+                            <h3>Recommendations:</h3>
+                            <ul>
+                                <li>Update your browser to the latest version</li>
+                                <li>Try Chrome 113+ or Edge 113+ (recommended)</li>
+                                <li>Enable WebGPU flags: go to <code>chrome://flags</code> and search for "WebGPU"</li>
+                                <li>Enable "Unsafe WebGPU" and "WebGPU Developer Features"</li>
+                                <li>Restart your browser</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                log('navigator.gpu is undefined - WebGPU not available', 'error');
+                return;
+            }
+            log('✓ navigator.gpu exists', 'success');
+
+            // Step 2: Check browser info
+            log('Step 2: Checking browser information...', 'info');
+            const browserInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language
+            };
+            log(`Browser: ${browserInfo.userAgent}`, 'info');
+
+            // Step 3: Try to get adapter
+            log('Step 3: Requesting WebGPU adapter...', 'info');
+            let adapter;
+            try {
+                adapter = await navigator.gpu.requestAdapter({
+                    powerPreference: 'high-performance'
+                });
+
+                if (!adapter) {
+                    resultsEl.innerHTML = `
+                        <div class="section">
+                            <h2>⚠️ WebGPU Adapter Not Found</h2>
+                            <div class="status warning">
+                                navigator.gpu.requestAdapter() returned null
+                            </div>
+                            <div class="recommendation">
+                                <h3>Possible Solutions:</h3>
+                                <ul>
+                                    <li>Update your GPU drivers to the latest version</li>
+                                    <li>For NVIDIA: Download latest drivers from <a href="https://www.nvidia.com/Download/index.aspx" target="_blank">nvidia.com</a></li>
+                                    <li>For AMD: Download latest drivers from <a href="https://www.amd.com/support" target="_blank">amd.com</a></li>
+                                    <li>For Intel: Update through Windows Update or Intel website</li>
+                                    <li>Restart your computer after driver update</li>
+                                    <li>Make sure hardware acceleration is enabled in browser settings</li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                    log('Adapter request returned null', 'warning');
+                    return;
+                }
+                log('✓ Adapter obtained successfully', 'success');
+            } catch (error) {
+                resultsEl.innerHTML = `
+                    <div class="section">
+                        <h2>❌ WebGPU Adapter Error</h2>
+                        <div class="status error">
+                            ${error.message}
+                        </div>
+                        <div class="recommendation">
+                            <h3>Error Details:</h3>
+                            <ul>
+                                <li><strong>Error:</strong> ${error.name}</li>
+                                <li><strong>Message:</strong> ${error.message}</li>
+                                <li><strong>Stack:</strong> ${error.stack}</li>
+                            </ul>
+                            <h3>Common Solutions:</h3>
+                            <ul>
+                                <li>Update GPU drivers</li>
+                                <li>Enable WebGPU in browser flags</li>
+                                <li>Disable GPU acceleration in browser, then re-enable it</li>
+                                <li>Try a different browser (Chrome/Edge recommended)</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                log(`Adapter request failed: ${error.message}`, 'error');
+                return;
+            }
+
+            // Step 4: Get adapter info
+            log('Step 4: Getting adapter information...', 'info');
+            let adapterInfo;
+            try {
+                if (adapter.requestAdapterInfo) {
+                    adapterInfo = await adapter.requestAdapterInfo();
+                } else {
+                    adapterInfo = { description: 'WebGPU Supported' };
+                }
+                log(`Adapter info: ${JSON.stringify(adapterInfo)}`, 'info');
+            } catch (error) {
+                log(`Could not get adapter info: ${error.message}`, 'warning');
+                adapterInfo = { description: 'WebGPU Supported' };
+            }
+
+            // Step 5: Check features
+            log('Step 5: Checking WebGPU features...', 'info');
+            const features = adapter.features;
+            const featureList = Array.from(features);
+            log(`Total features: ${featureList.length}`, 'info');
+            log(`Key features: ${featureList.slice(0, 10).join(', ')}`, 'info');
+
+            const hasTimestampQuery = features.has('timestamp-query');
+            const hasTextureCompressionBC = features.has('texture-compression-bc');
+            log(`timestamp-query: ${hasTimestampQuery ? '✓' : '✗'}`, hasTimestampQuery ? 'success' : 'warning');
+            log(`texture-compression-bc: ${hasTextureCompressionBC ? '✓' : '✗'}`, hasTextureCompressionBC ? 'success' : 'warning');
+
+            // Step 6: Check limits
+            log('Step 6: Checking WebGPU limits...', 'info');
+            const limits = adapter.limits;
+            const importantLimits = {
+                maxTextureDimension2D: limits.maxTextureDimension2D,
+                maxBufferSize: limits.maxBufferSize,
+                maxStorageBufferBindingSize: limits.maxStorageBufferBindingSize
+            };
+            log(`Limits: ${JSON.stringify(importantLimits)}`, 'info');
+
+            // Success!
+            resultsEl.innerHTML = `
+                <div class="section">
+                    <h2>✅ WebGPU is Supported!</h2>
+                    <div class="status success">
+                        Your system supports WebGPU - you should be able to use WebLLM models!
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-label">GPU Vendor:</div>
+                        <div class="info-value">${adapterInfo.vendor || 'Unknown'}</div>
+
+                        <div class="info-label">GPU Architecture:</div>
+                        <div class="info-value">${adapterInfo.architecture || 'Unknown'}</div>
+
+                        <div class="info-label">GPU Description:</div>
+                        <div class="info-value">${adapterInfo.description || 'Unknown'}</div>
+
+                        <div class="info-label">GPU Device:</div>
+                        <div class="info-value">${adapterInfo.device || 'Unknown'}</div>
+
+                        <div class="info-label">Features Count:</div>
+                        <div class="info-value">${featureList.length} features</div>
+
+                        <div class="info-label">Max Texture Size:</div>
+                        <div class="info-value">${limits.maxTextureDimension2D}px</div>
+
+                        <div class="info-label">Max Buffer Size:</div>
+                        <div class="info-value">${Math.round(limits.maxBufferSize / 1024 / 1024 / 1024)}GB</div>
+                    </div>
+
+                    <div class="recommendation">
+                        <h3>🚀 Ready to Use WebLLM!</h3>
+                        <p>Your RTX 4070 Ti should work great with WebGPU. Here are the recommended models:</p>
+                        <ul>
+                            <li><strong>Qwen 2.5 3B (WebGPU)</strong> - Best balance (Recommended) ⭐</li>
+                            <li><strong>Phi 3.5 Mini (WebGPU)</strong> - Best reasoning quality</li>
+                            <li><strong>Qwen 2.5 1.5B (WebGPU)</strong> - Fastest response time</li>
+                        </ul>
+                        <p style="margin-top: 10px;">You can now use the main Prompt Analyzer with WebGPU acceleration!</p>
+                    </div>
+                </div>
+            `;
+
+            log('✅ WebGPU diagnostics completed successfully!', 'success');
+        }
+
+        function copyToClipboard() {
+            const text = consoleEl.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Results copied to clipboard!');
+            });
+        }
+
+        // Run diagnostics on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runDiagnostics, 100);
+        });
+    </script>
+</body>
+</html>

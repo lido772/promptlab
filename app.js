@@ -144,13 +144,97 @@ const initApp = async () => {
         renderModelInfo(getModelStatusMessage(ui));
     });
 
+    loadModelBtn.addEventListener('click', async () => {
+        const selectedModelKey = modelSelectorEl.value;
+        const selectedModel = MODELS[selectedModelKey];
+        if (!selectedModel) return;
+
+        const ui = (i18n[currentLang] || i18n.en).ui;
+
+        loadingIndicator.classList.remove('hidden');
+        progressText.textContent = ui.downloadingModel;
+        progressBar.style.width = '0%';
+        loadModelBtn.disabled = true;
+        loadModelBtn.textContent = ui.loading;
+        generateAIBtn.disabled = true; // Disable until model is fully ready
+
+        try {
+            await initLLM(selectedModel.path || selectedModel.id, (progress) => { // Use path or id depending on engine
+                const percent = Math.round(progress);
+                progressBar.style.width = `${percent}%`;
+                if (progress < 100) {
+                    progressText.textContent = `${ui.downloadingModel} (${percent}%)`;
+                } else {
+                    progressText.textContent = ui.initializingModel;
+                }
+            });
+            currentModelPath = selectedModel.path || selectedModel.id; // Update currentModelPath after successful load
+            renderModelInfo(getModelStatusMessage(ui));
+            improvedPromptEl.textContent = ''; // Clear waiting message
+            generateAIBtn.disabled = false;
+            generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            loadModelBtn.textContent = ui.modelLoaded; // Update button text
+            loadingIndicator.classList.add('hidden'); // Hide after successful load
+
+        } catch (error) {
+            console.error('Failed to load LLM model:', error);
+            progressText.textContent = `${ui.errorLoadingModel}: ${error.message}`;
+            progressBar.style.width = '0%';
+            improvedPromptEl.textContent = ui.errorLoadingModel; // Show error message
+            generateAIBtn.disabled = true;
+            generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            loadModelBtn.textContent = ui.loadModel; // Reset button text
+        } finally {
+            loadModelBtn.disabled = false; // Re-enable button after attempt
+            updateLanguageUI(); // Update UI state
+        }
+    });
+
     const hasWebGPU = await checkWebGPUSupport();
-    const system = getSystemInfo();
-    deviceSummary = `System: ${system.ram} RAM / ${system.cores} Cores`;
+    const systemInfo = await getSystemInfo(); // Await system info now
+    deviceSummary = `System: ${systemInfo.ram} RAM / ${systemInfo.cores} Cores`;
     webgpuStatusText = hasWebGPU ? '✓ WebGPU Ready' : '✘ WebGPU Unsupported (CPU Only)';
+
+    let recommendedModelKey = 'tiny-llama'; // Default to a small, fast model
+
+    // Logic for adaptive model selection
+    // If WebGPU is available and RAM is sufficient, recommend a more powerful WebGPU model
+    if (hasWebGPU && systemInfo.ram && parseFloat(systemInfo.ram) >= 8) { // Example: 8GB RAM threshold
+        const powerfulWebGPUModel = Object.keys(MODELS).find(key =>
+            MODELS[key].engine === 'webllm' && (MODELS[key].performance === 'High Quality' || MODELS[key].performance === 'Balanced') && parseFloat(MODELS[key].vram) <= parseFloat(systemInfo.ram)
+        );
+        if (powerfulWebGPUModel) {
+            recommendedModelKey = powerfulWebGPUModel;
+        }
+    } else if (systemInfo.ram && parseFloat(systemInfo.ram) >= 4) { // For machines with decent RAM but no WebGPU, suggest a CPU mid-range model
+        const midRangeCPUModel = Object.keys(MODELS).find(key => MODELS[key].performance === 'Balanced' && MODELS[key].engine === 'transformers');
+        if (midRangeCPUModel) {
+            recommendedModelKey = midRangeCPUModel;
+        }
+    }
+
+    // Set the selected model based on detection, or keep user's last choice if available
+    const lastSelectedModel = localStorage.getItem('lastSelectedModel');
+    if (lastSelectedModel && MODELS[lastSelectedModel]) {
+        modelSelectorEl.value = lastSelectedModel;
+        currentModelPath = MODELS[lastSelectedModel].path || MODELS[lastSelectedModel].id; // For WebLLM, it's 'id'
+    } else {
+        modelSelectorEl.value = recommendedModelKey;
+        currentModelPath = MODELS[recommendedModelKey].path || MODELS[recommendedModelKey].id;
+    }
+
+    // Display "Eco Mode" warning if on low battery and a large model is selected
+    if (systemInfo.battery && systemInfo.battery.level < 30 && !systemInfo.battery.charging &&
+        currentModelPath && (MODELS[modelSelectorEl.value].size.includes('GB') || parseFloat(MODELS[modelSelectorEl.value].size) > 200)) {
+        // Assuming Toast.warning is available globally or imported
+        if (window.Toast) window.Toast.warning((i18n[currentLang] || i18n.en).ui.ecoModeWarning);
+    }
 
     renderModelInfo(getModelStatusMessage((i18n[currentLang] || i18n.en).ui));
     updateLanguageUI();
+
+    // Call prefetching intelligent after a short delay
+    setTimeout(initiatePrefetch, 5000);
 };
 
 /**
@@ -365,3 +449,40 @@ try {
 } catch (e) {
     console.warn("Tests failed to run", e);
 }
+
+/**
+ * Initiate intelligent prefetching for Pro models
+ */
+const initiatePrefetch = async () => {
+    const ui = (i18n[currentLang] || i18n.en).ui;
+
+    const proModelKey = Object.keys(MODELS).find(key => MODELS[key].isPro); // Find a model with isPro: true
+    const proModel = MODELS[proModelKey];
+
+    // Don't prefetch if no Pro model is defined, or if it's already loaded/in cache
+    // isLLMLoaded() only checks current loaded model. For prefetching, we need to check if it's in cache.
+    // For simplicity, let's assume if it's not the currentModelPath, and not explicitly loaded, it can be prefetched.
+    if (!proModel || (currentModelPath === (proModel.path || proModel.id) && isLLMLoaded())) {
+        return;
+    }
+
+    const systemInfo = await getSystemInfo();
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+    // Conditions for prefetching: WiFi, good battery, not currently charging
+    if (connection && connection.type === 'wifi' && systemInfo.battery && systemInfo.battery.level > 50 && !systemInfo.battery.charging) {
+        console.log('Initiating intelligent prefetching for Pro model...');
+        if (window.Toast) window.Toast.info(ui.prefetchingProModel);
+
+        try {
+            await initLLM(proModel.path || proModel.id, (progress) => { // Use path or id depending on engine
+                // Silent progress - no UI update for this, or a very subtle one
+                console.log(`Prefetching progress (${proModel.name}): ${progress}%`);
+            });
+            if (window.Toast) window.Toast.success(ui.proModelPrefetched);
+        } catch (error) {
+            console.error('Prefetching failed:', error);
+            if (window.Toast) window.Toast.error(`${ui.prefetchingFailed}: ${error.message}`);
+        }
+    }
+};

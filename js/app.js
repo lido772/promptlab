@@ -9,6 +9,25 @@ import Ads from './ads.js';
 import Auth from './auth.js';
 import History from './history.js';
 
+// Import LLM engines
+import {
+    initLLM,
+    improvePromptLocal,
+    isLLMLoaded,
+    clearModelCache
+} from '../llmEngine.js';
+
+import {
+    initWebLLM,
+    improvePromptWebLLM,
+    isWebLLMLoaded,
+    clearWebLLMCache,
+    checkWebGPUSupport,
+    WEBLLM_MODELS,
+    recommendModel,
+    getSystemInfo
+} from '../webLLMEngine.js';
+
 // Configuration
 const CONFIG = {
     WORKER_URL: window.env?.WORKER_URL || "https://promptlab.lido772.workers.dev",
@@ -16,6 +35,174 @@ const CONFIG = {
         console.error('PromptUp Error:', error);
     }
 };
+
+// LLM Engine State
+let llmEngine = null;
+let currentModelKey = null;
+
+/**
+ * Load and initialize the selected LLM model
+ */
+async function loadLLMModel() {
+    const modelSelector = document.getElementById('model-selector');
+    const selectedKey = modelSelector.value;
+    const loadBtn = document.getElementById('load-model-btn');
+    const progressContainer = document.getElementById('loading-indicator');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+
+    if (!selectedKey) {
+        Toast.warning('Please select a model first');
+        return;
+    }
+
+    const model = MODELS[selectedKey];
+    if (!model) {
+        Toast.error('Invalid model selected');
+        return;
+    }
+
+    // Update UI state
+    loadBtn.disabled = true;
+    loadBtn.textContent = 'Loading...';
+    progressContainer.classList.remove('hidden');
+    progressBar.style.width = '0%';
+    progressText.textContent = 'Initializing...';
+
+    try {
+        if (model.engine === 'webllm') {
+            // Use WebLLM engine
+            const { initWebLLM } = await import('../webLLMEngine.js');
+            llmEngine = 'webllm';
+            currentModelKey = selectedKey;
+
+            await initWebLLM(model.id, (progress) => {
+                if (typeof progress === 'object') {
+                    progressBar.style.width = `${progress.progress * 100}%`;
+                    progressText.textContent = progress.text || `Loading... ${Math.round(progress.progress * 100)}%`;
+                }
+            });
+
+        } else {
+            // Use Transformers.js engine
+            const { initLLM } = await import('../llmEngine.js');
+            llmEngine = 'transformers';
+            currentModelKey = selectedKey;
+
+            await initLLM(model.path, (progress) => {
+                progressBar.style.width = `${progress * 100}%`;
+                progressText.textContent = `Loading... ${Math.round(progress * 100)}%`;
+            });
+        }
+
+        // Update UI on success
+        loadBtn.textContent = '✓ Loaded';
+        progressContainer.classList.add('hidden');
+
+        // Enable AI generation button
+        const generateBtn = document.getElementById('generate-ai-btn');
+        generateBtn.disabled = false;
+        generateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        Toast.success(`Model loaded: ${model.name}`);
+
+    } catch (error) {
+        console.error('Model loading error:', error);
+        Toast.error(`Failed to load model: ${error.message}`);
+        loadBtn.disabled = false;
+        loadBtn.textContent = 'Load Model';
+        progressContainer.classList.add('hidden');
+    }
+}
+
+/**
+ * Improve prompt using loaded LLM
+ */
+async function improveWithAI() {
+    const promptInput = document.getElementById('prompt-input');
+    const prompt = promptInput.value.trim();
+
+    if (!prompt) {
+        Toast.warning('Please enter a prompt first');
+        return;
+    }
+
+    if (!llmEngine) {
+        Toast.error('Please load a model first');
+        return;
+    }
+
+    const resultsArea = document.getElementById('results-area');
+    const improvedPromptDiv = document.getElementById('improved-prompt');
+
+    // Show loading state
+    improvedPromptDiv.innerHTML = '<div class="flex items-center gap-2"><div class="animate-spin w-4 h-4 border-2 border-[#5E6AD2] border-t-transparent rounded-full"></div><span>Improving prompt with AI...</span></div>';
+
+    try {
+        // Get heuristic analysis for better prompting
+        const { analyzePromptHeuristics } = await import('../promptAnalyzer.js');
+        const heuristics = analyzePromptHeuristics(prompt, 'en');
+
+        let improvedPrompt = '';
+
+        if (llmEngine === 'webllm') {
+            const { improvePromptWebLLM } = await import('../webLLMEngine.js');
+            improvedPrompt = await improvePromptWebLLM(prompt, 'en', heuristics, (text) => {
+                improvedPromptDiv.textContent = text;
+            });
+        } else {
+            const { improvePromptLocal } = await import('../llmEngine.js');
+            improvedPrompt = await improvePromptLocal(prompt, 'en', heuristics, (text) => {
+                improvedPromptDiv.textContent = text;
+            });
+        }
+
+        improvedPromptDiv.textContent = improvedPrompt;
+
+        // Update scores
+        updateAnalysisResults(improvedPrompt);
+
+        Toast.success('Prompt improved successfully!');
+
+    } catch (error) {
+        console.error('AI improvement error:', error);
+        improvedPromptDiv.textContent = `Error: ${error.message}`;
+        Toast.error(`Failed to improve prompt: ${error.message}`);
+    }
+}
+
+/**
+ * Update analysis results for improved prompt
+ */
+function updateAnalysisResults(prompt) {
+    const { analyzePromptHeuristics } = require('../promptAnalyzer.js');
+    const result = analyzePromptHeuristics(prompt, 'en');
+
+    // Update total score
+    document.getElementById('total-score').textContent = `${result.totalScore}/100`;
+    document.getElementById('score-progress').style.width = `${result.totalScore}%`;
+
+    // Update individual scores
+    document.getElementById('role-score').textContent = result.scores.role;
+    document.getElementById('output-score').textContent = result.scores.outputFormat;
+    document.getElementById('constraints-score').textContent = result.scores.constraints;
+    document.getElementById('context-score').textContent = result.scores.context;
+
+    // Update issues list
+    const issuesList = document.getElementById('issues-list');
+    issuesList.innerHTML = '';
+
+    if (result.issues.length === 0) {
+        issuesList.innerHTML = '<li class="text-green-400">✓ Excellent prompt! No issues detected.</li>';
+    } else {
+        result.issues.forEach(issue => {
+            const li = document.createElement('li');
+            li.className = 'text-[#8A8F98]';
+            li.textContent = `• ${issue}`;
+            issuesList.appendChild(li);
+        });
+    }
+}
 
 // AI Models Database
 const modelsDatabase = {
@@ -1006,10 +1193,86 @@ function handleActionButtons(e) {
     }
 }
 
+/**
+ * Analyze prompt instantly (heuristic only)
+ */
+function analyzePrompt() {
+    const prompt = document.getElementById('prompt-input').value.trim();
+
+    if (!prompt) {
+        Toast.warning('Please enter a prompt to analyze');
+        return;
+    }
+
+    // Import the analyzer
+    import('../promptAnalyzer.js').then(({ analyzePromptHeuristics }) => {
+        const result = analyzePromptHeuristics(prompt, 'en');
+
+        // Update UI with results
+        displayHeuristicResults(result);
+
+        Toast.success('Analysis complete!');
+    }).catch(err => {
+        console.error('Analysis error:', err);
+        Toast.error('Failed to analyze prompt');
+    });
+}
+
+/**
+ * Display heuristic analysis results
+ */
+function displayHeuristicResults(result) {
+    const resultsArea = document.getElementById('results-area');
+    resultsArea.classList.remove('hidden');
+
+    // Update total score
+    document.getElementById('total-score').textContent = `${result.totalScore}/100`;
+    document.getElementById('score-progress').style.width = `${result.totalScore}%`;
+
+    // Update individual scores
+    document.getElementById('role-score').textContent = result.scores.role;
+    document.getElementById('output-score').textContent = result.scores.outputFormat;
+    document.getElementById('constraints-score').textContent = result.scores.constraints;
+    document.getElementById('context-score').textContent = result.scores.context;
+
+    // Update issues list
+    const issuesList = document.getElementById('issues-list');
+    issuesList.innerHTML = '';
+
+    if (result.issues.length === 0) {
+        issuesList.innerHTML = '<li class="text-green-400">✓ Excellent prompt! No issues detected.</li>';
+    } else {
+        result.issues.forEach(issue => {
+            const li = document.createElement('li');
+            li.className = 'text-[#8A8F98]';
+            li.textContent = `• ${issue}`;
+            issuesList.appendChild(li);
+        });
+    }
+}
+
 // Initialize application
 function init() {
     // Setup event delegation
     document.body.addEventListener('click', handleActionButtons);
+
+    // Add event listeners for prompt analyzer
+    const analyzeBtn = document.getElementById('analyze-btn');
+    if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', analyzePrompt);
+    }
+
+    // Add event listener for AI improvement button
+    const generateAiBtn = document.getElementById('generate-ai-btn');
+    if (generateAiBtn) {
+        generateAiBtn.addEventListener('click', improveWithAI);
+    }
+
+    // Add event listener for model load button
+    const loadModelBtn = document.getElementById('load-model-btn');
+    if (loadModelBtn) {
+        loadModelBtn.addEventListener('click', loadLLMModel);
+    }
 
     // Add change event listeners for selects
     const modalitySelect = document.getElementById('modalitySelect');
@@ -1022,12 +1285,12 @@ function init() {
         providerSelect.addEventListener('change', updateModels);
     }
 
-    // Add keyboard shortcut (Ctrl+Enter to test)
-    const promptInput = document.getElementById('promptInput');
+    // Add keyboard shortcut (Ctrl+Enter to analyze)
+    const promptInput = document.getElementById('prompt-input');
     if (promptInput) {
         promptInput.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
-                testPrompt();
+                analyzePrompt();
             }
         });
     }
@@ -1059,7 +1322,10 @@ window.PromptUpApp = {
     cancelReward,
     closeRewardedModal,
     shareOnTwitter,
-    goToPremium
+    goToPremium,
+    loadLLMModel,
+    improveWithAI,
+    analyzePrompt
 };
 
 // Auto-initialize on DOMContentLoaded
@@ -1075,5 +1341,8 @@ export default {
     updateModels,
     testPrompt,
     improvePromptFree,
-    improvePromptRewarded
+    improvePromptRewarded,
+    loadLLMModel,
+    improveWithAI,
+    analyzePrompt
 };

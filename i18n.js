@@ -18,7 +18,14 @@ export const i18n = {
             loadModel: 'Load Model',
             modelLoaded: '✅ Model Loaded',
             modelNotLoaded: 'No model loaded. Select a model and click Load Model.',
-            downloading: 'Downloading',
+            downloadingModel: 'Downloading model',
+            initializingModel: 'Initializing model',
+            errorLoadingModel: 'Error loading model',
+            errorGeneratingPrompt: 'Error generating prompt',
+            ecoModeWarning: 'Low battery detected. Consider a smaller model or plug in for optimal performance.',
+            prefetchingProModel: 'Silently preloading Pro model for offline access...',
+            proModelPrefetched: 'Pro model ready for offline use!',
+            prefetchingFailed: 'Pro model prefetching failed',
             qualityScore: 'Quality Score',
             metrics: {
                 role: 'Role',
@@ -43,7 +50,6 @@ export const i18n = {
             noPromptToCopy: 'Nothing to copy yet.',
             rewriteFailed: 'Rewrite failed. Try refreshing.',
             footer: 'Built with <span class="text-blue-400">Transformers.js</span> • Offline First • Privacy Optimized'
-        },
         heuristics: {
             patterns: {
                 role: ['you are', 'act as', 'as a', 'expert', 'specialist', 'persona', 'professional', 'consultant'],
@@ -76,7 +82,15 @@ export const i18n = {
             localEngine: 'Moteur d\'IA Local',
             loadModel: 'Charger le modèle',
             modelLoaded: '✅ Modèle chargé',
-            downloading: 'Téléchargement',
+            modelNotLoaded: 'Aucun modèle chargé. Sélectionnez un modèle et cliquez sur Charger le modèle.',
+            downloadingModel: 'Téléchargement du modèle',
+            initializingModel: 'Initialisation du modèle',
+            errorLoadingModel: 'Erreur de chargement du modèle',
+            errorGeneratingPrompt: 'Erreur de génération du prompt',
+            ecoModeWarning: 'Batterie faible détectée. Pensez à un modèle plus petit ou branchez votre appareil pour des performances optimales.',
+            prefetchingProModel: 'Préchargement silencieux du modèle Pro pour un accès hors ligne...',
+            proModelPrefetched: 'Modèle Pro prêt pour une utilisation hors ligne !',
+            prefetchingFailed: 'Échec du préchargement du modèle Pro',
             qualityScore: 'Score de Qualité',
             metrics: {
                 role: 'Rôle',
@@ -99,10 +113,8 @@ export const i18n = {
             deleteCurrentModelBtn: 'Supprimer le modèle actuel du cache',
             copiedToClipboard: 'Copié dans le presse-papiers !',
             noPromptToCopy: 'Rien à copier pour le moment.',
-            modelNotLoaded: 'Aucun modèle chargé. Sélectionnez un modèle et cliquez sur Charger le modèle.',
             rewriteFailed: 'La réécriture a échoué. Essayez de rafraîchir.',
             footer: 'Propulsé par <span class="text-blue-400">Transformers.js</span> • Hors-ligne • Privé'
-        },
         heuristics: {
             patterns: {
                 role: ['tu es', 'vous êtes', 'agis en tant que', 'expert', 'spécialiste', 'persona', 'professionnel', 'consultant'],
@@ -136,7 +148,14 @@ export const i18n = {
             loadModel: 'Cargar Modelo',
             modelLoaded: '✅ Modelo cargado',
             modelNotLoaded: 'No hay modelo cargado. Selecciona uno y haz clic en Cargar Modelo.',
-            downloading: 'Descargando',
+            downloadingModel: 'Descargando modelo',
+            initializingModel: 'Inicializando modelo',
+            errorLoadingModel: 'Error al cargar el modelo',
+            errorGeneratingPrompt: 'Error al generar el prompt',
+            ecoModeWarning: 'Batería baja detectada. Considera un modelo más pequeño o conecta el cargador para un rendimiento óptimo.',
+            prefetchingProModel: 'Precargando silenciosamente el modelo Pro para acceso sin conexión...',
+            proModelPrefetched: '¡Modelo Pro listo para usar sin conexión!',
+            prefetchingFailed: 'Fallo al precargar el modelo Pro',
             qualityScore: 'Puntuación de Calidad',
             metrics: {
                 role: 'Rol',
@@ -161,7 +180,6 @@ export const i18n = {
             noPromptToCopy: 'Nada para copiar todavía.',
             rewriteFailed: 'Error al reescribir. Intenta refrescar.',
             footer: 'Desarrollado con <span class="text-blue-400">Transformers.js</span> • Offline primero • Privacidad optimizada'
-        },
         heuristics: {
             patterns: {
                 role: ['eres', 'actúa como', 'como un', 'experto', 'especialista', 'persona', 'profesional', 'consultor'],
@@ -195,6 +213,14 @@ export const i18n = {
             loadModel: 'Modell laden',
             modelLoaded: '✅ Modell geladen',
             modelNotLoaded: 'Kein Modell geladen. Wählen Sie eines aus und klicken Sie auf Modell laden.',
+            downloadingModel: 'Modell wird heruntergeladen',
+            initializingModel: 'Modell wird initialisiert',
+            errorLoadingModel: 'Fehler beim Laden des Modells',
+            errorGeneratingPrompt: 'Fehler beim Generieren des Prompts',
+            ecoModeWarning: 'Niedriger Akkustand erkannt. Erwägen Sie ein kleineres Modell oder schließen Sie das Gerät für optimale Leistung an.',
+            prefetchingProModel: 'Pro-Modell wird im Hintergrund für Offline-Zugriff vorgeladen...',
+            proModelPrefetched: 'Pro-Modell ist offline einsatzbereit!',
+            prefetchingFailed: 'Fehler beim Vorladen des Pro-Modells',
             downloading: 'Herunterladen',
             qualityScore: 'Qualitätsbewertung',
             metrics: {

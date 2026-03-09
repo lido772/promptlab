@@ -73,6 +73,9 @@ npm run dev<!DOCTYPE html>
                     <button id="load-model-btn" class="btn-primary whitespace-nowrap stagger-reveal-initial">
                         Load Model
                     </button>
+                    <button id="upgrade-pro-btn" class="btn-secondary whitespace-nowrap stagger-reveal-initial hidden">
+                        Upgrade to Pro
+                    </button>
                     <button id="delete-cache-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold py-3 px-4 rounded-lg text-sm transition-all duration-200 active:scale-95 flex items-center gap-2 border border-red-500/20 stagger-reveal-initial" title="Delete Models from Cache">
                         <span>🗑️</span>
                     </button>
@@ -91,7 +94,7 @@ npm run dev<!DOCTYPE html>
         </div>
 
         <!-- Results Display (Initially Hidden) -->
-        <div id="results-area" class="hidden space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 stagger-reveal-initial">
+        <div id="results-area" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 stagger-reveal-initial">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 
                 <!-- Heuristics Column -->
@@ -165,6 +168,11 @@ npm run dev<!DOCTYPE html>
         </div>
     </footer>
 
+
+    <!-- Model UI Handler -->
+    <script type="module" src="modelUI.js"></script>
+    <!-- LLM API Wrapper (Global) -->
+    <script type="module" src="llmAPI.js"></script>
     <!-- Animation System -->
     <script type="module" src="animations.js"></script>
     <script type="module" src="app.js"></script>

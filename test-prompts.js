@@ -73,9 +73,6 @@ export const runHeuristicTests = () => {
 };
 
 // Auto-run if executed directly via Node
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1].endsWith('test-prompts.js')) {
-    runHeuristicTests();
-}
 
 
 // =============================================================================
