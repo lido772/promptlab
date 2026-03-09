@@ -11,6 +11,14 @@ export const MODELS = {
         description: 'Best for simple rewrites and quick testing. Runs on almost any device.',
         recommended: false
     },
+    'smollm-135m': {
+        name: 'SmolLM 135M',
+        path: 'onnx-community/SmolLM-135M-Instruct-ONNX',
+        size: '~250MB',
+        performance: 'Ultra Fast',
+        description: 'Amazingly capable for its tiny size. Excellent for quick mobile use.',
+        recommended: false
+    },
     'tiny-llama': {
         name: 'TinyLlama 1.1B',
         path: 'Xenova/TinyLlama-1.1B-Chat-v1.0',
@@ -18,6 +26,14 @@ export const MODELS = {
         performance: 'Balanced',
         description: 'Great balance between speed and quality. Good for structured prompts.',
         recommended: true
+    },
+    'qwen2-0.5b': {
+        name: 'Qwen2 0.5B',
+        path: 'Xenova/Qwen2-0.5B-Instruct',
+        size: '~900MB',
+        performance: 'Balanced+',
+        description: 'Strong multilingual performance, especially in coding and logic.',
+        recommended: false
     },
     'phi-3-mini': {
         name: 'Phi-3 Mini',

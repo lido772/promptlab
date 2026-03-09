@@ -22,11 +22,22 @@ class SpotlightEffect {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
-        const spotlight = card.querySelector('.spotlight-gradient');
-        if (spotlight) {
-            spotlight.style.left = `${x}px`;
-            spotlight.style.top = `${y}px`;
+        // Use CSS variable instead of creating elements if possible, 
+        // or ensure spotlight element exists
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+        
+        let spotlight = card.querySelector('.spotlight-gradient');
+        if (!spotlight) {
+            spotlight = document.createElement('div');
+            spotlight.className = 'spotlight-gradient absolute pointer-events-none rounded-full w-[300px] h-[300px] bg-accent/15 blur-[80px] opacity-0 transition-opacity duration-300';
+            spotlight.style.transform = 'translate(-50%, -50%)';
+            card.appendChild(spotlight);
         }
+        
+        spotlight.style.opacity = '1';
+        spotlight.style.left = `${x}px`;
+        spotlight.style.top = `${y}px`;
     }
 
     handleMouseLeave(e, card) {

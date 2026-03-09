@@ -43,11 +43,13 @@ export const initLLM = async (modelPath, progressCallback) => {
 };
 
 /**
- * Improve a prompt using the loaded model
+ * Improve a prompt using the loaded model with optional streaming support
  * @param {string} prompt - The user's original prompt
  * @param {string} lang - The current language code
+ * @param {Object} heuristics - Optional result from heuristic analysis to guide the model
+ * @param {Function} onStream - Optional callback for streaming updates
  */
-export const improvePromptLocal = async (prompt, lang = 'en') => {
+export const improvePromptLocal = async (prompt, lang = 'en', heuristics = null, onStream = null) => {
     if (!generator) {
         throw new Error('LLM not initialized.');
     }
@@ -65,23 +67,50 @@ export const improvePromptLocal = async (prompt, lang = 'en') => {
     };
     const currentLangName = langNames[lang] || 'English';
     
+    // Create targeted instructions based on missing heuristics
+    let targetedInstructions = '';
+    if (heuristics && heuristics.issues && heuristics.issues.length > 0) {
+        targetedInstructions = " Specifically address these issues: " + heuristics.issues.join(", ");
+    }
+
+    const systemPrompt = `You are a world-class Prompt Engineer. Your task is to rewrite the user's prompt to be highly effective, structured, and clear.
+Follow these rules:
+1. Preserve the original meaning and language (${currentLangName}).
+2. Add a clear Persona (e.g., "You are an expert...").
+3. Provide Context and background information.
+4. Specify a clear Output Format (e.g., "Return the result as a Markdown table").
+5. List specific Constraints to avoid generic or low-quality results.${targetedInstructions}`;
+
     // Different formatting based on model type
-    if (currentModelPath.includes('TinyLlama')) {
-        inputPrompt = `<|system|>\nYou are an expert prompt engineer. Your task is to rewrite the given prompt in ${currentLangName} to be more clear, specific, and structured for an AI. Always use "You are" (or translation) to define a role, and "Context:" to provide background.</s>\n<|user|>\nImprove this ${currentLangName} prompt: "${prompt}"</s>\n<|assistant|>\n`;
-    } else if (currentModelPath.includes('Phi-3')) {
-        inputPrompt = `<|user|>\nYou are an expert prompt engineer. Rewrite this ${currentLangName} prompt to be more clear, specific, and structured while keeping it in ${currentLangName}: "${prompt}"\n<|assistant|>\n`;
+    if (currentModelPath.includes('TinyLlama') || currentModelPath.includes('SmolLM')) {
+        inputPrompt = `<|system|>\n${systemPrompt}</s>\n<|user|>\nImprove this ${currentLangName} prompt: "${prompt}"</s>\n<|assistant|>\nHere is the improved version:\n`;
+    } else if (currentModelPath.includes('Phi-3') || currentModelPath.includes('Qwen2')) {
+        inputPrompt = `<|user|>\n${systemPrompt}\n\nOriginal prompt: "${prompt}"\n<|assistant|>\n`;
     } else {
         // Simple fallback (DistilGPT2)
-        inputPrompt = `Role: Expert Prompt Engineer. Instructions: Improve the following ${currentLangName} prompt for better AI results. Original: "${prompt}" Improved: `;
+        inputPrompt = `Instruction: ${systemPrompt}\nOriginal: "${prompt}"\nImproved: `;
     }
 
     try {
         const result = await generator(inputPrompt, {
-            max_new_tokens: 256,
-            temperature: 0.7,
-            top_k: 50,
+            max_new_tokens: 350, // Increased for more detailed responses
+            temperature: 0.4,    // Lowered for more precise, less "creative" rewriting
+            top_k: 40,
             do_sample: true,
-            repetition_penalty: 1.2
+            repetition_penalty: 1.1,
+            // Stream the tokens to a custom callback
+            callback_function: (beams) => {
+                if (onStream) {
+                    const fullText = generator.tokenizer.decode(beams[0].output_token_ids, { skip_special_tokens: true });
+                    // Cleanup current stream output
+                    let current = fullText;
+                    if (fullText.includes("version:\n")) current = fullText.split("version:\n")[1];
+                    else if (fullText.includes("<|assistant|>\n")) current = fullText.split("<|assistant|>\n")[1];
+                    else if (fullText.includes("Improved: ")) current = fullText.split("Improved: ")[1];
+                    
+                    onStream(current.trim());
+                }
+            }
         });
 
         const output = result[0].generated_text;

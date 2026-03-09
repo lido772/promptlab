@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+npm run dev<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,27 +11,31 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="font-sans min-h-screen relative overflow-x-hidden">
-    <!-- Ambient Background System -->
-    <div class="ambient-background">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-        <div class="blob blob-4"></div>
+<body class="bg-background-base font-sans min-h-screen relative overflow-x-hidden text-foreground">
+    <!-- Layered Ambient Background System -->
+    <div class="ambient-background fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <!-- Layer 3: Animated Gradient Blobs -->
+        <div class="blob blob-1 absolute top-[-10%] left-1/2 -translate-x-1/2 w-[900px] h-[1400px] bg-accent/25 blur-[150px] animate-float-slow opacity-60"></div>
+        <div class="blob blob-2 absolute top-[20%] left-[-10%] w-[600px] h-[800px] bg-indigo-500/15 blur-[120px] animate-float-medium opacity-40"></div>
+        <div class="blob blob-3 absolute top-[10%] right-[-10%] w-[500px] h-[700px] bg-blue-500/12 blur-[100px] animate-float-slow opacity-30"></div>
+        <div class="blob blob-4 absolute bottom-[-10%] left-1/4 w-[800px] h-[600px] bg-accent/10 blur-[130px] animate-float-medium opacity-20"></div>
+        
+        <!-- Layer 4: Grid Overlay -->
+        <div class="absolute inset-0 opacity-[0.02] pointer-events-none bg-[length:64px_64px] bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)]"></div>
     </div>
 
 
     <!-- Header -->
-    <header class="py-12 md:py-16 border-b border-white/[0.06] relative z-10">
+    <header class="py-24 md:py-32 border-b border-border relative z-10 overflow-hidden">
         <div class="absolute top-6 right-6 flex items-center gap-2">
-            <select id="language-selector" class="bg-[#0F0F12] border border-white/10 p-2 rounded-lg text-xs text-[#EDEDEF] focus:outline-none focus:border-[#5E6AD2] transition-all duration-300">
+            <select id="language-selector" class="bg-[#0F0F12]/80 backdrop-blur-md border border-white/10 p-2 rounded-lg text-xs text-foreground focus:outline-none focus:border-accent transition-all duration-300">
                 <!-- Populated by JS -->
             </select>
         </div>
         <div class="container max-w-5xl mx-auto px-6 text-center">
-            <h1 id="ui-title" class="text-5xl md:text-6xl lg:text-7xl font-bold text-gradient mb-6 tracking-tight leading-tight">Prompt Analyzer</h1>
-            <p id="ui-subtitle" class="text-lg md:text-xl text-[#8A8F98] max-w-2xl mx-auto leading-relaxed">
-                Optimize your AI prompts with instant heuristic scoring and <span class="text-[#5E6AD2] font-semibold text-gradient-accent">Local Browser AI</span>. 
+            <h1 id="ui-title" class="text-6xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.03em] mb-8 bg-gradient-to-b from-white via-white/95 to-white/70 bg-clip-text text-transparent leading-none">Prompt Analyzer</h1>
+            <p id="ui-subtitle" class="text-xl md:text-2xl text-foreground-muted max-w-2xl mx-auto leading-relaxed">
+                Optimize your AI prompts with instant heuristic scoring and <span class="bg-gradient-to-r from-accent via-indigo-400 to-accent bg-clip-text text-transparent font-semibold">Local Browser AI</span>. 
                 Private, offline, and free.
             </p>
         </div>
@@ -136,7 +140,11 @@
                         <h2 class="text-xl md:text-2xl font-bold flex items-center gap-2 text-[#EDEDEF]">
                             <span class="text-[#5E6AD2]">✨</span> <span id="ui-optimizedVersion">Optimized Version</span>
                         </h2>
-                        <button id="copy-btn" class="text-xs font-bold text-[#5E6AD2] uppercase hover:underline transition-all duration-200 hover:text-[#6872D9] stagger-reveal-initial">Copy</button>
+                        <div class="flex items-center gap-3">
+                            <button id="export-txt-btn" class="text-[10px] font-bold text-foreground-muted hover:text-accent uppercase tracking-widest transition-all">TXT</button>
+                            <button id="export-md-btn" class="text-[10px] font-bold text-foreground-muted hover:text-accent uppercase tracking-widest transition-all">MD</button>
+                            <button id="copy-btn" class="text-xs font-bold text-[#5E6AD2] uppercase hover:underline transition-all duration-200 hover:text-[#6872D9] stagger-reveal-initial">Copy</button>
+                        </div>
                     </div>
                     <div id="improved-prompt" class="flex-grow p-6 bg-[#0F0F12] rounded-xl font-mono text-sm leading-relaxed min-h-[300px] whitespace-pre-wrap text-[#EDEDEF] border border-white/5 stagger-reveal-initial">
                         Load a model above to enable AI-powered rewriting.
@@ -148,8 +156,13 @@
 
     </main>
 
-    <footer class="py-12 border-t border-white/[0.06] text-center text-[#8A8F98] text-xs relative z-10">
-        <p id="ui-footer">Built with <span class="text-[#5E6AD2] font-semibold">Transformers.js</span> • Offline First • Privacy Optimized</p>
+    <footer class="py-24 border-t border-border mt-32 text-center text-foreground-muted text-sm relative z-10 bg-background-deep/50 backdrop-blur-sm">
+        <div class="container max-w-5xl mx-auto px-6">
+            <p id="ui-footer" class="mb-4">Built with <span class="text-accent font-semibold">Transformers.js</span> • Offline First • Privacy Optimized</p>
+            <div class="flex justify-center gap-6 opacity-60 hover:opacity-100 transition-opacity">
+                <!-- Optional social or repo links could go here -->
+            </div>
+        </div>
     </footer>
 
     <!-- Animation System -->

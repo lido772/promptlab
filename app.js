@@ -7,6 +7,7 @@ import { analyzePromptHeuristics } from './promptAnalyzer.js';
 import { initLLM, improvePromptLocal, isLLMLoaded, clearModelCache } from './llmEngine.js';
 import { MODELS, checkWebGPUSupport, getSystemInfo } from './modelSelector.js';
 import { i18n } from './i18n.js';
+import { runHeuristicTests } from './test-prompts.js';
 
 // DOM Selectors
 const promptInput = document.getElementById('prompt-input');
@@ -16,6 +17,8 @@ const loadingIndicator = document.getElementById('loading-indicator');
 const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');
 const copyBtn = document.getElementById('copy-btn');
+const exportTxtBtn = document.getElementById('export-txt-btn');
+const exportMdBtn = document.getElementById('export-md-btn');
 
 // Language Selector UI
 const languageSelectorEl = document.getElementById('language-selector');
@@ -158,6 +161,21 @@ const handleAnalysis = () => {
     if (!prompt) return;
 
     resultsArea.classList.remove('hidden');
+    
+    // Trigger animation for Linear design system
+    setTimeout(() => {
+        resultsArea.classList.remove('stagger-reveal-initial');
+        resultsArea.classList.add('animate-in');
+        
+        // Trigger for children cards inside results area
+        resultsArea.querySelectorAll('.stagger-reveal-initial').forEach((el, i) => {
+            setTimeout(() => {
+                el.classList.remove('stagger-reveal-initial');
+                el.classList.add('animate-in');
+            }, i * 100);
+        });
+    }, 10);
+
     const result = analyzePromptHeuristics(prompt, currentLang);
     const ui = (i18n[currentLang] || i18n.en).ui;
 
@@ -233,7 +251,14 @@ const handleAIRewrite = async () => {
     improvedPromptEl.textContent = ui.analyzing;
 
     try {
-        const improved = await improvePromptLocal(prompt, currentLang);
+        // Pass heuristic analysis results to guide improvements
+        const heuristics = analyzePromptHeuristics(prompt, currentLang);
+        
+        // Use streaming callback to update UI as it generates
+        const improved = await improvePromptLocal(prompt, currentLang, heuristics, (chunk) => {
+            if (chunk) improvedPromptEl.textContent = chunk;
+        });
+
         improvedPromptEl.textContent = improved;
         generateAIBtn.textContent = ui.generateBtn;
         generateAIBtn.disabled = false;
@@ -297,13 +322,46 @@ const handleCopyPrompt = () => {
 };
 
 /**
+ * Handle exporting the prompt
+ */
+const handleExport = (format) => {
+    const text = improvedPromptEl.textContent;
+    if (!text || text.includes('Load a model')) return;
+    
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `optimized-prompt.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+/**
  * Event Listeners
  */
+let debounceTimer;
+promptInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        handleAnalysis();
+    }, 400); // 400ms debounce
+});
+
 analyzeBtn.addEventListener('click', handleAnalysis);
 loadModelBtn.addEventListener('click', handleLoadModel);
 generateAIBtn.addEventListener('click', handleAIRewrite);
 deleteCacheBtn.addEventListener('click', handleDeleteCache);
 copyBtn.addEventListener('click', handleCopyPrompt);
+exportTxtBtn.addEventListener('click', () => handleExport('txt'));
+exportMdBtn.addEventListener('click', () => handleExport('md'));
 
 // Run Init
 initApp();
+
+// Run heuristic regression tests in background for developers
+try {
+    runHeuristicTests();
+} catch (e) {
+    console.warn("Tests failed to run", e);
+}
