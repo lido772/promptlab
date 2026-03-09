@@ -1,13 +1,19 @@
 /**
  * Local LLM Improvement Engine
- * Powered by Transformers.js
+ * Powered by Transformers.js with multi-source fallback support
  */
+
+import { MODEL_CONFIGS, MODEL_TIERS, MODEL_VERSION, CACHE_KEYS } from './src/constants/models.js';
+import { modelCacheService } from './src/services/modelCache.js';
+import { networkDetector } from './src/services/networkDetector.js';
 
 let llmWorker = null;
 let currentModelPath = null;
+let currentTier = null;
 let isLoaded = false;
 let onProgressCallback = null;
 let onStreamCallback = null;
+let onStatusCallback = null;
 
 // Initialize the Web Worker
 if (window.Worker) {
@@ -18,38 +24,89 @@ if (window.Worker) {
 
         switch (type) {
             case 'DOWNLOAD_PROGRESS':
-                if (onProgressCallback) {
-                    onProgressCallback(payload.progress);
+                if (onProgressCallback && payload) {
+                    onProgressCallback({
+                        percent: payload.progress || 0,
+                        downloadedMB: payload.downloadedMB || 0,
+                        totalMB: payload.totalMB || 0,
+                        status: payload.status || 'downloading',
+                        source: payload.source || 'unknown',
+                        sourceIndex: payload.sourceIndex || 1
+                    });
                 }
                 break;
+                
+            case 'MODEL_STATUS':
+                if (onStatusCallback && payload) {
+                    onStatusCallback(payload);
+                }
+                break;
+                
             case 'MODEL_READY':
                 isLoaded = true;
+                if (payload?.fallbackUsed) {
+                    localStorage.setItem(CACHE_KEYS.FALLBACK_USED, 'true');
+                    if (onStatusCallback) {
+                        onStatusCallback({
+                            type: 'fallback-loaded',
+                            message: `Mode dégradé activé — ${payload.modelId} chargé`
+                        });
+                    }
+                }
                 if (onProgressCallback) {
-                    onProgressCallback(100); // Indicate full load
+                    onProgressCallback({ percent: 100, status: 'ready' });
+                }
+                if (payload?.modelId) {
+                    currentModelPath = payload.modelId;
+                    localStorage.setItem(CACHE_KEYS.MODEL_CACHED, 'true');
+                    localStorage.setItem(CACHE_KEYS.LAST_MODEL_LOAD, new Date().toISOString());
                 }
                 break;
+                
             case 'MODEL_ERROR':
                 console.error('Worker Model Error:', payload);
                 isLoaded = false;
-                // Optionally, reset progress or show error UI
+                if (onStatusCallback) {
+                    onStatusCallback({
+                        type: 'load-error',
+                        message: payload,
+                        error: true
+                    });
+                }
                 break;
+                
             case 'GENERATE_STREAM':
                 if (onStreamCallback) {
                     onStreamCallback(payload);
                 }
                 break;
+                
             case 'GENERATE_COMPLETE':
-                // This is handled by the promise resolution in improvePromptLocal
+                // Handled by promise resolution
                 break;
+                
             case 'GENERATE_ERROR':
                 console.error('Worker Generation Error:', payload);
-                // This is handled by the promise rejection in improvePromptLocal
                 break;
+                
             case 'CACHE_CLEARED':
-                console.log('Cache cleared event received from worker');
+                console.log('Cache cleared:', payload);
+                currentModelPath = null;
+                currentTier = null;
+                isLoaded = false;
                 break;
+                
             case 'CACHE_ERROR':
                 console.error('Worker Cache Error:', payload);
+                break;
+                
+            case 'CACHE_STATS':
+                console.log('Cache stats:', payload);
+                break;
+                
+            case 'LOAD_ABORTED':
+                console.log('Load aborted');
+                isLoaded = false;
                 break;
         }
     };
@@ -63,7 +120,83 @@ if (window.Worker) {
 }
 
 /**
- * Initialize the pipeline with a specific model
+ * Initialize the pipeline with a specific model tier
+ * @param {string} tier - Model tier (free, pro, mobile)
+ * @param {Function} progressCallback - Called with loading progress
+ * @param {Function} statusCallback - Called with status messages
+ */
+export const initLLMWithTier = async (tier, progressCallback, statusCallback) => {
+    if (!llmWorker) {
+        throw new Error('LLM Worker not available.');
+    }
+
+    const config = MODEL_CONFIGS[tier];
+    if (!config) {
+        throw new Error(`Unknown model tier: ${tier}`);
+    }
+
+    // Check if cache is outdated and clear if necessary
+    if (modelCacheService.isCacheOutdated()) {
+        if (statusCallback) {
+            statusCallback({
+                type: 'cache-outdated',
+                message: 'Cache obsolète détecté, nettoyage en cours...'
+            });
+        }
+        await clearAllModelCaches();
+    }
+
+    onProgressCallback = progressCallback;
+    onStatusCallback = statusCallback;
+    currentTier = tier;
+    isLoaded = false;
+
+    // Check network status
+    const networkCheck = networkDetector.canDownload(config.sizeMB);
+    
+    if (!networkCheck.canDownload && !networkCheck.requireConfirmation) {
+        // Try loading from cache only
+        if (statusCallback) {
+            statusCallback({
+                type: 'offline-mode',
+                message: networkCheck.message
+            });
+        }
+    }
+
+    return new Promise((resolve, reject) => {
+        const messageHandler = (event) => {
+            if (event.data.type === 'MODEL_READY') {
+                llmWorker.removeEventListener('message', messageHandler);
+                currentModelPath = event.data.payload?.modelId || config.id;
+                resolve({
+                    success: true,
+                    modelId: currentModelPath,
+                    fallbackUsed: event.data.payload?.fallbackUsed || false
+                });
+            } else if (event.data.type === 'MODEL_ERROR') {
+                llmWorker.removeEventListener('message', messageHandler);
+                reject(new Error(event.data.payload));
+            }
+        };
+        
+        llmWorker.addEventListener('message', messageHandler);
+        
+        // Send init message with full source configuration
+        llmWorker.postMessage({ 
+            type: 'INIT_MODEL', 
+            payload: { 
+                modelPath: config.id,
+                task: config.task,
+                sources: config.sources,
+                fallback: config.fallback
+            } 
+        });
+    });
+};
+
+/**
+ * Initialize the pipeline with a specific model path (legacy support)
  * @param {string} modelPath - HuggingFace model path
  * @param {Function} progressCallback - Called with loading progress %
  */
@@ -71,12 +204,13 @@ export const initLLM = async (modelPath, progressCallback) => {
     if (!llmWorker) {
         throw new Error('LLM Worker not available.');
     }
+    
     // Re-initialize if the model changed
-    if (isLoaded && currentModelPath === modelPath) return true; // Already loaded
+    if (isLoaded && currentModelPath === modelPath) return true;
 
     onProgressCallback = progressCallback;
     currentModelPath = modelPath;
-    isLoaded = false; // Reset status while loading
+    isLoaded = false;
 
     return new Promise((resolve, reject) => {
         const messageHandler = (event) => {
@@ -170,15 +304,100 @@ export const clearModelCache = async (modelPath = null) => {
             if (event.data.type === 'CACHE_CLEARED') {
                 llmWorker.removeEventListener('message', messageHandler);
                 currentModelPath = null;
+                currentTier = null;
                 isLoaded = false;
                 console.log('Model cache cleared successfully.');
-                resolve(true);
+                resolve(event.data.payload);
             } else if (event.data.type === 'CACHE_ERROR') {
                 llmWorker.removeEventListener('message', messageHandler);
-                reject(new Error(event.data.payload));
+                reject(new Error(event.data.payload?.errors?.join(', ') || event.data.payload));
             }
         };
         llmWorker.addEventListener('message', messageHandler);
-        llmWorker.postMessage({ type: 'CLEAR_CACHE', payload: { modelPath } });
+        llmWorker.postMessage({ type: 'CLEAR_CACHE', payload: { modelPath, clearAll: !modelPath } });
     });
 };
+
+/**
+ * Clear all model caches (Cache API + IndexedDB + localStorage)
+ * @returns {Promise<Object>} Report of cleared caches
+ */
+export const clearAllModelCaches = async () => {
+    // Clear worker caches
+    const workerReport = await clearModelCache(null);
+    
+    // Clear main thread caches via modelCacheService
+    const mainReport = await modelCacheService.clearAllModels();
+    
+    // Update version after clearing
+    modelCacheService.updateCachedVersion();
+    
+    return {
+        ...workerReport,
+        ...mainReport,
+        success: workerReport.success && mainReport.success
+    };
+};
+
+/**
+ * Get cache statistics
+ */
+export const getCacheStats = async () => {
+    if (!llmWorker) {
+        return modelCacheService.getCacheStats();
+    }
+
+    return new Promise((resolve) => {
+        const messageHandler = (event) => {
+            if (event.data.type === 'CACHE_STATS') {
+                llmWorker.removeEventListener('message', messageHandler);
+                resolve(event.data.payload);
+            }
+        };
+        llmWorker.addEventListener('message', messageHandler);
+        llmWorker.postMessage({ type: 'GET_CACHE_STATS' });
+        
+        // Fallback timeout
+        setTimeout(() => {
+            llmWorker.removeEventListener('message', messageHandler);
+            resolve(modelCacheService.getCacheStats());
+        }, 5000);
+    });
+};
+
+/**
+ * Abort current model load
+ */
+export const abortModelLoad = () => {
+    if (llmWorker) {
+        llmWorker.postMessage({ type: 'ABORT_LOAD' });
+    }
+};
+
+/**
+ * Get current model tier
+ */
+export const getCurrentTier = () => currentTier;
+
+/**
+ * Get current model path
+ */
+export const getCurrentModelPath = () => currentModelPath;
+
+/**
+ * Check if fallback is currently active
+ */
+export const isFallbackActive = () => localStorage.getItem(CACHE_KEYS.FALLBACK_USED) === 'true';
+
+/**
+ * Get fallback info
+ */
+export const getFallbackInfo = () => {
+    const info = localStorage.getItem(CACHE_KEYS.FALLBACK_REASON);
+    return info ? JSON.parse(info) : null;
+};
+
+// Re-export utilities for external use
+export { MODEL_CONFIGS, MODEL_TIERS, MODEL_VERSION } from './src/constants/models.js';
+export { modelCacheService } from './src/services/modelCache.js';
+export { networkDetector } from './src/services/networkDetector.js';

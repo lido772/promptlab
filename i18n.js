@@ -49,6 +49,9 @@ export const i18n = {
             copiedToClipboard: 'Copied to clipboard!',
             noPromptToCopy: 'Nothing to copy yet.',
             rewriteFailed: 'Rewrite failed. Try refreshing.',
+            retryBtn: 'Retry',
+            fallbackMode: 'Fallback mode activated',
+            cacheCleared: 'Cache cleared successfully!',
             footer: 'Built with <span class="text-blue-400">Transformers.js</span> • Offline First • Privacy Optimized'
         heuristics: {
             patterns: {
@@ -114,6 +117,9 @@ export const i18n = {
             copiedToClipboard: 'Copié dans le presse-papiers !',
             noPromptToCopy: 'Rien à copier pour le moment.',
             rewriteFailed: 'La réécriture a échoué. Essayez de rafraîchir.',
+            retryBtn: 'Retry',
+            fallbackMode: 'Fallback mode activated',
+            cacheCleared: 'Cache cleared successfully!',
             footer: 'Propulsé par <span class="text-blue-400">Transformers.js</span> • Hors-ligne • Privé'
         heuristics: {
             patterns: {
@@ -156,6 +162,7 @@ export const i18n = {
             prefetchingProModel: 'Precargando silenciosamente el modelo Pro para acceso sin conexión...',
             proModelPrefetched: '¡Modelo Pro listo para usar sin conexión!',
             prefetchingFailed: 'Fallo al precargar el modelo Pro',
+            downloading: 'Herunterladen',
             qualityScore: 'Puntuación de Calidad',
             metrics: {
                 role: 'Rol',
@@ -179,6 +186,9 @@ export const i18n = {
             copiedToClipboard: '¡Copiado al portapapeles!',
             noPromptToCopy: 'Nada para copiar todavía.',
             rewriteFailed: 'Error al reescribir. Intenta refrescar.',
+            retryBtn: 'Retry',
+            fallbackMode: 'Fallback mode activated',
+            cacheCleared: 'Cache cleared successfully!',
             footer: 'Desarrollado con <span class="text-blue-400">Transformers.js</span> • Offline primero • Privacidad optimizada'
         heuristics: {
             patterns: {
@@ -245,6 +255,9 @@ export const i18n = {
             copiedToClipboard: 'In die Zwischenablage kopiert!',
             noPromptToCopy: 'Noch nichts zum Kopieren.',
             rewriteFailed: 'Umschreiben fehlgeschlagen. Bitte aktualisieren.',
+            retryBtn: 'Retry',
+            fallbackMode: 'Fallback mode activated',
+            cacheCleared: 'Cache cleared successfully!',
             footer: 'Erstellt mit <span class="text-blue-400">Transformers.js</span> • Zuerst Offline • Datenschutz optimiert'
         },
         heuristics: {
