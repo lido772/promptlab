@@ -1,10 +1,19 @@
 /**
  * OpenRouter API Integration
  * Provides access to multiple AI models via OpenRouter service
+ * Production: Uses Cloudflare Worker proxy for security
+ * Development: Can use direct API calls with VITE_OPENROUTER_API_KEY
  */
 
+// Worker endpoint (production)
+const WORKER_URL = 'https://api.promptup.cloud';
+
+// Direct API endpoint (development fallback)
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const API_BASE = 'https://openrouter.ai/api/v1';
+
+// Use Worker in production, direct API in development
+const USE_WORKER = !API_KEY || import.meta.env.PROD;
 
 // OpenRouter free models configuration
 export const OPENROUTER_MODELS = {
@@ -53,16 +62,13 @@ export const OPENROUTER_MODELS = {
 
 /**
  * Call OpenRouter API to improve a prompt
+ * Routes through Worker in production, direct API in development
  * @param {string} prompt - The original prompt to improve
  * @param {string} modelId - The OpenRouter model ID to use
  * @param {Function} onStream - Optional streaming callback
  * @returns {Promise<string>} Improved prompt
  */
 export const improvePromptWithOpenRouter = async (prompt, modelId, onStream = null) => {
-    if (!API_KEY) {
-        throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
-    }
-
     const systemPrompt = `You are a world-class Prompt Engineer. Your task is to rewrite the user's prompt to be highly effective, structured, and clear.
 
 Follow these rules:
@@ -71,7 +77,7 @@ Follow these rules:
 3. Provide Context and background information
 4. Specify a clear Output Format (e.g., "Return result as a Markdown table")
 5. List specific Constraints to avoid generic or low-quality results
-6. Keep the response concise and focused on the improved prompt only`;
+6. Keep your response concise and focused on the improved prompt only`;
 
     const requestBody = {
         model: modelId,
@@ -84,19 +90,32 @@ Follow these rules:
         stream: !!onStream
     };
 
+    // Choose endpoint: Worker (production) or direct API (development)
+    const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+
+    // Only add Authorization header for direct API calls (not Worker)
+    if (!USE_WORKER) {
+        if (!API_KEY) {
+            throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
+        }
+        headers['Authorization'] = `Bearer ${API_KEY}`;
+        headers['HTTP-Referer'] = window.location.href;
+        headers['X-Title'] = 'Prompt Analyzer';
+    }
+
+    const apiUrl = USE_WORKER ? endpoint : `${endpoint}/chat/completions`;
+
     if (onStream) {
         // Streaming implementation
         let fullResponse = '';
 
         try {
-            const response = await fetch(`${API_BASE}/chat/completions`, {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${API_KEY}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': window.location.href,
-                    'X-Title': 'Prompt Analyzer'
-                },
+                headers,
                 body: JSON.stringify(requestBody)
             });
 
@@ -141,14 +160,9 @@ Follow these rules:
     } else {
         // Non-streaming implementation
         try {
-            const response = await fetch(`${API_BASE}/chat/completions`, {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${API_KEY}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': window.location.href,
-                    'X-Title': 'Prompt Analyzer'
-                },
+                headers,
                 body: JSON.stringify(requestBody)
             });
 
@@ -170,6 +184,12 @@ Follow these rules:
  * @returns {Promise<boolean>} True if connection is successful
  */
 export const testOpenRouterConnection = async () => {
+    // In production with Worker, always return true if Worker URL is set
+    if (USE_WORKER) {
+        return true;
+    }
+
+    // In development, check if API key is configured
     if (!API_KEY) {
         return false;
     }
@@ -194,6 +214,12 @@ export const testOpenRouterConnection = async () => {
  * @returns {Promise<Array>} List of available models
  */
 export const getAvailableModels = async () => {
+    // In production with Worker, return predefined models
+    if (USE_WORKER) {
+        return Object.values(OPENROUTER_MODELS);
+    }
+
+    // In development, fetch from API
     if (!API_KEY) {
         return [];
     }
@@ -219,4 +245,3 @@ export const getAvailableModels = async () => {
         return [];
     }
 };
-
