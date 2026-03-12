@@ -25,20 +25,129 @@ npm run dev<!DOCTYPE html>
     </div>
 
 
-    <!-- Header -->
-    <header class="py-24 md:py-32 border-b border-border relative z-10 overflow-hidden">
-        <!-- Language selector removed - English only -->
-        <div class="container max-w-5xl mx-auto px-6 text-center">
-            <h1 id="ui-title" class="text-6xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.03em] mb-8 bg-gradient-to-b from-white via-white/95 to-white/70 bg-clip-text text-transparent leading-none">Prompt Analyzer</h1>
-            <p id="ui-subtitle" class="text-xl md:text-2xl text-foreground-muted max-w-2xl mx-auto leading-relaxed">
-                Optimize your AI prompts with instant heuristic scoring and <span class="bg-gradient-to-r from-accent via-indigo-400 to-accent bg-clip-text text-transparent font-semibold">Local Browser AI</span>. 
-                Private, offline, and free.
-            </p>
+    <!-- Welcome Hero Section -->
+    <div class="py-16 md:py-24 bg-gradient-to-b from-[#0a0a0c] via-[#0f0f12] to-[#020203] relative overflow-hidden">
+        <div class="container max-w-5xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="text-left space-y-6">
+                    <h1 id="ui-title" class="text-4xl md:text-5xl font-bold tracking-[-0.02em] mb-4 bg-gradient-to-b from-white via-white/90 to-white/60 bg-clip-text text-transparent">
+                        Prompt Analyzer
+                    </h1>
+                    <p class="text-lg md:text-xl text-foreground/80 max-w-xl leading-relaxed">
+                        Transform your basic prompts into powerful AI instructions. <strong class="text-accent">Instant analysis</strong>, no account needed.
+                    </p>
+                    <ul class="space-y-3 text-foreground/70 mt-6">
+                        <li class="flex items-start gap-3">
+                            <span class="text-emerald-400 text-xl">✓</span>
+                            <span>Free instant heuristic scoring</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-emerald-400 text-xl">✓</span>
+                            <span>Works 100% offline - your data stays private</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-emerald-400 text-xl">✓</span>
+                            <span>Improve prompt quality with optional AI rewriting</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-emerald-400 text-xl">✓</span>
+                            <span>Get specific suggestions to fix weak prompts</span>
+                        </li>
+                    </ul>
+                    <a href="#analyzer" class="inline-flex items-center gap-2 bg-accent text-white font-semibold px-6 py-3 rounded-lg hover:bg-accent-bright transition-all duration-300 shadow-glow">
+                        <span>Start Analyzing</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m0 0M13 17l-5-5m0 0l10-10m0 0"></path>
+                        </svg>
+                    </a>
+                </div>
+                <!-- Visual Preview -->
+                <div class="hidden md:flex items-center justify-center">
+                    <div class="relative bg-gradient-to-br from-accent/20 to-accent/5 p-8 rounded-2xl shadow-2xl">
+                        <!-- Sample Prompt Card -->
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 space-y-4">
+                            <div class="text-xs uppercase tracking-wider text-orange-400 font-semibold mb-2">Before</div>
+                            <div class="text-sm text-foreground/70 leading-relaxed">
+                                <p class="italic mb-3">"Write a story"</p>
+                                <div class="flex gap-2">
+                                    <div class="w-16 h-16 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">📝</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-xs text-orange-400 font-semibold mb-1">Score: 15/100</div>
+                                        <div class="text-xs text-foreground-muted mb-2">Very basic prompt</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Arrow -->
+                        <div class="text-accent text-4xl">→</div>
+                        <!-- Sample Result Card -->
+                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 space-y-4">
+                            <div class="text-xs uppercase tracking-wider text-emerald-400 font-semibold mb-2">After</div>
+                            <div class="text-sm text-foreground/70 leading-relaxed">
+                                <p class="italic mb-3">"You are an expert fiction writer. Write an engaging short story about a magical forest."</p>
+                                <div class="flex gap-2">
+                                    <div class="w-16 h-16 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">✨</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-xs text-emerald-400 font-semibold mb-1">Score: 85/100</div>
+                                        <div class="text-xs text-foreground-muted mb-2">Excellent prompt structure!</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </header>
+    </div>
+
+    <!-- Original Header for Analyzer -->
+    <header class="border-b border-border relative z-10" id="analyzer">
 
     <main class="container max-w-5xl mx-auto px-6 py-12 relative z-10">
-        
+
+        <!-- How It Works Section -->
+        <section class="mb-16">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 tracking-tight">How it works</h2>
+                <p class="text-foreground/70 max-w-2xl mx-auto">
+                    Analyze, improve, and perfect your prompts in three simple steps
+                </p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <!-- Step 1 -->
+                <div class="card p-6 border-l-4 border-accent/30 bg-gradient-to-br from-accent/10 to-transparent">
+                    <div class="text-4xl font-bold text-accent mb-4">1</div>
+                    <h3 class="text-lg font-semibold mb-2">Enter your prompt</h3>
+                    <p class="text-sm text-foreground/70">Type or paste any prompt you want to analyze</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="card p-6 border-l-4 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent">
+                    <div class="text-4xl font-bold text-emerald-500 mb-4">2</div>
+                    <h3 class="text-lg font-semibold mb-2">Get instant feedback</h3>
+                    <p class="text-sm text-foreground/70">See your score across 6 quality metrics with specific improvement suggestions</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="card p-6 border-l-4 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-transparent">
+                    <div class="text-4xl font-bold text-blue-500 mb-4">3</div>
+                    <h3 class="text-lg font-semibold mb-2">Optional AI improvement</h3>
+                    <p class="text-sm text-foreground/70">Load a local AI model to automatically rewrite your prompt</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="flex items-center gap-4 my-12">
+            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-border-border to-transparent"></div>
+            <span class="text-xs uppercase tracking-wider text-foreground-muted font-semibold px-4 py-2 bg-background-elevated rounded-full">
+                Ready to analyze
+            </span>
+            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-border-border to-transparent"></div>
+        </div>
+
         <!-- Input Section -->
         <div class="card mb-12 spotlight-card stagger-reveal-initial" id="input-card">
             <h2 class="text-xl md:text-2xl font-bold mb-6 flex items-center gap-2 text-[#EDEDEF]">
