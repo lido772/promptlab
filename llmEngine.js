@@ -17,7 +17,7 @@ let onStatusCallback = null;
 
 // Initialize the Web Worker
 if (window.Worker) {
-    llmWorker = new Worker('./worker.js', { type: 'module' });
+    llmWorker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
 
     llmWorker.onmessage = (event) => {
         const { type, payload } = event.data;

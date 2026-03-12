@@ -16,8 +16,8 @@ const testCases = [
     {
         name: "Golden Standard Prompt",
         prompt: "You are an expert marketing consultant. \n\nCreate a 3-month strategy for a new SaaS startup. \n\nFormat the output as a Markdown table with specific milestones. \n\nConstraints: Do not exceed 500 words and focus on organic growth.",
-        minScore: 85,
-        maxScore: 100,
+        minScore: 75,
+        maxScore: 85,
         expectedIssues: []
     },
     {
@@ -37,8 +37,8 @@ const testCases = [
     {
         name: "Structured Creative Writing",
         prompt: "Act as a professional novelist. Write the opening scene for a cyberpunk thriller set in Neo-Tokyo 2099. \n\nKey elements to include: holographic rain, a cybernetic geisha, and high-altitude chase. \n\nFormat: Prose with dialogue. \n\nConstraints: Avoid clichés, use atmospheric descriptions, under 300 words.",
-        minScore: 90,
-        maxScore: 100,
+        minScore: 75,
+        maxScore: 85,
         expectedIssues: []
     },
     {

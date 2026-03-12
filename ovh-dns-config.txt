@@ -1,0 +1,40 @@
+# Configuration DNS pour promptup.cloud chez OVH
+# À copier dans l'interface OVH Manager
+
+$TTL 3600
+@    IN SOA dns14.ovh.net. tech.ovh.net. (2026030400 86400 3600 3600000 60)
+        IN NS     ns14.ovh.net.
+        IN NS     dns14.ovh.net.
+        IN MX     5 mx2.mail.ovh.net.
+        IN MX     1 mx1.mail.ovh.net.
+        IN MX     100 mx3.mail.ovh.net.
+
+# Enregistrements principaux pour Cloudflare Pages
+        IN A     185.199.108.153
+        IN A     185.199.109.153
+        IN A     185.199.110.153
+        IN A     185.199.111.153
+        IN AAAA     2001:41d0:301::29
+        IN TXT     "v=spf1 include:mx.ovh.com -all"
+
+# Enregistrement CNAME pour le domaine principal (racine)
+# Pointe vers Cloudflare Pages
+@        IN CNAME     pages.dev.
+
+# Enregistrement CNAME pour www (recommandé)
+www        IN CNAME     pages.dev.
+
+# Autres enregistrements existants à conserver
+_autodiscover._tcp        IN SRV     0 0 443 mailconfig.ovh.net.
+_imaps._tcp        IN SRV     0 0 993 ssl0.ovh.net.
+_submission._tcp        IN SRV     0 0 465 ssl0.ovh.net.
+autoconfig        IN CNAME     mailconfig.ovh.net.
+autodiscover        IN CNAME     mailconfig.ovh.net.
+ftp        IN CNAME     promptup.cloud.
+imap        IN CNAME     ssl0.ovh.net.
+mail        IN CNAME     ssl0.ovh.net.
+pop3        IN CNAME     ssl0.ovh.net.
+smtp        IN CNAME     ssl0.ovh.net.
+
+# Enregistrement TXT pour validation (optionnel si Cloudflare le demande)
+pages        IN TXT     "pages-cloudflare-com-validation=ta_cle_de_validation"
