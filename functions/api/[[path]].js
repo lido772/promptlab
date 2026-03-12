@@ -1,11 +1,24 @@
 /**
- * Cloudflare Worker proxy for OpenRouter API
+ * Cloudflare Pages Function for OpenRouter API
  * Securely handles API calls without exposing API key to client
+ * Deployed at: https://promptup.cloud/api
  */
 
-export default {
-  async fetch(request, env, ctx) {
-    // Handle CORS preflight requests
+export default async function onRequest(context) {
+  const { request, env } = context;
+
+  // Check if API key is configured
+  if (!env.OPENROUTER_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: 'OpenRouter API key not configured' }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
+  }
+
+  // Handle CORS preflight requests
     if (request.method === 'OPTIONS') {
       return new Response(null, {
         status: 200,
@@ -19,7 +32,10 @@ export default {
 
     // Only allow POST requests
     if (request.method !== 'POST') {
-      return new Response('Method not allowed', { status: 405 });
+      return new Response('Method not allowed', {
+        status: 405,
+        headers: { 'Content-Type': 'text/plain' }
+      });
     }
 
     try {
@@ -129,5 +145,4 @@ export default {
         }
       );
     }
-  }
-};
+}

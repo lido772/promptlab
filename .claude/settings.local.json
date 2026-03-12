@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(cd:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "WebSearch",
+      "Bash(cd \"F:\\\\IA_Project\\\\Side Business\" && mkdir -p functions/api)",
+      "Bash(cd \"F:\\\\IA_Project\\\\Side Business\" && mv worker/index.js functions/api/[[path]].js)"
     ]
   }
 }
