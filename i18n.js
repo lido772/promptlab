@@ -31,7 +31,9 @@ export const i18n = {
                 role: 'Role',
                 format: 'Format',
                 constraints: 'Constraints',
-                context: 'Context'
+                context: 'Context',
+                completeness: 'Completeness',
+                consistency: 'Consistency'
             },
             issuesTitle: 'Suggested Improvements',
             optimizedVersion: 'Optimized Version',
@@ -70,6 +72,13 @@ export const i18n = {
                 specificity: "Prompt seems vague; add more specific details, numbers, or data",
                 short: "Prompt is too short to be clear",
                 structure: "Improve structure using line breaks, bullet points, or headers"
+            }
+        },
+        heuristics_enhanced: {
+            issues: {
+                vague_words: "Prompt contains vague words or ambiguous pronouns",
+                incomplete_success: "Missing success criteria or output specifications",
+                inconsistency: "Internal inconsistencies detected between prompt elements"
             }
         }
     }

@@ -40,6 +40,8 @@ const roleScoreEl = document.getElementById('role-score');
 const outputScoreEl = document.getElementById('output-score');
 const constraintsScoreEl = document.getElementById('constraints-score');
 const contextScoreEl = document.getElementById('context-score');
+const completenessScoreEl = document.getElementById('completeness-score');
+const consistencyScoreEl = document.getElementById('consistency-score');
 
 // State
 let currentLang = 'en'; // English only
@@ -86,6 +88,8 @@ const updateLanguageUI = () => {
     document.getElementById('ui-metric-format').textContent = ui.metrics.format;
     document.getElementById('ui-metric-constraints').textContent = ui.metrics.constraints;
     document.getElementById('ui-metric-context').textContent = ui.metrics.context;
+    document.getElementById('ui-metric-completeness').textContent = ui.metrics.completeness;
+    document.getElementById('ui-metric-consistency').textContent = ui.metrics.consistency;
     document.getElementById('ui-issuesTitle').textContent = ui.issuesTitle;
     document.getElementById('ui-optimizedVersion').textContent = ui.optimizedVersion;
     deleteCacheBtn.title = ui.deleteCurrentModelBtn || ui.deleteCacheBtn;
@@ -262,6 +266,8 @@ const handleAnalysis = () => {
     outputScoreEl.textContent = result.scores.outputFormat;
     constraintsScoreEl.textContent = result.scores.constraints;
     contextScoreEl.textContent = result.scores.context;
+    completenessScoreEl.textContent = result.scores.completeness || 0;
+    consistencyScoreEl.textContent = result.scores.consistency || 0;
 
     issuesListEl.innerHTML = '';
     if (result.issues.length === 0) {
