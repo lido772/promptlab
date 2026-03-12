@@ -20,8 +20,7 @@ const copyBtn = document.getElementById('copy-btn');
 const exportTxtBtn = document.getElementById('export-txt-btn');
 const exportMdBtn = document.getElementById('export-md-btn');
 
-// Language Selector UI
-const languageSelectorEl = document.getElementById('language-selector');
+// Language Selector UI - Removed (English only)
 
 // Model Selector UI
 const modelSelectorEl = document.getElementById('model-selector');
@@ -43,7 +42,7 @@ const constraintsScoreEl = document.getElementById('constraints-score');
 const contextScoreEl = document.getElementById('context-score');
 
 // State
-let currentLang = localStorage.getItem('prompt_analyzer_lang') || 'en';
+let currentLang = 'en'; // English only
 let currentModelPath = null;
 let deviceSummary = 'System: Unknown';
 let webgpuStatusText = 'WebGPU support unknown';
@@ -70,7 +69,7 @@ const getModelStatusMessage = (ui) => {
  * Update UI Text based on current language
  */
 const updateLanguageUI = () => {
-    const config = i18n[currentLang] || i18n.en;
+    const config = i18n.en;
     const ui = config.ui;
 
     // Static Elements
@@ -112,17 +111,9 @@ const updateLanguageUI = () => {
 };
 
 /**
- * Initialize UI with Model and Language Options
+ * Initialize UI with Model Options
  */
 const initApp = async () => {
-    Object.keys(i18n).forEach(key => {
-        const lang = i18n[key];
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = `${lang.flag} ${lang.name}`;
-        if (key === currentLang) option.selected = true;
-        languageSelectorEl.appendChild(option);
-    });
 
     Object.keys(MODELS).forEach(key => {
         const model = MODELS[key];
@@ -133,11 +124,7 @@ const initApp = async () => {
         modelSelectorEl.appendChild(option);
     });
 
-    languageSelectorEl.addEventListener('change', (e) => {
-        currentLang = e.target.value;
-        localStorage.setItem('prompt_analyzer_lang', currentLang);
-        updateLanguageUI();
-    });
+    // Language selector removed - English only
 
     modelSelectorEl.addEventListener('change', () => {
         const ui = (i18n[currentLang] || i18n.en).ui;
