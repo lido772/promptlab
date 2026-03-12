@@ -1,7 +1,12 @@
 /**
  * Model Selector & Device Detection
- * Supports both Transformers.js and WebLLM models
+ * Supports Transformers.js, WebLLM, and OpenRouter models
  */
+
+import { OPENROUTER_MODELS } from './openRouter.js';
+
+// OpenRouter Models (Cloud-based)
+export const OPENROUTER = OPENROUTER_MODELS;
 
 // Transformers.js Models (CPU-based)
 export const TRANSFORMERS_MODELS = {
@@ -83,7 +88,8 @@ export const WEBLLM_MODELS = {
 // Combined model list
 export const MODELS = {
     ...TRANSFORMERS_MODELS,
-    ...WEBLLM_MODELS
+    ...WEBLLM_MODELS,
+    ...OPENROUTER_MODELS
 };
 
 /**

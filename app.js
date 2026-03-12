@@ -6,6 +6,7 @@
 import { analyzePromptHeuristics } from './promptAnalyzer.js';
 import { initLLM, improvePromptLocal, isLLMLoaded, clearModelCache } from './llmEngine.js';
 import { MODELS, checkWebGPUSupport, getSystemInfo } from './modelSelector.js';
+import { improvePromptWithOpenRouter, testOpenRouterConnection } from './openRouter.js';
 import { i18n } from './i18n.js';
 import { runHeuristicTests } from './test-prompts.js';
 
@@ -48,6 +49,7 @@ let currentLang = 'en'; // English only
 let currentModelPath = null;
 let deviceSummary = 'System: Unknown';
 let webgpuStatusText = 'WebGPU support unknown';
+let isUsingOpenRouter = false;
 
 const renderModelInfo = (statusMessage = '') => {
     const selectedModel = MODELS[modelSelectorEl.value];
@@ -60,6 +62,10 @@ const renderModelInfo = (statusMessage = '') => {
 };
 
 const getModelStatusMessage = (ui) => {
+    if (isUsingOpenRouter && currentModelPath) {
+        const loadedModel = Object.values(MODELS).find(m => m.id === currentModelPath || m.path === currentModelPath);
+        return `${ui.modelLoaded}: ${loadedModel?.name || ''} (OpenRouter)`;
+    }
     if (isLLMLoaded() && currentModelPath) {
         const loadedModel = Object.values(MODELS).find(m => m.path === currentModelPath);
         return `${ui.modelLoaded}: ${loadedModel?.name || ''}`;
@@ -98,7 +104,7 @@ const updateLanguageUI = () => {
     const statusMessage = getModelStatusMessage(ui);
     renderModelInfo(statusMessage);
 
-    if (!isLLMLoaded()) {
+    if (!isLLMLoaded() && !isUsingOpenRouter) {
         improvedPromptEl.textContent = ui.waitingModel;
         generateAIBtn.disabled = true;
         generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -123,7 +129,11 @@ const initApp = async () => {
         const model = MODELS[key];
         const option = document.createElement('option');
         option.value = key;
-        option.textContent = `${model.name} (${model.size})`;
+        // Add indicator for OpenRouter models
+        const label = model.engine === 'openrouter'
+            ? `[API] ${model.name} (${model.size})`
+            : `${model.name} (${model.size})`;
+        option.textContent = label;
         if (model.recommended) option.selected = true;
         modelSelectorEl.appendChild(option);
     });
@@ -142,6 +152,28 @@ const initApp = async () => {
 
         const ui = (i18n[currentLang] || i18n.en).ui;
 
+        // Check if this is an OpenRouter model
+        if (selectedModel.engine === 'openrouter') {
+            // OpenRouter models don't need loading - just enable the generate button
+            const isConnected = await testOpenRouterConnection();
+            if (!isConnected) {
+                alert('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
+                return;
+            }
+
+            isUsingOpenRouter = true;
+            currentModelPath = selectedModel.id;
+            renderModelInfo(getModelStatusMessage(ui));
+            improvedPromptEl.textContent = ''; // Clear waiting message
+            generateAIBtn.disabled = false;
+            generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            loadModelBtn.textContent = ui.modelLoaded;
+            loadingIndicator.classList.add('hidden');
+            updateLanguageUI();
+            return;
+        }
+
+        // Local model loading (Transformers.js / WebLLM)
         loadingIndicator.classList.remove('hidden');
         progressText.textContent = ui.downloadingModel;
         progressBar.style.width = '0%';
@@ -160,6 +192,7 @@ const initApp = async () => {
                 }
             });
             currentModelPath = selectedModel.path || selectedModel.id; // Update currentModelPath after successful load
+            isUsingOpenRouter = false;
             renderModelInfo(getModelStatusMessage(ui));
             improvedPromptEl.textContent = ''; // Clear waiting message
             generateAIBtn.disabled = false;
@@ -330,11 +363,20 @@ const handleAIRewrite = async () => {
     try {
         // Pass heuristic analysis results to guide improvements
         const heuristics = analyzePromptHeuristics(prompt, currentLang);
-        
-        // Use streaming callback to update UI as it generates
-        const improved = await improvePromptLocal(prompt, currentLang, heuristics, (chunk) => {
-            if (chunk) improvedPromptEl.textContent = chunk;
-        });
+
+        // Use OpenRouter if enabled, otherwise use local model
+        let improved;
+        if (isUsingOpenRouter) {
+            // Use streaming callback to update UI as it generates
+            improved = await improvePromptWithOpenRouter(prompt, currentModelPath, (chunk) => {
+                if (chunk) improvedPromptEl.textContent = chunk;
+            });
+        } else {
+            // Use streaming callback to update UI as it generates
+            improved = await improvePromptLocal(prompt, currentLang, heuristics, (chunk) => {
+                if (chunk) improvedPromptEl.textContent = chunk;
+            });
+        }
 
         improvedPromptEl.textContent = improved;
         generateAIBtn.textContent = ui.generateBtn;

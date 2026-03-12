@@ -39,6 +39,8 @@ export const i18n = {
             optimizedVersion: 'Optimized Version',
             copyBtn: 'Copy',
             waitingModel: 'Load a model above to enable AI-powered rewriting.',
+            openRouterModelLabel: '[API] - Cloud-based model (no download needed)',
+            openRouterFreeTier: 'Free tier: 50 requests/day',
             perfectPrompt: '✨ Perfect prompt! No issues detected.',
             analyzing: '🧠 Analyzing and rewriting...',
             generateBtn: 'Generate Improved Prompt',
