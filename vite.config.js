@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    copyPublicDir: false,
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name]-[hash].js',

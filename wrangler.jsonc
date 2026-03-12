@@ -1,11 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "promptup",
+  "main": "_worker.js",
   "compatibility_date": "2025-09-27",
   "observability": {
     "enabled": true
   },
   "assets": {
+    "directory": "./dist",
     "not_found_handling": "single-page-application"
   },
   "compatibility_flags": [
@@ -16,5 +18,8 @@
       "pattern": "promptup.cloud/*",
       "zone_name": "promptup.cloud"
     }
-  ]
+  ],
+  "build": {
+    "command": "npm run build"
+  }
 }
