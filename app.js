@@ -14,6 +14,14 @@ import { runHeuristicTests } from './test-prompts.js';
 const promptInput = document.getElementById('prompt-input');
 const analyzeBtn = document.getElementById('analyze-btn');
 const resultsArea = document.getElementById('results-area');
+const modelCard = document.getElementById('model-card');
+const toggleAIOptionsBtn = document.getElementById('toggle-ai-options-btn');
+const topFixesSummaryEl = document.getElementById('top-fixes-summary');
+const topFixesListEl = document.getElementById('top-fixes-list');
+const workflowStepInput = document.getElementById('wf-step-input');
+const workflowStepAnalyze = document.getElementById('wf-step-analyze');
+const workflowStepImprove = document.getElementById('wf-step-improve');
+const workflowStepExport = document.getElementById('wf-step-export');
 const themeToggleBtn = document.getElementById('theme-toggle');
 const themeToggleIcon = document.getElementById('theme-toggle-icon');
 const themeToggleLabel = document.getElementById('theme-toggle-label');
@@ -98,6 +106,37 @@ const initTheme = () => {
             applyTheme(currentTheme === 'light' ? 'dark' : 'light');
         });
     }
+};
+
+const setWorkflowStep = (step) => {
+    const steps = [
+        { el: workflowStepInput, key: 'input' },
+        { el: workflowStepAnalyze, key: 'analyze' },
+        { el: workflowStepImprove, key: 'improve' },
+        { el: workflowStepExport, key: 'export' }
+    ];
+
+    const order = ['input', 'analyze', 'improve', 'export'];
+    const activeIndex = order.indexOf(step);
+
+    steps.forEach(({ el, key }) => {
+        if (!el) return;
+        el.classList.remove('workflow-step-active', 'workflow-step-complete');
+        const idx = order.indexOf(key);
+        if (idx < activeIndex) {
+            el.classList.add('workflow-step-complete');
+        } else if (idx === activeIndex) {
+            el.classList.add('workflow-step-active');
+        }
+    });
+};
+
+const revealAIOptions = () => {
+    if (!modelCard || !toggleAIOptionsBtn) return;
+    modelCard.classList.remove('hidden');
+    toggleAIOptionsBtn.textContent = 'AI Rewrite Options Enabled';
+    toggleAIOptionsBtn.disabled = true;
+    setWorkflowStep('improve');
 };
 
 const renderModelInfo = (statusMessage = '') => {
@@ -191,6 +230,7 @@ const updateLanguageUI = () => {
 const initApp = async () => {
 
     initTheme();
+    setWorkflowStep('input');
 
     Object.keys(MODELS).forEach(key => {
         const model = MODELS[key];
@@ -336,6 +376,8 @@ const handleAnalysis = () => {
     if (!prompt) return;
 
     resultsArea.classList.remove('hidden');
+    revealAIOptions();
+    setWorkflowStep('analyze');
     
     // Trigger animation for Linear design system
     setTimeout(() => {
@@ -373,11 +415,26 @@ const handleAnalysis = () => {
         issuesListEl.removeChild(issuesListEl.firstChild);
     }
 
+    while (topFixesListEl && topFixesListEl.firstChild) {
+        topFixesListEl.removeChild(topFixesListEl.firstChild);
+    }
+
     if (result.issues.length === 0) {
         const li = document.createElement('li');
         li.className = 'text-emerald-400';
         li.textContent = ui.perfectPrompt;
         issuesListEl.appendChild(li);
+
+        if (topFixesSummaryEl) {
+            topFixesSummaryEl.textContent = `Great structure already (${result.totalScore}/100). You can move directly to optional rewrite or export.`;
+        }
+
+        if (topFixesListEl) {
+            const tile = document.createElement('li');
+            tile.className = 'top-fix-item top-fix-item-success';
+            tile.textContent = 'No critical fixes. Prompt is already well-structured.';
+            topFixesListEl.appendChild(tile);
+        }
     } else {
         const fragment = document.createDocumentFragment();
         result.issues.forEach((issue) => {
@@ -395,6 +452,20 @@ const handleAnalysis = () => {
             fragment.appendChild(li);
         });
         issuesListEl.appendChild(fragment);
+
+        if (topFixesSummaryEl) {
+            topFixesSummaryEl.textContent = `Address these first to raise your score faster from ${result.totalScore}/100.`;
+        }
+
+        if (topFixesListEl) {
+            const topIssues = result.issues.slice(0, 3);
+            topIssues.forEach((issue, index) => {
+                const tile = document.createElement('li');
+                tile.className = 'top-fix-item';
+                tile.textContent = `${index + 1}. ${issue}`;
+                topFixesListEl.appendChild(tile);
+            });
+        }
     }
 };
 
@@ -452,6 +523,7 @@ const handleAIRewrite = async () => {
     if (!prompt) return;
 
     const ui = (i18n[currentLang] || i18n.en).ui;
+    setWorkflowStep('improve');
     generateAIBtn.disabled = true;
     generateAIBtn.textContent = ui.generating;
     improvedPromptEl.textContent = ui.analyzing;
@@ -480,6 +552,7 @@ const handleAIRewrite = async () => {
         }
 
         improvedPromptEl.textContent = improved;
+        setWorkflowStep('export');
         generateAIBtn.textContent = ui.generateBtn;
         generateAIBtn.disabled = false;
     } catch (err) {
@@ -535,6 +608,7 @@ const handleCopyPrompt = () => {
         !textToCopy.includes(analyzingText) &&
         !textToCopy.includes(rewriteFailedText)) {
         navigator.clipboard.writeText(textToCopy);
+        setWorkflowStep('export');
         alert(ui.copiedToClipboard || 'Copied to clipboard!');
     } else if (waitingText && textToCopy.includes(waitingText)) {
         alert(ui.noPromptToCopy || 'Nothing to copy yet.');
@@ -575,6 +649,10 @@ deleteCacheBtn.addEventListener('click', handleDeleteCache);
 copyBtn.addEventListener('click', handleCopyPrompt);
 exportTxtBtn.addEventListener('click', () => handleExport('txt'));
 exportMdBtn.addEventListener('click', () => handleExport('md'));
+
+if (toggleAIOptionsBtn) {
+    toggleAIOptionsBtn.addEventListener('click', revealAIOptions);
+}
 
 const marketingSamplePrompt = 'You are a B2B growth strategist. Create a 90-day go-to-market plan for a SaaS startup targeting HR teams. Return a week-by-week plan in a markdown table with goals, channels, KPIs, and risks. Constraints: budget under $15,000, focus on organic + outbound, maximum 350 words.';
 const codingSamplePrompt = 'You are a senior JavaScript engineer. Refactor the function below for readability and performance, then provide unit tests. Return 1) improved code, 2) test cases, 3) explanation. Constraints: keep same behavior, avoid external libraries, include edge cases.';
