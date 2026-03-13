@@ -367,6 +367,11 @@ const handleAIRewrite = async () => {
         // Use OpenRouter if enabled, otherwise use local model
         let improved;
         if (isUsingOpenRouter) {
+            // Validate model ID before calling OpenRouter
+            if (!currentModelPath) {
+                throw new Error('No model selected for OpenRouter');
+            }
+            console.log('Calling OpenRouter with model:', currentModelPath);
             // Use streaming callback to update UI as it generates
             improved = await improvePromptWithOpenRouter(prompt, currentModelPath, (chunk) => {
                 if (chunk) improvedPromptEl.textContent = chunk;
@@ -475,14 +480,26 @@ copyBtn.addEventListener('click', handleCopyPrompt);
 exportTxtBtn.addEventListener('click', () => handleExport('txt'));
 exportMdBtn.addEventListener('click', () => handleExport('md'));
 
-// Run Init
-initApp();
-
-// Run heuristic regression tests in background for developers
-try {
-    runHeuristicTests();
-} catch (e) {
-    console.warn("Tests failed to run", e);
+// Wait for DOM to be ready before initializing
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+        // Run heuristic regression tests in background for developers
+        try {
+            runHeuristicTests();
+        } catch (e) {
+            console.warn("Tests failed to run", e);
+        }
+    });
+} else {
+    // DOM already loaded
+    initApp();
+    // Run heuristic regression tests in background for developers
+    try {
+        runHeuristicTests();
+    } catch (e) {
+        console.warn("Tests failed to run", e);
+    }
 }
 
 /**
