@@ -6,7 +6,7 @@
  */
 
 // Pages Functions endpoint (production)
-const WORKER_URL = 'https://promptup.cloud/api';
+const WORKER_URL = 'https://530b5863.promptup.pages.dev/api';
 
 // Direct API endpoint (development fallback)
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
