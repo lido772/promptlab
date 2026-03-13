@@ -53,7 +53,7 @@ export default {
       }
 
       // Call OpenRouter
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await env.fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
