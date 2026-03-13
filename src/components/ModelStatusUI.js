@@ -208,29 +208,29 @@ export class ModelStatusUI {
      */
     render() {
         this.container.innerHTML = `
-            <div class="model-status-container">
+            <div class="model-status-container card">
                 <!-- Progress Section -->
                 <div class="model-progress-section">
                     <div class="model-progress-bar-container">
                         <div class="model-progress-bar" style="width: 0%"></div>
                     </div>
                     <div class="model-progress-text">${this.t('downloadingModel')}...</div>
-                    <div class="model-source-info text-xs text-gray-500"></div>
+                    <div class="model-source-info"></div>
                 </div>
 
                 <!-- Status Messages -->
                 <div class="model-status-message" style="display: none;"></div>
 
                 <!-- Fallback Indicator -->
-                <div class="fallback-indicator bg-yellow-100 text-yellow-800 px-3 py-2 rounded text-sm" style="display: none;">
+                <div class="fallback-indicator" style="display: none;">
                     ⚠️ Mode dégradé actif — modèle de secours en cours d'utilisation
                 </div>
 
                 <!-- Error Section -->
-                <div class="model-error-container bg-red-50 border border-red-200 rounded p-4" style="display: none;">
-                    <div class="model-error-message text-red-700"></div>
+                <div class="model-error-container" style="display: none;">
+                    <div class="model-error-message"></div>
                     ${this.options.showRetryButton ? `
-                        <button class="model-retry-btn btn-primary mt-3">
+                        <button class="model-retry-btn btn-primary">
                             🔄 ${this.t('retryBtn') || 'Réessayer'}
                         </button>
                     ` : ''}
@@ -238,111 +238,14 @@ export class ModelStatusUI {
 
                 <!-- Cache Management -->
                 ${this.options.showCacheButton ? `
-                    <div class="model-cache-section mt-4 pt-4 border-t border-gray-200">
-                        <div class="model-cache-info text-sm text-gray-600 mb-2"></div>
-                        <button class="model-clear-cache-btn btn-secondary text-sm">
+                    <div class="model-cache-section">
+                        <div class="model-cache-info"></div>
+                        <button class="model-clear-cache-btn btn-secondary">
                             🗑️ ${this.t('deleteCacheBtn')}
                         </button>
                     </div>
                 ` : ''}
             </div>
-
-            <style>
-                .model-progress-bar-container {
-                    width: 100%;
-                    height: 8px;
-                    background: #e5e7eb;
-                    border-radius: 4px;
-                    overflow: hidden;
-                }
-                
-                .model-progress-bar {
-                    height: 100%;
-                    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-                    transition: width 0.3s ease;
-                }
-                
-                .model-progress-text {
-                    font-size: 0.875rem;
-                    color: #6b7280;
-                    margin-top: 0.5rem;
-                }
-                
-                .model-status-message {
-                    padding: 0.75rem 1rem;
-                    border-radius: 0.5rem;
-                    margin-top: 0.75rem;
-                    font-size: 0.875rem;
-                }
-                
-                .model-status-message.status-info {
-                    background: #eff6ff;
-                    color: #1e40af;
-                    border: 1px solid #bfdbfe;
-                }
-                
-                .model-status-message.status-warning {
-                    background: #fffbeb;
-                    color: #92400e;
-                    border: 1px solid #fcd34d;
-                }
-                
-                .model-status-message.status-error {
-                    background: #fef2f2;
-                    color: #991b1b;
-                    border: 1px solid #fecaca;
-                }
-                
-                .model-status-message.status-success {
-                    background: #f0fdf4;
-                    color: #166534;
-                    border: 1px solid #bbf7d0;
-                }
-                
-                .fallback-indicator {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    margin-top: 0.75rem;
-                }
-                
-                .btn-primary {
-                    background: #3b82f6;
-                    color: white;
-                    padding: 0.5rem 1rem;
-                    border-radius: 0.5rem;
-                    border: none;
-                    cursor: pointer;
-                    font-weight: 500;
-                }
-                
-                .btn-primary:hover {
-                    background: #2563eb;
-                }
-                
-                .btn-primary:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-                
-                .btn-secondary {
-                    background: #f3f4f6;
-                    color: #374151;
-                    padding: 0.5rem 1rem;
-                    border-radius: 0.5rem;
-                    border: 1px solid #d1d5db;
-                    cursor: pointer;
-                }
-                
-                .btn-secondary:hover {
-                    background: #e5e7eb;
-                }
-                
-                .btn-secondary:disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                }
-            </style>
         `;
 
         // Bind events

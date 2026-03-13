@@ -4,6 +4,20 @@ npm run dev<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prompt Analyzer - 100% Local AI</title>
+    <script>
+        (function() {
+            try {
+                var key = 'promptup-theme';
+                var stored = localStorage.getItem(key);
+                var theme = (stored === 'light' || stored === 'dark')
+                    ? stored
+                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     
     <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,16 +38,25 @@ npm run dev<!DOCTYPE html>
         <div class="absolute inset-0 opacity-[0.02] pointer-events-none bg-[length:64px_64px] bg-[linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)]"></div>
     </div>
 
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light mode" aria-pressed="false">
+        <span id="theme-toggle-icon" aria-hidden="true">☀</span>
+        <span id="theme-toggle-label">Light mode</span>
+    </button>
+
 
     <!-- Welcome Hero Section -->
-    <div class="py-16 md:py-24 bg-gradient-to-b from-[#0a0a0c] via-[#0f0f12] to-[#020203] relative overflow-hidden">
+    <div id="hero-section" class="py-16 md:py-24 bg-gradient-to-b from-[#0a0a0c] via-[#0f0f12] to-[#020203] relative overflow-hidden">
         <div class="container max-w-5xl mx-auto px-6">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div class="text-left space-y-6">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <span class="mode-chip mode-chip-analysis">Instant Analysis</span>
+                        <span class="mode-chip mode-chip-rewrite">Optional AI Rewrite</span>
+                    </div>
                     <h1 id="ui-title" class="text-4xl md:text-5xl font-bold tracking-[-0.02em] mb-4 bg-gradient-to-b from-white via-white/90 to-white/60 bg-clip-text text-transparent">
                         Prompt Analyzer
                     </h1>
-                    <p class="text-lg md:text-xl text-foreground/80 max-w-xl leading-relaxed">
+                    <p id="ui-subtitle" class="text-lg md:text-xl text-foreground/80 max-w-xl leading-relaxed">
                         Transform your basic prompts into powerful AI instructions. <strong class="text-accent">Instant analysis</strong>, no account needed.
                     </p>
                     <ul class="space-y-3 text-foreground/70 mt-6">
@@ -54,12 +77,18 @@ npm run dev<!DOCTYPE html>
                             <span>Get specific suggestions to fix weak prompts</span>
                         </li>
                     </ul>
-                    <a href="#analyzer" class="inline-flex items-center gap-2 bg-accent text-white font-semibold px-6 py-3 rounded-lg hover:bg-accent-bright transition-all duration-300 shadow-glow">
-                        <span>Start Analyzing</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m0 0M13 17l-5-5m0 0l10-10m0 0"></path>
-                        </svg>
-                    </a>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <a href="#analyzer" class="inline-flex items-center gap-2 bg-accent text-white font-semibold px-6 py-3 rounded-lg hover:bg-accent-bright transition-all duration-300 shadow-glow">
+                            <span>Start Analyzing</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m0 0M13 17l-5-5m0 0l10-10m0 0"></path>
+                            </svg>
+                        </a>
+                        <button id="hero-try-example-btn" class="btn-secondary py-3 px-5">Try Example Prompt</button>
+                    </div>
+                    <p class="text-sm text-foreground-muted/90 max-w-xl leading-relaxed">
+                        Analyze instantly with no setup. Load a model only if you want AI rewriting.
+                    </p>
                 </div>
                 <!-- Visual Preview -->
                 <div class="hidden md:flex items-center justify-center">
@@ -153,6 +182,11 @@ npm run dev<!DOCTYPE html>
             <h2 class="text-xl md:text-2xl font-bold mb-6 flex items-center gap-2 text-[#EDEDEF]">
                 <span>📝</span> <span id="ui-yourPrompt">Your Prompt</span>
             </h2>
+            <div class="mb-4 flex flex-wrap items-center gap-2">
+                <button id="sample-marketing-btn" class="btn-secondary !px-4 !py-2 text-xs">Try Marketing Example</button>
+                <button id="sample-coding-btn" class="btn-secondary !px-4 !py-2 text-xs">Try Coding Example</button>
+                <span class="text-xs text-foreground-muted">Tip: Start with Analyze Instantly, then use Rewrite with AI if needed.</span>
+            </div>
             <textarea id="prompt-input" rows="8" class="input-field mb-6" 
                 placeholder="Example: Act as an expert marketing consultant. Create a 3-month strategy for a new SaaS..."></textarea>
             
@@ -172,7 +206,7 @@ npm run dev<!DOCTYPE html>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <select id="model-selector" class="bg-[#0F0F12] border border-white/10 p-3 rounded-lg text-sm text-[#EDEDEF] focus:outline-none focus:border-[#5E6AD2] transition-all duration-300 flex-1 md:flex-none">
+                    <select id="model-selector" class="themed-select bg-[#0F0F12] border border-white/10 p-3 rounded-lg text-sm text-[#EDEDEF] focus:outline-none focus:border-[#5E6AD2] transition-all duration-300 flex-1 md:flex-none">
                         <!-- Populated by JS -->
                     </select>
                     <button id="load-model-btn" class="btn-primary whitespace-nowrap stagger-reveal-initial">
@@ -213,36 +247,36 @@ npm run dev<!DOCTYPE html>
                             <div id="score-progress" class="h-4 rounded-full bg-gradient-to-r from-[#5E6AD2] to-[#818CF8] transition-all duration-500" style="width: 0%"></div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="p-4 bg-white/5 rounded-lg border border-white/5 text-center hover:border-white/10 transition-all duration-200 stagger-reveal-initial">
-                                <div id="ui-metric-role" class="text-[10px] uppercase text-[#8A8F98] mb-1 tracking-wider">Role</div>
-                                <div id="role-score" class="text-lg font-bold text-[#EDEDEF]">0</div>
+                            <div class="metric-tile p-4 rounded-lg text-center transition-all duration-200 stagger-reveal-initial">
+                                <div id="ui-metric-role" class="metric-label text-[10px] uppercase mb-1 tracking-wider">Role</div>
+                                <div id="role-score" class="metric-value text-lg font-bold">0</div>
                             </div>
-                            <div class="p-4 bg-white/5 rounded-lg border border-white/5 text-center hover:border-white/10 transition-all duration-200 stagger-reveal-initial">
-                                <div id="ui-metric-format" class="text-[10px] uppercase text-[#8A8F98] mb-1 tracking-wider">Format</div>
-                                <div id="output-score" class="text-lg font-bold text-[#EDEDEF]">0</div>
+                            <div class="metric-tile p-4 rounded-lg text-center transition-all duration-200 stagger-reveal-initial">
+                                <div id="ui-metric-format" class="metric-label text-[10px] uppercase mb-1 tracking-wider">Format</div>
+                                <div id="output-score" class="metric-value text-lg font-bold">0</div>
                             </div>
-                            <div class="p-4 bg-white/5 rounded-lg border border-white/5 text-center hover:border-white/10 transition-all duration-200 stagger-reveal-initial">
-                                <div id="ui-metric-constraints" class="text-[10px] uppercase text-[#8A8F98] mb-1 tracking-wider">Constraints</div>
-                                <div id="constraints-score" class="text-lg font-bold text-[#EDEDEF]">0</div>
+                            <div class="metric-tile p-4 rounded-lg text-center transition-all duration-200 stagger-reveal-initial">
+                                <div id="ui-metric-constraints" class="metric-label text-[10px] uppercase mb-1 tracking-wider">Constraints</div>
+                                <div id="constraints-score" class="metric-value text-lg font-bold">0</div>
                             </div>
-                            <div class="p-4 bg-white/5 rounded-lg border border-white/5 text-center hover:border-white/10 transition-all duration-200 stagger-reveal-initial">
-                                <div id="ui-metric-context" class="text-[10px] uppercase text-[#8A8F98] mb-1 tracking-wider">Context</div>
-                                <div id="context-score" class="text-lg font-bold text-[#EDEDEF]">0</div>
+                            <div class="metric-tile p-4 rounded-lg text-center transition-all duration-200 stagger-reveal-initial">
+                                <div id="ui-metric-context" class="metric-label text-[10px] uppercase mb-1 tracking-wider">Context</div>
+                                <div id="context-score" class="metric-value text-lg font-bold">0</div>
                             </div>
-                            <div class="p-4 bg-white/5 rounded-lg border border-white/5 text-center hover:border-white/10 transition-all duration-200 stagger-reveal-initial">
-                                <div id="ui-metric-completeness" class="text-[10px] uppercase text-[#8A8F98] mb-1 tracking-wider">Completeness</div>
-                                <div id="completeness-score" class="text-lg font-bold text-[#EDEDEF]">0</div>
+                            <div class="metric-tile p-4 rounded-lg text-center transition-all duration-200 stagger-reveal-initial">
+                                <div id="ui-metric-completeness" class="metric-label text-[10px] uppercase mb-1 tracking-wider">Completeness</div>
+                                <div id="completeness-score" class="metric-value text-lg font-bold">0</div>
                             </div>
-                            <div class="p-4 bg-white/5 rounded-lg border border-white/5 text-center hover:border-white/10 transition-all duration-200 stagger-reveal-initial">
-                                <div id="ui-metric-consistency" class="text-[10px] uppercase text-[#8A8F98] mb-1 tracking-wider">Consistency</div>
-                                <div id="consistency-score" class="text-lg font-bold text-[#EDEDEF]">0</div>
+                            <div class="metric-tile p-4 rounded-lg text-center transition-all duration-200 stagger-reveal-initial">
+                                <div id="ui-metric-consistency" class="metric-label text-[10px] uppercase mb-1 tracking-wider">Consistency</div>
+                                <div id="consistency-score" class="metric-value text-lg font-bold">0</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="card spotlight-card border-orange-500/20 bg-gradient-to-b from-orange-500/5 to-transparent stagger-reveal-initial">
                         <h3 class="text-lg md:text-xl font-bold mb-4 flex items-center gap-2 text-[#EDEDEF]">
-                            <span class="text-orange-500">⚠️</span> <span id="ui-issuesTitle">Suggested Improvements</span>
+                            <span class="issue-icon">⚠️</span> <span id="ui-issuesTitle">Suggested Improvements</span>
                         </h3>
                         <ul id="issues-list" class="space-y-3 text-sm text-[#8A8F98] leading-relaxed">
                             <!-- Populated by JS -->

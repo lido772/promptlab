@@ -14,6 +14,12 @@ import { runHeuristicTests } from './test-prompts.js';
 const promptInput = document.getElementById('prompt-input');
 const analyzeBtn = document.getElementById('analyze-btn');
 const resultsArea = document.getElementById('results-area');
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeToggleIcon = document.getElementById('theme-toggle-icon');
+const themeToggleLabel = document.getElementById('theme-toggle-label');
+const heroTryExampleBtn = document.getElementById('hero-try-example-btn');
+const sampleMarketingBtn = document.getElementById('sample-marketing-btn');
+const sampleCodingBtn = document.getElementById('sample-coding-btn');
 const loadingIndicator = document.getElementById('loading-indicator');
 const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');
@@ -51,14 +57,73 @@ let deviceSummary = 'System: Unknown';
 let webgpuStatusText = 'WebGPU support unknown';
 let isUsingOpenRouter = false;
 
+const THEME_STORAGE_KEY = 'promptup-theme';
+
+const getInitialTheme = () => {
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+        return storedTheme;
+    }
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    return prefersLight ? 'light' : 'dark';
+};
+
+const applyTheme = (theme) => {
+    const resolvedTheme = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', resolvedTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, resolvedTheme);
+
+    if (!themeToggleBtn) {
+        return;
+    }
+
+    const isLight = resolvedTheme === 'light';
+    themeToggleBtn.setAttribute('aria-pressed', String(isLight));
+    themeToggleBtn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+
+    if (themeToggleIcon) {
+        themeToggleIcon.textContent = isLight ? '🌙' : '☀';
+    }
+    if (themeToggleLabel) {
+        themeToggleLabel.textContent = isLight ? 'Dark mode' : 'Light mode';
+    }
+};
+
+const initTheme = () => {
+    applyTheme(getInitialTheme());
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+        });
+    }
+};
+
 const renderModelInfo = (statusMessage = '') => {
     const selectedModel = MODELS[modelSelectorEl.value];
-    const statusLine = statusMessage ? `<p class="text-xs text-foreground-muted mb-2">${statusMessage}</p>` : '';
-    modelInfoEl.innerHTML = `
-        <p class="text-xs text-foreground-muted mb-2">${deviceSummary} / ${webgpuStatusText}</p>
-        ${statusLine}
-        <p class="text-xs italic opacity-60" id="selected-model-desc">${selectedModel.description}</p>
-    `;
+
+    while (modelInfoEl.firstChild) {
+        modelInfoEl.removeChild(modelInfoEl.firstChild);
+    }
+
+    const systemLine = document.createElement('p');
+    systemLine.className = 'text-xs text-foreground-muted mb-2';
+    systemLine.textContent = `${deviceSummary} / ${webgpuStatusText}`;
+    modelInfoEl.appendChild(systemLine);
+
+    if (statusMessage) {
+        const statusLine = document.createElement('p');
+        statusLine.className = 'text-xs text-foreground-muted mb-2';
+        statusLine.textContent = statusMessage;
+        modelInfoEl.appendChild(statusLine);
+    }
+
+    const descLine = document.createElement('p');
+    descLine.className = 'text-xs italic opacity-60';
+    descLine.id = 'selected-model-desc';
+    descLine.textContent = selectedModel?.description || '';
+    modelInfoEl.appendChild(descLine);
 };
 
 const getModelStatusMessage = (ui) => {
@@ -124,6 +189,8 @@ const updateLanguageUI = () => {
  * Initialize UI with Model Options
  */
 const initApp = async () => {
+
+    initTheme();
 
     Object.keys(MODELS).forEach(key => {
         const model = MODELS[key];
@@ -302,14 +369,43 @@ const handleAnalysis = () => {
     completenessScoreEl.textContent = result.scores.completeness || 0;
     consistencyScoreEl.textContent = result.scores.consistency || 0;
 
-    issuesListEl.innerHTML = '';
-    if (result.issues.length === 0) {
-        issuesListEl.innerHTML = `<li class="text-emerald-400">${ui.perfectPrompt}</li>`;
-    } else {
-        result.issues.forEach(issue => {
-            issuesListEl.innerHTML += `<li class="flex items-start gap-2"><span class="text-orange-500">⚠</span> ${issue}</li>`;
-        });
+    while (issuesListEl.firstChild) {
+        issuesListEl.removeChild(issuesListEl.firstChild);
     }
+
+    if (result.issues.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'text-emerald-400';
+        li.textContent = ui.perfectPrompt;
+        issuesListEl.appendChild(li);
+    } else {
+        const fragment = document.createDocumentFragment();
+        result.issues.forEach((issue) => {
+            const li = document.createElement('li');
+            li.className = 'flex items-start gap-2';
+
+            const icon = document.createElement('span');
+            icon.className = 'text-orange-500';
+            icon.textContent = '⚠';
+
+            const text = document.createTextNode(` ${issue}`);
+
+            li.appendChild(icon);
+            li.appendChild(text);
+            fragment.appendChild(li);
+        });
+        issuesListEl.appendChild(fragment);
+    }
+};
+
+/**
+ * Fill textarea with a curated sample and run instant analysis.
+ */
+const applySamplePrompt = (samplePrompt) => {
+    promptInput.value = samplePrompt;
+    promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+    promptInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    handleAnalysis();
 };
 
 /**
@@ -479,6 +575,24 @@ deleteCacheBtn.addEventListener('click', handleDeleteCache);
 copyBtn.addEventListener('click', handleCopyPrompt);
 exportTxtBtn.addEventListener('click', () => handleExport('txt'));
 exportMdBtn.addEventListener('click', () => handleExport('md'));
+
+const marketingSamplePrompt = 'You are a B2B growth strategist. Create a 90-day go-to-market plan for a SaaS startup targeting HR teams. Return a week-by-week plan in a markdown table with goals, channels, KPIs, and risks. Constraints: budget under $15,000, focus on organic + outbound, maximum 350 words.';
+const codingSamplePrompt = 'You are a senior JavaScript engineer. Refactor the function below for readability and performance, then provide unit tests. Return 1) improved code, 2) test cases, 3) explanation. Constraints: keep same behavior, avoid external libraries, include edge cases.';
+
+if (heroTryExampleBtn) {
+    heroTryExampleBtn.addEventListener('click', () => {
+        document.getElementById('analyzer')?.scrollIntoView({ behavior: 'smooth' });
+        applySamplePrompt(marketingSamplePrompt);
+    });
+}
+
+if (sampleMarketingBtn) {
+    sampleMarketingBtn.addEventListener('click', () => applySamplePrompt(marketingSamplePrompt));
+}
+
+if (sampleCodingBtn) {
+    sampleCodingBtn.addEventListener('click', () => applySamplePrompt(codingSamplePrompt));
+}
 
 // Wait for DOM to be ready before initializing
 if (document.readyState === 'loading') {
