@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "promptup",
+  "name": "promptlab",
   "main": "_worker.js",
   "compatibility_date": "2026-03-13",
   "observability": {
