@@ -5,7 +5,7 @@
  * Development: Can use direct API calls with VITE_OPENROUTER_API_KEY
  */
 
-// Worker endpoint (production) - Using Cloudflare Pages Functions
+// Pages Functions endpoint (production)
 const WORKER_URL = 'https://promptup.cloud/api';
 
 // Direct API endpoint (development fallback)
