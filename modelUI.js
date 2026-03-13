@@ -71,8 +71,20 @@ async function initModelSelector() {
     Object.entries(MODELS).forEach(([key, model]) => {
         const option = document.createElement('option');
         option.value = key;
-        option.textContent = `${model.name} (${model.size})`;
         option.dataset.engine = model.engine || 'transformers';
+
+        // Build display name with appropriate prefixes
+        let displayName = model.name;
+
+        // Add [API] prefix for OpenRouter models
+        if (model.engine === 'openrouter') {
+            displayName = `[API] ${model.name}`;
+        }
+
+        // Add size info
+        displayName += ` (${model.size})`;
+
+        option.textContent = displayName;
 
         // Add recommended badge
         if (model.recommended) {
