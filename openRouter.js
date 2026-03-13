@@ -5,8 +5,8 @@
  * Development: Can use direct API calls with VITE_OPENROUTER_API_KEY
  */
 
-// Pages Functions endpoint (production)
-const WORKER_URL = 'https://530b5863.promptup.pages.dev/api';
+// Same-origin API endpoint (works across preview, production, and custom domains)
+const WORKER_URL = '/api';
 
 // Direct API endpoint (development fallback)
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';

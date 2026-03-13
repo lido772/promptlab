@@ -555,7 +555,13 @@ if (isAuditMode && !process.argv.includes('--no-audit')) {
 
         // Optionally save to file (Node.js only)
         try {
-            const { writeFileSync } = await import('fs');
+            const isNodeRuntime = (typeof process !== 'undefined') && !!process.versions?.node;
+            if (!isNodeRuntime) {
+                return;
+            }
+
+            // Keep node-only import opaque to browser bundlers.
+            const { writeFileSync } = await (0, eval)('import("node:fs")');
             const outPath = './audit-report.md';
             writeFileSync(outPath, report, 'utf8');
             console.log(`\n📄 Report saved to ${outPath}`);

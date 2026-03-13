@@ -8,9 +8,10 @@ export default {
   async fetch(request, env, ctx) {
     // Only handle API requests
     const url = new URL(request.url);
+    const isApiRoute = url.pathname === '/api' || url.pathname.startsWith('/api/');
 
     // Serve static files for non-API requests
-    if (!url.pathname.startsWith('/api/')) {
+    if (!isApiRoute) {
       // Let Cloudflare Pages handle static assets
       return env.ASSETS.fetch(request);
     }
@@ -21,10 +22,29 @@ export default {
         status: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization'
         }
       });
+    }
+
+    // Lightweight health endpoint for deployment diagnostics.
+    if (request.method === 'GET' && (url.pathname === '/api/health' || url.pathname === '/api/health/')) {
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          service: 'openrouter-proxy',
+          apiKeyConfigured: !!env.OPENROUTER_API_KEY,
+          timestamp: new Date().toISOString()
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        }
+      );
     }
 
     if (request.method !== 'POST') {
@@ -53,7 +73,7 @@ export default {
       }
 
       // Call OpenRouter
-      const response = await env.fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
