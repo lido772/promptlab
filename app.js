@@ -222,6 +222,34 @@ const getRecommendedApiModelKey = () => {
     return recommended ? recommended[0] : Object.keys(API_MODELS)[0];
 };
 
+const getFallbackModelIds = (primaryModelId) => {
+    const allEntries = Object.entries(API_MODELS);
+    const recommendedIds = allEntries
+        .filter(([_, model]) => model.recommended)
+        .map(([_, model]) => model.id);
+    const remainingIds = allEntries
+        .map(([_, model]) => model.id)
+        .filter((id) => id !== primaryModelId);
+
+    return Array.from(new Set([primaryModelId, ...recommendedIds, ...remainingIds]));
+};
+
+const getModelNameById = (modelId) => {
+    const entry = Object.values(API_MODELS).find((model) => model.id === modelId);
+    return entry?.name || modelId;
+};
+
+const syncSelectorFromModelId = (modelId) => {
+    if (!openRouterModelSelectorEl) return;
+
+    const matched = Object.entries(API_MODELS).find(([_, model]) => model.id === modelId);
+    if (!matched) return;
+
+    const [key] = matched;
+    openRouterModelSelectorEl.value = key;
+    localStorage.setItem('lastSelectedApiModel', key);
+};
+
 const createNowPaymentDonation = async () => {
     if (!donationAmountEl || !donationCurrencyEl || !donationPayCurrencyEl || !donationBtn || !donationStatusEl) {
         return;
@@ -520,9 +548,39 @@ const handleAIRewrite = async () => {
             throw new Error('No API model selected for OpenRouter');
         }
 
-        const improved = await improvePromptWithOpenRouter(prompt, currentModelPath, (chunk) => {
-            if (chunk) improvedPromptEl.textContent = chunk;
-        }, heuristics);
+        const candidateModelIds = getFallbackModelIds(currentModelPath);
+        let improved = '';
+        let lastError = null;
+
+        for (let i = 0; i < candidateModelIds.length; i += 1) {
+            const modelId = candidateModelIds[i];
+
+            if (i > 0) {
+                improvedPromptEl.textContent = `Selected model unavailable. Retrying with ${getModelNameById(modelId)}...`;
+            }
+
+            try {
+                improved = await improvePromptWithOpenRouter(
+                    prompt,
+                    modelId,
+                    (chunk) => {
+                        if (chunk) improvedPromptEl.textContent = chunk;
+                    },
+                    heuristics
+                );
+
+                currentModelPath = modelId;
+                isUsingOpenRouter = true;
+                syncSelectorFromModelId(modelId);
+                break;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        if (!improved) {
+            throw lastError || new Error('All configured OpenRouter models failed');
+        }
 
         improvedPromptEl.textContent = improved;
         setWorkflowStep('export');

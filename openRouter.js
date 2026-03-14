@@ -17,45 +17,105 @@ const USE_WORKER = !API_KEY || import.meta.env.PROD;
 
 // OpenRouter free models configuration
 export const OPENROUTER_MODELS = {
-    'step-3-5-flash': {
-        id: 'stepfun/step-3.5-flash',
-        name: 'Step 3.5 Flash',
-        provider: 'StepFun',
-        size: '23.6B',
-        context: '256K',
-        price: '$0.00002/M tokens',
-        description: 'Ultra-fast generation with large context window',
+    'qwen3-next-80b-a3b': {
+        id: 'qwen/qwen3-next-80b-a3b-instruct:free',
+        name: 'Qwen3 Next 80B A3B Instruct (free)',
+        provider: 'Qwen',
+        size: '80B (A3B)',
+        context: '262K',
+        price: '$0/M tokens',
+        description: 'Fast and stable long-context model without visible thinking traces',
         engine: 'openrouter',
         recommended: true
     },
-    'step-3': {
-        id: 'stepfun/step-3',
-        name: 'Step 3',
-        provider: 'StepFun',
-        size: '321B',
-        context: '66K',
-        price: '$0.00010/M tokens',
-        description: 'High-quality generation with larger model',
-        engine: 'openrouter'
-    },
-    'meta-llama-3.1-8b': {
-        id: 'meta-llama/llama-3.1-8b-instruct:free',
-        name: 'Llama 3.1 8B',
+    'meta-llama-3.3-70b': {
+        id: 'meta-llama/llama-3.3-70b-instruct:free',
+        name: 'Llama 3.3 70B Instruct (free)',
         provider: 'Meta',
-        size: '8B',
+        size: '70B',
         context: '128K',
-        price: 'Free tier',
-        description: 'Efficient open-source model from Meta',
+        price: '$0/M tokens',
+        description: 'Strong multilingual instruction model for production chat and QA',
         engine: 'openrouter'
     },
-    'mistral-7b': {
-        id: 'mistralai/mistral-7b-instruct:free',
-        name: 'Mistral 7B',
+    'gpt-oss-120b': {
+        id: 'openai/gpt-oss-120b:free',
+        name: 'gpt-oss-120b (free)',
+        provider: 'OpenAI',
+        size: '120B MoE',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'High-reasoning open-weight MoE model with tool-use capabilities',
+        engine: 'openrouter'
+    },
+    'lfm-2-5-1-2b-thinking': {
+        id: 'liquid/lfm-2.5-1.2b-thinking:free',
+        name: 'LFM2.5 1.2B Thinking (free)',
+        provider: 'LiquidAI',
+        size: '1.2B',
+        context: '33K',
+        price: '$0/M tokens',
+        description: 'Lightweight reasoning model for extraction, RAG and agentic tasks',
+        engine: 'openrouter'
+    },
+    'lfm-2-5-1-2b-instruct': {
+        id: 'liquid/lfm-2.5-1.2b-instruct:free',
+        name: 'LFM2.5 1.2B Instruct (free)',
+        provider: 'LiquidAI',
+        size: '1.2B',
+        context: '33K',
+        price: '$0/M tokens',
+        description: 'Compact instruction model tuned for fast and efficient responses',
+        engine: 'openrouter'
+    },
+    'mistral-small-3-1-24b': {
+        id: 'mistralai/mistral-small-3.1-24b-instruct:free',
+        name: 'Mistral Small 3.1 24B (free)',
         provider: 'Mistral AI',
-        size: '7B',
-        context: '32K',
-        price: 'Free tier',
-        description: 'Balanced performance for general tasks',
+        size: '24B',
+        context: '128K',
+        price: '$0/M tokens',
+        description: 'Strong multilingual model with robust coding and reasoning quality',
+        engine: 'openrouter'
+    },
+    'gemma-3-27b': {
+        id: 'google/gemma-3-27b-it:free',
+        name: 'Gemma 3 27B (free)',
+        provider: 'Google',
+        size: '27B',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'Large open model with strong multilingual and structured output support',
+        engine: 'openrouter'
+    },
+    'gpt-oss-20b': {
+        id: 'openai/gpt-oss-20b:free',
+        name: 'gpt-oss-20b (free)',
+        provider: 'OpenAI',
+        size: '20B MoE',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'Lower-latency MoE option for fast and instruction-following generation',
+        engine: 'openrouter'
+    },
+    'qwen3-4b': {
+        id: 'qwen/qwen3-4b:free',
+        name: 'Qwen3 4B (free)',
+        provider: 'Qwen',
+        size: '4B',
+        context: '41K',
+        price: '$0/M tokens',
+        description: 'Compact model with balanced chat efficiency and reasoning quality',
+        engine: 'openrouter'
+    },
+    'venice-uncensored': {
+        id: 'venice/uncensored:free',
+        name: 'Venice Uncensored (free)',
+        provider: 'Venice',
+        size: '24B',
+        context: '33K',
+        price: '$0/M tokens',
+        description: 'High-steerability instruct model with minimal alignment constraints',
         engine: 'openrouter'
     }
 };
@@ -68,7 +128,12 @@ export const OPENROUTER_MODELS = {
  * @param {Function} onStream - Optional streaming callback
  * @returns {Promise<string>} Improved prompt
  */
-export const improvePromptWithOpenRouter = async (prompt, modelId, onStream = null) => {
+export const improvePromptWithOpenRouter = async (prompt, modelId, onStream = null, heuristics = null) => {
+    let targetingHint = '';
+    if (heuristics && Array.isArray(heuristics.issues) && heuristics.issues.length > 0) {
+        targetingHint = `\n7. Specifically address these weaknesses: ${heuristics.issues.join('; ')}`;
+    }
+
     const systemPrompt = `You are a world-class Prompt Engineer. Your task is to rewrite the user's prompt to be highly effective, structured, and clear.
 
 Follow these rules:
@@ -77,7 +142,7 @@ Follow these rules:
 3. Provide Context and background information
 4. Specify a clear Output Format (e.g., "Return result as a Markdown table")
 5. List specific Constraints to avoid generic or low-quality results
-6. Keep your response concise and focused on the improved prompt only`;
+6. Keep your response concise and focused on the improved prompt only${targetingHint}`;
 
     const requestBody = {
         model: modelId,
