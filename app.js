@@ -1215,10 +1215,9 @@ const MAX_FALLBACK_MODEL_IDS = 3;
 
 const isLowPriorityFallback = (modelId) => /thinking/i.test(modelId || '');
 
-const getFallbackModelIds = (primaryModelId) => {
+const buildOrderedCandidateModelIds = (primaryModelId) => {
     const allEntries = Object.entries(API_MODELS);
-    const allIds = allEntries
-        .map(([_, model]) => model.id);
+    const allIds = allEntries.map(([_, model]) => model.id);
     const recommendedIds = allEntries
         .filter(([_, model]) => model.recommended && model.id !== primaryModelId)
         .map(([_, model]) => model.id);
@@ -1230,13 +1229,17 @@ const getFallbackModelIds = (primaryModelId) => {
     const lowPriorityIds = remainingIds.filter((id) => isLowPriorityFallback(id));
     const standardIds = remainingIds.filter((id) => !isLowPriorityFallback(id));
 
-    const orderedIds = Array.from(new Set([
+    return Array.from(new Set([
         primaryModelId,
         ...recommendedIds,
         ...orderedPriorityIds,
         ...standardIds,
         ...lowPriorityIds
     ]));
+};
+
+const getFallbackModelIds = (primaryModelId) => {
+    const orderedIds = buildOrderedCandidateModelIds(primaryModelId);
 
     const preferredIds = orderedIds.filter((id) => !isModelBlocked(id));
     const limitedPreferredIds = preferredIds.slice(0, MAX_FALLBACK_MODEL_IDS);
@@ -1267,6 +1270,76 @@ const createRuntimeRetryError = (message, originalError = null) => {
     nextError.responseText = originalError?.responseText || '';
     nextError.originalError = originalError || null;
     return nextError;
+};
+
+const executeWithModelRecovery = async ({
+    primaryModelId,
+    executeRequest,
+    onRetrying = null
+}) => {
+    const orderedIds = buildOrderedCandidateModelIds(primaryModelId);
+    const runtimeBlockedIds = new Set();
+    let reroutedFromModelId = null;
+    let lastError = null;
+
+    while (true) {
+        const candidateModelIds = orderedIds
+            .filter((id) => !runtimeBlockedIds.has(id) && !isModelBlocked(id))
+            .slice(0, MAX_FALLBACK_MODEL_IDS);
+
+        if (candidateModelIds.length === 0) {
+            throw lastError || new Error(getLocalizedFreeModelFailureMessage(getModelNameById(primaryModelId)));
+        }
+
+        try {
+            const response = await executeRequest(candidateModelIds);
+            return {
+                response,
+                reroutedFromModelId
+            };
+        } catch (error) {
+            if (error?.name === 'AbortError') {
+                throw error;
+            }
+
+            lastError = error;
+            const classification = classifyOpenRouterError(error);
+
+            if (!classification.isRateLimit) {
+                throw error;
+            }
+
+            const keyStatus = await refreshOpenRouterKeyStatus(true);
+            if (keyStatus?.status === 'limited') {
+                setModelFallbackNotice(getLocalizedGlobalLimitNote(), 'error');
+                throw createRuntimeRetryError(getLocalizedOpenRouterLimitExceededMessage(), error);
+            }
+
+            const blockedModelId = classification.rateLimitedModelId || candidateModelIds[0];
+            reroutedFromModelId = reroutedFromModelId || blockedModelId;
+            handleModelRuntimeOutcome(blockedModelId, error);
+            runtimeBlockedIds.add(blockedModelId);
+
+            const nextCandidateIds = orderedIds
+                .filter((id) => !runtimeBlockedIds.has(id) && !isModelBlocked(id))
+                .slice(0, MAX_FALLBACK_MODEL_IDS);
+
+            if (nextCandidateIds.length === 0) {
+                const limitedModelName = getModelNameById(blockedModelId);
+                const failureMessage = getLocalizedFreeModelFailureMessage(limitedModelName);
+                setModelFallbackNotice(failureMessage, 'error');
+                throw createRuntimeRetryError(failureMessage, error);
+            }
+
+            const limitedModelName = getModelNameById(blockedModelId);
+            const nextModelName = getModelNameById(nextCandidateIds[0]);
+            const retryMessage = getLocalizedFreeModelRetryMessage(limitedModelName, nextModelName);
+            setModelFallbackNotice(retryMessage, 'warning');
+            if (typeof onRetrying === 'function') {
+                onRetrying(retryMessage);
+            }
+        }
+    }
 };
 
 const syncSelectorFromModelId = (modelId) => {
@@ -1846,106 +1919,13 @@ const handleExport = (format) => {
     a.download = `optimized-prompt.${format}`;
     a.click();
     URL.revokeObjectURL(url);
-    const buildOrderedCandidateModelIds = (primaryModelId) => {
-        const allEntries = Object.entries(API_MODELS);
-        const allIds = allEntries.map(([_, model]) => model.id);
-        const recommendedIds = allEntries
-            .filter(([_, model]) => model.recommended && model.id !== primaryModelId)
-            .map(([_, model]) => model.id);
-
-        const orderedPriorityIds = FALLBACK_PRIORITY_IDS
-            .filter((id) => allIds.includes(id) && id !== primaryModelId);
-
-        const remainingIds = allIds.filter((id) => id !== primaryModelId);
-        const lowPriorityIds = remainingIds.filter((id) => isLowPriorityFallback(id));
-        const standardIds = remainingIds.filter((id) => !isLowPriorityFallback(id));
-
-        return Array.from(new Set([
-            primaryModelId,
-            ...recommendedIds,
-            ...orderedPriorityIds,
-            ...standardIds,
-            ...lowPriorityIds
-        ]));
-    };
 };
-
-        const orderedIds = buildOrderedCandidateModelIds(primaryModelId);
 
 const marketingSamplePrompt = 'You are a B2B growth strategist. Create a 90-day go-to-market plan for a SaaS startup targeting HR teams. Return a week-by-week plan in a markdown table with goals, channels, KPIs, and risks. Constraints: budget under $15,000, focus on organic + outbound, maximum 350 words.';
 const codingSamplePrompt = 'You are a senior JavaScript engineer. Refactor the function below for readability and performance, then provide unit tests. Return 1) improved code, 2) test cases, 3) explanation. Constraints: keep same behavior, avoid external libraries, include edge cases.';
 const seoSamplePrompt = 'You are a senior SEO consultant. Build a 3-month SEO action plan for a B2B SaaS website in France. Return: 1) 10 target keywords (intent + difficulty + page type), 2) on-page fixes (title, H1/H2, meta), 3) technical priorities, 4) weekly KPI dashboard. Constraints: practical, business-focused, no fluff.';
 const salesSamplePrompt = 'You are an enterprise sales strategist. Write a cold outreach sequence for selling an AI productivity SaaS to Head of Product personas. Return 1) 3 email drafts, 2) 2 LinkedIn messages, 3) objection handling script, 4) CTA variations. Constraints: concise, human tone, max 120 words per email.';
 const supportSamplePrompt = 'You are a customer support operations lead. Create a response playbook for handling AI tool onboarding tickets. Return: triage categories, SLA targets, 8 response templates, escalation rules, and quality checklist. Constraints: clear markdown table, professional tone, globally applicable.';
-    const executeWithModelRecovery = async ({
-        primaryModelId,
-        executeRequest,
-        onRetrying = null
-    }) => {
-        const orderedIds = buildOrderedCandidateModelIds(primaryModelId);
-        const runtimeBlockedIds = new Set();
-        let reroutedFromModelId = null;
-        let lastError = null;
-
-        while (true) {
-            const candidateModelIds = orderedIds
-                .filter((id) => !runtimeBlockedIds.has(id) && !isModelBlocked(id))
-                .slice(0, MAX_FALLBACK_MODEL_IDS);
-
-            if (candidateModelIds.length === 0) {
-                throw lastError || new Error(getLocalizedFreeModelFailureMessage(getModelNameById(primaryModelId)));
-            }
-
-            try {
-                const response = await executeRequest(candidateModelIds);
-                return {
-                    response,
-                    reroutedFromModelId
-                };
-            } catch (error) {
-                if (error?.name === 'AbortError') {
-                    throw error;
-                }
-
-                lastError = error;
-                const classification = classifyOpenRouterError(error);
-
-                if (!classification.isRateLimit) {
-                    throw error;
-                }
-
-                const keyStatus = await refreshOpenRouterKeyStatus(true);
-                if (keyStatus?.status === 'limited') {
-                    setModelFallbackNotice(getLocalizedGlobalLimitNote(), 'error');
-                    throw createRuntimeRetryError(getLocalizedOpenRouterLimitExceededMessage(), error);
-                }
-
-                const blockedModelId = classification.rateLimitedModelId || candidateModelIds[0];
-                reroutedFromModelId = reroutedFromModelId || blockedModelId;
-                handleModelRuntimeOutcome(blockedModelId, error);
-                runtimeBlockedIds.add(blockedModelId);
-
-                const nextCandidateIds = orderedIds
-                    .filter((id) => !runtimeBlockedIds.has(id) && !isModelBlocked(id))
-                    .slice(0, MAX_FALLBACK_MODEL_IDS);
-
-                if (nextCandidateIds.length === 0) {
-                    const limitedModelName = getModelNameById(blockedModelId);
-                    const failureMessage = getLocalizedFreeModelFailureMessage(limitedModelName);
-                    setModelFallbackNotice(failureMessage, 'error');
-                    throw createRuntimeRetryError(failureMessage, error);
-                }
-
-                const limitedModelName = getModelNameById(blockedModelId);
-                const nextModelName = getModelNameById(nextCandidateIds[0]);
-                const retryMessage = getLocalizedFreeModelRetryMessage(limitedModelName, nextModelName);
-                setModelFallbackNotice(retryMessage, 'warning');
-                if (typeof onRetrying === 'function') {
-                    onRetrying(retryMessage);
-                }
-            }
-        }
-    };
 const productSamplePrompt = 'You are a senior product manager. Draft a PRD outline for a Prompt Quality Scoring feature in a SaaS app. Include problem statement, target users, jobs-to-be-done, scope, non-goals, UX flows, success metrics, and rollout plan. Constraints: crisp bullets, no generic statements.';
 
 if (heroTryExampleBtn) {
