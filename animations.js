@@ -51,7 +51,8 @@ class SpotlightEffect {
 // Parallax Scroll Effect
 class ParallaxEffect {
     constructor() {
-        this.hero = document.querySelector('header');
+        // Only animate the hero section, never the sticky site header.
+        this.hero = document.getElementById('hero-section');
         this.results = document.getElementById('results-area');
         this.lastScrollY = 0;
         this.ticking = false;

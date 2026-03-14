@@ -4,9 +4,8 @@
  */
 
 import { analyzePromptHeuristics } from './promptAnalyzer.js';
-import { initLLM, improvePromptLocal, isLLMLoaded, clearModelCache } from './llmEngine.js';
-import { MODELS, checkWebGPUSupport, getSystemInfo } from './modelSelector.js';
-import { improvePromptWithOpenRouter, testOpenRouterConnection } from './openRouter.js';
+import { OPENROUTER } from './modelSelector.js';
+import { improvePromptWithOpenRouter } from './openRouter.js';
 import { i18n } from './i18n.js';
 import { runHeuristicTests } from './test-prompts.js';
 
@@ -14,8 +13,6 @@ import { runHeuristicTests } from './test-prompts.js';
 const promptInput = document.getElementById('prompt-input');
 const analyzeBtn = document.getElementById('analyze-btn');
 const resultsArea = document.getElementById('results-area');
-const modelCard = document.getElementById('model-card');
-const toggleAIOptionsBtn = document.getElementById('toggle-ai-options-btn');
 const topFixesSummaryEl = document.getElementById('top-fixes-summary');
 const topFixesListEl = document.getElementById('top-fixes-list');
 const workflowStepInput = document.getElementById('wf-step-input');
@@ -28,9 +25,6 @@ const themeToggleLabel = document.getElementById('theme-toggle-label');
 const heroTryExampleBtn = document.getElementById('hero-try-example-btn');
 const sampleMarketingBtn = document.getElementById('sample-marketing-btn');
 const sampleCodingBtn = document.getElementById('sample-coding-btn');
-const loadingIndicator = document.getElementById('loading-indicator');
-const progressBar = document.getElementById('progress-bar');
-const progressText = document.getElementById('progress-text');
 const copyBtn = document.getElementById('copy-btn');
 const exportTxtBtn = document.getElementById('export-txt-btn');
 const exportMdBtn = document.getElementById('export-md-btn');
@@ -38,11 +32,14 @@ const exportMdBtn = document.getElementById('export-md-btn');
 // Language Selector UI - Removed (English only)
 
 // Model Selector UI
-const modelSelectorEl = document.getElementById('model-selector');
-const loadModelBtn = document.getElementById('load-model-btn');
-const deleteCacheBtn = document.getElementById('delete-cache-btn');
 const generateAIBtn = document.getElementById('generate-ai-btn');
-const modelInfoEl = document.getElementById('model-info');
+const openRouterModelSelectorEl = document.getElementById('openrouter-model-selector');
+const donationAmountEl = document.getElementById('donation-amount');
+const donationCurrencyEl = document.getElementById('donation-currency');
+const donationPayCurrencyEl = document.getElementById('donation-pay-currency');
+const donationEmailEl = document.getElementById('donation-email');
+const donationBtn = document.getElementById('donate-btn');
+const donationStatusEl = document.getElementById('donation-status');
 
 // Results Display
 const totalScoreEl = document.getElementById('total-score');
@@ -57,15 +54,31 @@ const constraintsScoreEl = document.getElementById('constraints-score');
 const contextScoreEl = document.getElementById('context-score');
 const completenessScoreEl = document.getElementById('completeness-score');
 const consistencyScoreEl = document.getElementById('consistency-score');
+const scoreBreakdownListEl = document.getElementById('score-breakdown-list');
 
 // State
 let currentLang = 'en'; // English only
 let currentModelPath = null;
-let deviceSummary = 'System: Unknown';
-let webgpuStatusText = 'WebGPU support unknown';
 let isUsingOpenRouter = false;
 
+const API_MODELS = {
+    ...OPENROUTER
+};
+
 const THEME_STORAGE_KEY = 'promptup-theme';
+
+const SCORE_BREAKDOWN_DESCRIPTIONS = {
+    role: 'Checks whether the prompt clearly assigns a role, persona, or expertise level to the AI. Example: "You are a senior SEO strategist."',
+    outputFormat: 'Measures how clearly the expected response format is defined, such as markdown, JSON, list, or table. Example: "Return the result as a markdown table."',
+    constraints: 'Evaluates whether the prompt includes limits, rules, requirements, or boundaries that guide the response. Example: "Keep it under 200 words and avoid jargon."',
+    context: 'Scores how much background, objective, audience, or situation is provided to frame the task. Example: "This is for a SaaS startup targeting HR teams."',
+    specificity: 'Looks for concrete details like numbers, examples, named entities, or precise wording instead of vague language. Example: "Create a 30-day plan with 3 channels and 5 KPIs."',
+    clarity: 'Measures how readable and understandable the wording is, without being too short or overly convoluted. Example: a direct request with one clear objective scores better than a vague sentence.',
+    structure: 'Checks whether the prompt is organized with sections, lists, line breaks, or other formatting cues. Example: separate blocks for Context, Task, Output, and Constraints.',
+    completeness: 'Evaluates whether the request defines enough instructions and success criteria to produce a useful answer. Example: "Include recommendations, risks, and next steps."',
+    consistency: 'Checks whether the different parts of the prompt agree with each other without conflicting instructions. Example: asking for JSON output and later asking for a narrative essay lowers consistency.',
+    length: 'Measures whether the prompt is long enough to be useful without becoming unnecessarily verbose. Example: one short sentence may be too thin; several focused lines usually score better.'
+};
 
 const getInitialTheme = () => {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -132,46 +145,12 @@ const setWorkflowStep = (step) => {
 };
 
 const revealAIOptions = () => {
-    if (!modelCard || !toggleAIOptionsBtn) return;
-    modelCard.classList.remove('hidden');
-    toggleAIOptionsBtn.textContent = 'AI Rewrite Options Enabled';
-    toggleAIOptionsBtn.disabled = true;
     setWorkflowStep('improve');
-};
-
-const renderModelInfo = (statusMessage = '') => {
-    const selectedModel = MODELS[modelSelectorEl.value];
-
-    while (modelInfoEl.firstChild) {
-        modelInfoEl.removeChild(modelInfoEl.firstChild);
-    }
-
-    const systemLine = document.createElement('p');
-    systemLine.className = 'text-xs text-foreground-muted mb-2';
-    systemLine.textContent = `${deviceSummary} / ${webgpuStatusText}`;
-    modelInfoEl.appendChild(systemLine);
-
-    if (statusMessage) {
-        const statusLine = document.createElement('p');
-        statusLine.className = 'text-xs text-foreground-muted mb-2';
-        statusLine.textContent = statusMessage;
-        modelInfoEl.appendChild(statusLine);
-    }
-
-    const descLine = document.createElement('p');
-    descLine.className = 'text-xs italic opacity-60';
-    descLine.id = 'selected-model-desc';
-    descLine.textContent = selectedModel?.description || '';
-    modelInfoEl.appendChild(descLine);
 };
 
 const getModelStatusMessage = (ui) => {
     if (isUsingOpenRouter && currentModelPath) {
-        const loadedModel = Object.values(MODELS).find(m => m.id === currentModelPath || m.path === currentModelPath);
-        return `${ui.modelLoaded}: ${loadedModel?.name || ''} (OpenRouter)`;
-    }
-    if (isLLMLoaded() && currentModelPath) {
-        const loadedModel = Object.values(MODELS).find(m => m.path === currentModelPath);
+        const loadedModel = Object.values(API_MODELS).find((model) => model.id === currentModelPath);
         return `${ui.modelLoaded}: ${loadedModel?.name || ''}`;
     }
     return ui.modelNotLoaded;
@@ -189,26 +168,28 @@ const updateLanguageUI = () => {
     document.getElementById('ui-subtitle').innerHTML = ui.subtitle;
     document.getElementById('ui-yourPrompt').textContent = ui.yourPrompt;
     promptInput.placeholder = ui.placeholder;
-    analyzeBtn.textContent = ui.analyzeBtn;
+    if (analyzeBtn) {
+        analyzeBtn.textContent = ui.analyzeBtn;
+    }
     generateAIBtn.textContent = ui.generateBtn;
-    document.getElementById('ui-localEngine').textContent = ui.localEngine;
-    loadModelBtn.textContent = isLLMLoaded() ? ui.modelLoaded : ui.loadModel;
     document.getElementById('ui-qualityScore').textContent = ui.qualityScore;
-    document.getElementById('ui-metric-role').textContent = ui.metrics.role;
-    document.getElementById('ui-metric-format').textContent = ui.metrics.format;
-    document.getElementById('ui-metric-constraints').textContent = ui.metrics.constraints;
-    document.getElementById('ui-metric-context').textContent = ui.metrics.context;
-    document.getElementById('ui-metric-completeness').textContent = ui.metrics.completeness;
-    document.getElementById('ui-metric-consistency').textContent = ui.metrics.consistency;
+    const metricRoleEl = document.getElementById('ui-metric-role');
+    const metricFormatEl = document.getElementById('ui-metric-format');
+    const metricConstraintsEl = document.getElementById('ui-metric-constraints');
+    const metricContextEl = document.getElementById('ui-metric-context');
+    const metricCompletenessEl = document.getElementById('ui-metric-completeness');
+    const metricConsistencyEl = document.getElementById('ui-metric-consistency');
+    if (metricRoleEl) metricRoleEl.textContent = ui.metrics.role;
+    if (metricFormatEl) metricFormatEl.textContent = ui.metrics.format;
+    if (metricConstraintsEl) metricConstraintsEl.textContent = ui.metrics.constraints;
+    if (metricContextEl) metricContextEl.textContent = ui.metrics.context;
+    if (metricCompletenessEl) metricCompletenessEl.textContent = ui.metrics.completeness;
+    if (metricConsistencyEl) metricConsistencyEl.textContent = ui.metrics.consistency;
     document.getElementById('ui-issuesTitle').textContent = ui.issuesTitle;
     document.getElementById('ui-optimizedVersion').textContent = ui.optimizedVersion;
-    deleteCacheBtn.title = ui.deleteCurrentModelBtn || ui.deleteCacheBtn;
     document.getElementById('ui-footer').innerHTML = ui.footer;
 
-    const statusMessage = getModelStatusMessage(ui);
-    renderModelInfo(statusMessage);
-
-    if (!isLLMLoaded() && !isUsingOpenRouter) {
+    if (!isUsingOpenRouter || !currentModelPath) {
         improvedPromptEl.textContent = ui.waitingModel;
         generateAIBtn.disabled = true;
         generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -224,6 +205,73 @@ const updateLanguageUI = () => {
 
 };
 
+const populateModelSelector = () => {
+    if (openRouterModelSelectorEl) {
+        openRouterModelSelectorEl.innerHTML = '';
+        Object.entries(API_MODELS).forEach(([key, model]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = model.name;
+            openRouterModelSelectorEl.appendChild(option);
+        });
+    }
+};
+
+const getRecommendedApiModelKey = () => {
+    const recommended = Object.entries(API_MODELS).find(([_, model]) => model.recommended);
+    return recommended ? recommended[0] : Object.keys(API_MODELS)[0];
+};
+
+const createNowPaymentDonation = async () => {
+    if (!donationAmountEl || !donationCurrencyEl || !donationPayCurrencyEl || !donationBtn || !donationStatusEl) {
+        return;
+    }
+
+    const amount = Number(donationAmountEl.value);
+    const priceCurrency = donationCurrencyEl.value;
+    const payCurrency = donationPayCurrencyEl.value;
+    const email = donationEmailEl?.value?.trim() || '';
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        donationStatusEl.textContent = 'Please enter a valid donation amount.';
+        return;
+    }
+
+    donationBtn.disabled = true;
+    donationStatusEl.textContent = 'Creating secure donation payment...';
+
+    try {
+        const response = await fetch('/api/nowpayments/create-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                price_amount: amount,
+                price_currency: priceCurrency,
+                pay_currency: payCurrency,
+                order_description: 'Promptup donation',
+                donor_email: email
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Unable to create donation payment');
+        }
+
+        const paymentUrl = data.invoice_url || data.payment_url;
+        if (paymentUrl) {
+            donationStatusEl.textContent = 'Payment created. Opening NOWPayments checkout...';
+            window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+        } else {
+            donationStatusEl.textContent = `Payment created: ${data.payment_id || 'ID unavailable'}`;
+        }
+    } catch (error) {
+        donationStatusEl.textContent = `Donation setup failed: ${error.message}`;
+    } finally {
+        donationBtn.disabled = false;
+    }
+};
+
 /**
  * Initialize UI with Model Options
  */
@@ -232,140 +280,41 @@ const initApp = async () => {
     initTheme();
     setWorkflowStep('input');
 
-    Object.keys(MODELS).forEach(key => {
-        const model = MODELS[key];
-        const option = document.createElement('option');
-        option.value = key;
-        // Add indicator for OpenRouter models
-        const label = model.engine === 'openrouter'
-            ? `[API] ${model.name} (${model.size})`
-            : `${model.name} (${model.size})`;
-        option.textContent = label;
-        if (model.recommended) option.selected = true;
-        modelSelectorEl.appendChild(option);
-    });
+    populateModelSelector();
 
-    // Language selector removed - English only
+    const recommendedApiModelKey = getRecommendedApiModelKey();
 
-    modelSelectorEl.addEventListener('change', () => {
-        const ui = (i18n[currentLang] || i18n.en).ui;
-        renderModelInfo(getModelStatusMessage(ui));
-    });
+    const lastSelectedApiModel = localStorage.getItem('lastSelectedApiModel');
+    const selectedApiModelKey = (lastSelectedApiModel && API_MODELS[lastSelectedApiModel])
+        ? lastSelectedApiModel
+        : (recommendedApiModelKey || Object.keys(API_MODELS)[0]);
 
-    loadModelBtn.addEventListener('click', async () => {
-        const selectedModelKey = modelSelectorEl.value;
-        const selectedModel = MODELS[selectedModelKey];
-        if (!selectedModel) return;
-
-        const ui = (i18n[currentLang] || i18n.en).ui;
-
-        // Check if this is an OpenRouter model
-        if (selectedModel.engine === 'openrouter') {
-            // OpenRouter models don't need loading - just enable the generate button
-            const isConnected = await testOpenRouterConnection();
-            if (!isConnected) {
-                alert('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
-                return;
-            }
-
-            isUsingOpenRouter = true;
-            currentModelPath = selectedModel.id;
-            renderModelInfo(getModelStatusMessage(ui));
-            improvedPromptEl.textContent = ''; // Clear waiting message
-            generateAIBtn.disabled = false;
-            generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            loadModelBtn.textContent = ui.modelLoaded;
-            loadingIndicator.classList.add('hidden');
-            updateLanguageUI();
-            return;
-        }
-
-        // Local model loading (Transformers.js / WebLLM)
-        loadingIndicator.classList.remove('hidden');
-        progressText.textContent = ui.downloadingModel;
-        progressBar.style.width = '0%';
-        loadModelBtn.disabled = true;
-        loadModelBtn.textContent = ui.loading;
-        generateAIBtn.disabled = true; // Disable until model is fully ready
-
-        try {
-            await initLLM(selectedModel.path || selectedModel.id, (progress) => { // Use path or id depending on engine
-                const percent = Math.round(progress);
-                progressBar.style.width = `${percent}%`;
-                if (progress < 100) {
-                    progressText.textContent = `${ui.downloadingModel} (${percent}%)`;
-                } else {
-                    progressText.textContent = ui.initializingModel;
-                }
-            });
-            currentModelPath = selectedModel.path || selectedModel.id; // Update currentModelPath after successful load
-            isUsingOpenRouter = false;
-            renderModelInfo(getModelStatusMessage(ui));
-            improvedPromptEl.textContent = ''; // Clear waiting message
-            generateAIBtn.disabled = false;
-            generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            loadModelBtn.textContent = ui.modelLoaded; // Update button text
-            loadingIndicator.classList.add('hidden'); // Hide after successful load
-
-        } catch (error) {
-            console.error('Failed to load LLM model:', error);
-            progressText.textContent = `${ui.errorLoadingModel}: ${error.message}`;
-            progressBar.style.width = '0%';
-            improvedPromptEl.textContent = ui.errorLoadingModel; // Show error message
-            generateAIBtn.disabled = true;
-            generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            loadModelBtn.textContent = ui.loadModel; // Reset button text
-        } finally {
-            loadModelBtn.disabled = false; // Re-enable button after attempt
-            updateLanguageUI(); // Update UI state
-        }
-    });
-
-    const hasWebGPU = await checkWebGPUSupport();
-    const systemInfo = await getSystemInfo(); // Await system info now
-    deviceSummary = `System: ${systemInfo.ram} RAM / ${systemInfo.cores} Cores`;
-    webgpuStatusText = hasWebGPU ? '✓ WebGPU Ready' : '✘ WebGPU Unsupported (CPU Only)';
-
-    let recommendedModelKey = 'tiny-llama'; // Default to a small, fast model
-
-    // Logic for adaptive model selection
-    // If WebGPU is available and RAM is sufficient, recommend a more powerful WebGPU model
-    if (hasWebGPU && systemInfo.ram && parseFloat(systemInfo.ram) >= 8) { // Example: 8GB RAM threshold
-        const powerfulWebGPUModel = Object.keys(MODELS).find(key =>
-            MODELS[key].engine === 'webllm' && (MODELS[key].performance === 'High Quality' || MODELS[key].performance === 'Balanced') && parseFloat(MODELS[key].vram) <= parseFloat(systemInfo.ram)
-        );
-        if (powerfulWebGPUModel) {
-            recommendedModelKey = powerfulWebGPUModel;
-        }
-    } else if (systemInfo.ram && parseFloat(systemInfo.ram) >= 4) { // For machines with decent RAM but no WebGPU, suggest a CPU mid-range model
-        const midRangeCPUModel = Object.keys(MODELS).find(key => MODELS[key].performance === 'Balanced' && MODELS[key].engine === 'transformers');
-        if (midRangeCPUModel) {
-            recommendedModelKey = midRangeCPUModel;
-        }
+    if (openRouterModelSelectorEl) {
+        openRouterModelSelectorEl.value = selectedApiModelKey;
     }
 
-    // Set the selected model based on detection, or keep user's last choice if available
-    const lastSelectedModel = localStorage.getItem('lastSelectedModel');
-    if (lastSelectedModel && MODELS[lastSelectedModel]) {
-        modelSelectorEl.value = lastSelectedModel;
-        currentModelPath = MODELS[lastSelectedModel].path || MODELS[lastSelectedModel].id; // For WebLLM, it's 'id'
-    } else {
-        modelSelectorEl.value = recommendedModelKey;
-        currentModelPath = MODELS[recommendedModelKey].path || MODELS[recommendedModelKey].id;
+    if (selectedApiModelKey && API_MODELS[selectedApiModelKey]) {
+        currentModelPath = API_MODELS[selectedApiModelKey].id;
+        isUsingOpenRouter = true;
+        localStorage.setItem('lastSelectedApiModel', selectedApiModelKey);
     }
-
-    // Display "Eco Mode" warning if on low battery and a large model is selected
-    if (systemInfo.battery && systemInfo.battery.level < 30 && !systemInfo.battery.charging &&
-        currentModelPath && (MODELS[modelSelectorEl.value].size.includes('GB') || parseFloat(MODELS[modelSelectorEl.value].size) > 200)) {
-        // Assuming Toast.warning is available globally or imported
-        if (window.Toast) window.Toast.warning((i18n[currentLang] || i18n.en).ui.ecoModeWarning);
-    }
-
-    renderModelInfo(getModelStatusMessage((i18n[currentLang] || i18n.en).ui));
     updateLanguageUI();
 
-    // Call prefetching intelligent after a short delay
-    setTimeout(initiatePrefetch, 5000);
+    if (openRouterModelSelectorEl) {
+        openRouterModelSelectorEl.addEventListener('change', () => {
+            const key = openRouterModelSelectorEl.value;
+            const model = API_MODELS[key];
+            if (!model) return;
+            currentModelPath = model.id;
+            isUsingOpenRouter = true;
+            localStorage.setItem('lastSelectedApiModel', key);
+            updateLanguageUI();
+        });
+    }
+
+    if (donationBtn) {
+        donationBtn.addEventListener('click', createNowPaymentDonation);
+    }
 };
 
 /**
@@ -404,12 +353,70 @@ const handleAnalysis = () => {
     else if (result.totalScore > 60) scoreProgressEl.className = "h-4 rounded-full bg-blue-500 shadow-glow transition-all duration-500";
     else scoreProgressEl.className = "h-4 rounded-full bg-orange-500 shadow-glow transition-all duration-500";
 
-    roleScoreEl.textContent = result.scores.role;
-    outputScoreEl.textContent = result.scores.outputFormat;
-    constraintsScoreEl.textContent = result.scores.constraints;
-    contextScoreEl.textContent = result.scores.context;
-    completenessScoreEl.textContent = result.scores.completeness || 0;
-    consistencyScoreEl.textContent = result.scores.consistency || 0;
+    if (roleScoreEl) roleScoreEl.textContent = result.scores.role;
+    if (outputScoreEl) outputScoreEl.textContent = result.scores.outputFormat;
+    if (constraintsScoreEl) constraintsScoreEl.textContent = result.scores.constraints;
+    if (contextScoreEl) contextScoreEl.textContent = result.scores.context;
+    if (completenessScoreEl) completenessScoreEl.textContent = result.scores.completeness || 0;
+    if (consistencyScoreEl) consistencyScoreEl.textContent = result.scores.consistency || 0;
+
+    if (scoreBreakdownListEl && Array.isArray(result.scoreBreakdown)) {
+        while (scoreBreakdownListEl.firstChild) {
+            scoreBreakdownListEl.removeChild(scoreBreakdownListEl.firstChild);
+        }
+
+        result.scoreBreakdown.forEach((item) => {
+            const li = document.createElement('li');
+            li.className = 'quality-breakdown-item';
+
+            const left = document.createElement('div');
+            left.className = 'quality-breakdown-main';
+
+            const text = document.createElement('span');
+            text.textContent = `${item.label}: ${item.score}/${item.max}`;
+
+            const infoButton = document.createElement('button');
+            infoButton.type = 'button';
+            infoButton.className = 'quality-breakdown-info';
+            infoButton.setAttribute('aria-label', `About ${item.label} scoring`);
+            infoButton.textContent = '?';
+
+            const tooltip = document.createElement('span');
+            tooltip.className = 'quality-breakdown-tooltip';
+            tooltip.textContent = SCORE_BREAKDOWN_DESCRIPTIONS[item.key] || 'Scoring detail unavailable.';
+
+            infoButton.appendChild(tooltip);
+            left.appendChild(text);
+            left.appendChild(infoButton);
+
+            const pct = item.max > 0 ? Math.round((item.score / item.max) * 100) : 0;
+            const right = document.createElement('div');
+            right.className = 'quality-breakdown-bar';
+
+            const fill = document.createElement('span');
+            fill.className = 'quality-breakdown-bar-fill';
+            fill.style.width = `${pct}%`;
+            if (pct >= 80) {
+                fill.classList.add('quality-breakdown-bar-good');
+            } else if (pct >= 55) {
+                fill.classList.add('quality-breakdown-bar-medium');
+            } else {
+                fill.classList.add('quality-breakdown-bar-low');
+            }
+            fill.setAttribute('aria-hidden', 'true');
+
+            right.setAttribute('role', 'progressbar');
+            right.setAttribute('aria-valuemin', '0');
+            right.setAttribute('aria-valuemax', '100');
+            right.setAttribute('aria-valuenow', String(pct));
+            right.setAttribute('aria-label', `${item.label} score ${pct}%`);
+            right.appendChild(fill);
+
+            li.appendChild(left);
+            li.appendChild(right);
+            scoreBreakdownListEl.appendChild(li);
+        });
+    }
 
     while (issuesListEl.firstChild) {
         issuesListEl.removeChild(issuesListEl.firstChild);
@@ -480,47 +487,25 @@ const applySamplePrompt = (samplePrompt) => {
 };
 
 /**
- * Handle Model Loading
- */
-const handleLoadModel = async () => {
-    const selectedKey = modelSelectorEl.value;
-    const model = MODELS[selectedKey];
-    const ui = (i18n[currentLang] || i18n.en).ui;
-    
-    loadModelBtn.disabled = true;
-    loadingIndicator.classList.remove('hidden');
-
-    try {
-        await initLLM(model.path, (progress) => {
-            const rawPercent = progress <= 1 ? progress * 100 : progress;
-            const percent = Math.min(100, Math.max(0, Math.round(rawPercent)));
-            progressBar.style.width = `${percent}%`;
-            progressText.textContent = `${ui.downloading} ${model.name}: ${percent}% (${model.size})`;
-        });
-
-        loadingIndicator.classList.add('hidden');
-        loadModelBtn.textContent = ui.modelLoaded;
-        loadModelBtn.disabled = false;
-        currentModelPath = model.path;
-        renderModelInfo(getModelStatusMessage(ui));
-        generateAIBtn.disabled = false;
-        generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        
-        if (improvedPromptEl.textContent === ui.waitingModel) {
-            improvedPromptEl.textContent = '';
-        }
-    } catch (err) {
-        progressText.textContent = 'Error downloading model. Try smaller model.';
-        loadModelBtn.disabled = false;
-    }
-};
-
-/**
  * Handle AI Rewriting
  */
 const handleAIRewrite = async () => {
     const prompt = promptInput.value.trim();
     if (!prompt) return;
+
+    // Bring the optimized output area into view with a fixed offset so we don't overshoot.
+    if (resultsArea) {
+        resultsArea.classList.remove('hidden');
+    }
+    const optimizedTitleEl = document.getElementById('ui-optimizedVersion');
+    const optimizedCardEl = optimizedTitleEl ? optimizedTitleEl.closest('.card') : null;
+    const scrollTargetEl = optimizedCardEl || improvedPromptEl;
+
+    if (scrollTargetEl) {
+        const headerOffset = 96;
+        const y = scrollTargetEl.getBoundingClientRect().top + window.scrollY - headerOffset;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }
 
     const ui = (i18n[currentLang] || i18n.en).ui;
     setWorkflowStep('improve');
@@ -529,27 +514,15 @@ const handleAIRewrite = async () => {
     improvedPromptEl.textContent = ui.analyzing;
 
     try {
-        // Pass heuristic analysis results to guide improvements
         const heuristics = analyzePromptHeuristics(prompt, currentLang);
 
-        // Use OpenRouter if enabled, otherwise use local model
-        let improved;
-        if (isUsingOpenRouter) {
-            // Validate model ID before calling OpenRouter
-            if (!currentModelPath) {
-                throw new Error('No model selected for OpenRouter');
-            }
-            console.log('Calling OpenRouter with model:', currentModelPath);
-            // Use streaming callback to update UI as it generates
-            improved = await improvePromptWithOpenRouter(prompt, currentModelPath, (chunk) => {
-                if (chunk) improvedPromptEl.textContent = chunk;
-            });
-        } else {
-            // Use streaming callback to update UI as it generates
-            improved = await improvePromptLocal(prompt, currentLang, heuristics, (chunk) => {
-                if (chunk) improvedPromptEl.textContent = chunk;
-            });
+        if (!currentModelPath) {
+            throw new Error('No API model selected for OpenRouter');
         }
+
+        const improved = await improvePromptWithOpenRouter(prompt, currentModelPath, (chunk) => {
+            if (chunk) improvedPromptEl.textContent = chunk;
+        }, heuristics);
 
         improvedPromptEl.textContent = improved;
         setWorkflowStep('export');
@@ -559,37 +532,6 @@ const handleAIRewrite = async () => {
         improvedPromptEl.textContent = ui.rewriteFailed;
         generateAIBtn.textContent = ui.generateBtn;
         generateAIBtn.disabled = false;
-    }
-};
-
-/**
- * Handle deleting a specific model from cache
- */
-const handleDeleteCache = async () => {
-    const selectedKey = modelSelectorEl.value;
-    const model = MODELS[selectedKey];
-    const ui = (i18n[currentLang] || i18n.en).ui;
-
-    if (!model) return; // Should not happen with current UI
-
-    const confirmMessage = ui.confirmDeleteCache
-        ? ui.confirmDeleteCache(model.name)
-        : `Delete cached model for ${model.name}? This cannot be undone.`;
-    if (!confirm(confirmMessage)) return;
-
-    const success = await clearModelCache();
-
-    if (success) {
-        currentModelPath = null;
-        alert(ui.modelCacheDeleted ? ui.modelCacheDeleted(model.name) : 'Cached model deleted!');
-        loadModelBtn.textContent = ui.loadModel;
-        loadModelBtn.disabled = false;
-        generateAIBtn.disabled = true;
-        generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        improvedPromptEl.textContent = ui.waitingModel;
-        renderModelInfo(getModelStatusMessage(ui));
-    } else {
-        alert(ui.errorDeletingCache || 'Error deleting cached model. Please try again.');
     }
 };
 
@@ -620,7 +562,7 @@ const handleCopyPrompt = () => {
  */
 const handleExport = (format) => {
     const text = improvedPromptEl.textContent;
-    if (!text || text.includes('Load a model')) return;
+    if (!text || text.includes((i18n[currentLang] || i18n.en).ui.waitingModel)) return;
     
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -642,17 +584,13 @@ promptInput.addEventListener('input', () => {
     }, 400); // 400ms debounce
 });
 
-analyzeBtn.addEventListener('click', handleAnalysis);
-loadModelBtn.addEventListener('click', handleLoadModel);
+if (analyzeBtn) {
+    analyzeBtn.addEventListener('click', handleAnalysis);
+}
 generateAIBtn.addEventListener('click', handleAIRewrite);
-deleteCacheBtn.addEventListener('click', handleDeleteCache);
 copyBtn.addEventListener('click', handleCopyPrompt);
 exportTxtBtn.addEventListener('click', () => handleExport('txt'));
 exportMdBtn.addEventListener('click', () => handleExport('md'));
-
-if (toggleAIOptionsBtn) {
-    toggleAIOptionsBtn.addEventListener('click', revealAIOptions);
-}
 
 const marketingSamplePrompt = 'You are a B2B growth strategist. Create a 90-day go-to-market plan for a SaaS startup targeting HR teams. Return a week-by-week plan in a markdown table with goals, channels, KPIs, and risks. Constraints: budget under $15,000, focus on organic + outbound, maximum 350 words.';
 const codingSamplePrompt = 'You are a senior JavaScript engineer. Refactor the function below for readability and performance, then provide unit tests. Return 1) improved code, 2) test cases, 3) explanation. Constraints: keep same behavior, avoid external libraries, include edge cases.';
@@ -694,39 +632,3 @@ if (document.readyState === 'loading') {
     }
 }
 
-/**
- * Initiate intelligent prefetching for Pro models
- */
-const initiatePrefetch = async () => {
-    const ui = (i18n[currentLang] || i18n.en).ui;
-
-    const proModelKey = Object.keys(MODELS).find(key => MODELS[key].isPro); // Find a model with isPro: true
-    const proModel = MODELS[proModelKey];
-
-    // Don't prefetch if no Pro model is defined, or if it's already loaded/in cache
-    // isLLMLoaded() only checks current loaded model. For prefetching, we need to check if it's in cache.
-    // For simplicity, let's assume if it's not the currentModelPath, and not explicitly loaded, it can be prefetched.
-    if (!proModel || (currentModelPath === (proModel.path || proModel.id) && isLLMLoaded())) {
-        return;
-    }
-
-    const systemInfo = await getSystemInfo();
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-
-    // Conditions for prefetching: WiFi, good battery, not currently charging
-    if (connection && connection.type === 'wifi' && systemInfo.battery && systemInfo.battery.level > 50 && !systemInfo.battery.charging) {
-        console.log('Initiating intelligent prefetching for Pro model...');
-        if (window.Toast) window.Toast.info(ui.prefetchingProModel);
-
-        try {
-            await initLLM(proModel.path || proModel.id, (progress) => { // Use path or id depending on engine
-                // Silent progress - no UI update for this, or a very subtle one
-                console.log(`Prefetching progress (${proModel.name}): ${progress}%`);
-            });
-            if (window.Toast) window.Toast.success(ui.proModelPrefetched);
-        } catch (error) {
-            console.error('Prefetching failed:', error);
-            if (window.Toast) window.Toast.error(`${ui.prefetchingFailed}: ${error.message}`);
-        }
-    }
-};

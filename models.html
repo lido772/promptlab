@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promptup - Models</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.svg">
+    <script>
+        (function() {
+            try {
+                var key = 'promptup-theme';
+                var stored = localStorage.getItem(key);
+                var theme = (stored === 'light' || stored === 'dark')
+                    ? stored
+                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background-base font-sans min-h-screen relative overflow-x-hidden text-foreground">
+    <div class="ambient-background fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <header class="site-header">
+        <div class="site-header-inner container max-w-[92rem] mx-auto px-6 xl:px-8">
+            <a href="./index.html" class="site-logo" aria-label="Promptup home">
+                <span class="site-logo-mark">P</span>
+                <span class="site-logo-text">Promptup</span>
+            </a>
+            <nav class="site-nav" aria-label="Primary">
+                <a class="site-nav-link" href="./#analyzer">Analyze</a>
+                <a class="site-nav-link" href="./features">Features</a>
+                <a class="site-nav-link" href="./security">Security</a>
+                <a class="site-nav-link site-nav-link-active" href="./models">Models</a>
+            </nav>
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light mode" aria-pressed="false">
+                <span id="theme-toggle-icon" aria-hidden="true">☀</span>
+                <span id="theme-toggle-label">Light mode</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="container max-w-[92rem] mx-auto px-6 xl:px-8 py-12 relative z-10">
+        <section class="card mb-8">
+            <h1 class="section-title font-bold mb-3">Models</h1>
+            <p class="text-foreground-muted leading-relaxed">Choose the API model that best fits your workflow, whether you want fast free options or broader cloud coverage.</p>
+        </section>
+
+        <section class="grid md:grid-cols-2 gap-6">
+            <article class="card">
+                <h2 class="text-xl font-semibold mb-2">OpenRouter API</h2>
+                <p class="text-foreground-muted">Use cloud models through same-origin proxy routing for fast setup, consistent performance, and a clean frontend integration.</p>
+            </article>
+            <article class="card">
+                <h2 class="text-xl font-semibold mb-2">Free Model Selection</h2>
+                <p class="text-foreground-muted">Switch between curated OpenRouter models directly from the analyzer before generating an improved prompt.</p>
+            </article>
+            <article class="card">
+                <h2 class="text-xl font-semibold mb-2">Secure Request Flow</h2>
+                <p class="text-foreground-muted">Requests go through the site backend so API credentials stay server-side instead of being exposed in the browser.</p>
+            </article>
+            <article class="card">
+                <h2 class="text-xl font-semibold mb-2">Analysis First Workflow</h2>
+                <p class="text-foreground-muted">Score and fix prompts instantly, then use API rewriting only for final refinement when it adds value.</p>
+            </article>
+        </section>
+    </main>
+
+    <footer class="site-footer py-20 border-t border-border mt-24 text-foreground-muted text-sm relative z-10 bg-background-deep/50 backdrop-blur-sm">
+        <div class="container max-w-[92rem] mx-auto px-6 xl:px-8">
+            <div class="site-footer-grid">
+                <section>
+                    <h3 class="site-footer-title">Promptup</h3>
+                    <p class="site-footer-copy">Built for prompt analysis • Secure API rewriting • Privacy minded</p>
+                </section>
+                <section>
+                    <h3 class="site-footer-title">Quick Links</h3>
+                    <ul class="site-footer-list">
+                        <li><a class="site-footer-link" href="./#analyzer">Analyze</a></li>
+                        <li><a class="site-footer-link" href="./features">Features</a></li>
+                        <li><a class="site-footer-link" href="./security">Security</a></li>
+                        <li><a class="site-footer-link" href="./models">Models</a></li>
+                    </ul>
+                </section>
+                <section>
+                    <h3 class="site-footer-title">Contact</h3>
+                    <ul class="site-footer-list">
+                        <li><a class="site-footer-link" href="mailto:contact@promptup.cloud">contact@promptup.cloud</a></li>
+                    </ul>
+                </section>
+                <section>
+                    <h3 class="site-footer-title">Support</h3>
+                    <ul class="site-footer-list">
+                        <li><a class="site-footer-link" href="https://nowpayments.io/donation?api_key=a5b6be7f-9d76-433c-a950-1452160995c3" target="_blank" rel="noreferrer noopener">Donate</a></li>
+                    </ul>
+                </section>
+            </div>
+            <div class="site-footer-bottom">© 2026 Promptup</div>
+        </div>
+    </footer>
+
+    <script>
+        (function() {
+            var key = 'promptup-theme';
+            var btn = document.getElementById('theme-toggle');
+            var icon = document.getElementById('theme-toggle-icon');
+            var label = document.getElementById('theme-toggle-label');
+            function apply(theme) {
+                var t = theme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+                localStorage.setItem(key, t);
+                var isLight = t === 'light';
+                btn.setAttribute('aria-pressed', String(isLight));
+                btn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+                icon.textContent = isLight ? '🌙' : '☀';
+                label.textContent = isLight ? 'Dark mode' : 'Light mode';
+            }
+            apply(document.documentElement.getAttribute('data-theme'));
+            btn.addEventListener('click', function() {
+                apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   base: './',
@@ -7,6 +8,12 @@ export default defineConfig({
     emptyOutDir: true,
     copyPublicDir: false,
     rollupOptions: {
+      input: {
+        index: resolve(process.cwd(), 'index.html'),
+        features: resolve(process.cwd(), 'features.html'),
+        security: resolve(process.cwd(), 'security.html'),
+        models: resolve(process.cwd(), 'models.html')
+      },
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',

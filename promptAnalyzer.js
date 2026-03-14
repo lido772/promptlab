@@ -1,6 +1,6 @@
 /**
  * Heuristic Scoring Engine for AI Prompts
- * 100% Offline & Local
+ * Heuristic prompt analysis engine
  */
 
 import { i18n } from './i18n.js';
@@ -12,6 +12,19 @@ export const analyzePromptHeuristics = (prompt, lang = 'en') => {
     const config = i18n[lang] || i18n.en;
     const patterns = config.heuristics.patterns;
     const langIssues = config.heuristics.issues;
+
+    const scoreCaps = {
+        role: 15,
+        outputFormat: 15,
+        constraints: 15,
+        context: 15,
+        specificity: 10,
+        clarity: 10,
+        structure: 10,
+        completeness: 10,
+        consistency: 10,
+        length: 10
+    };
 
     const scores = {
         role: 0,
@@ -170,11 +183,29 @@ export const analyzePromptHeuristics = (prompt, lang = 'en') => {
         scores.length = 5;
     }
 
-    const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+    const rawTotalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+    const maxScore = Object.values(scoreCaps).reduce((a, b) => a + b, 0);
+    const normalizedTotalScore = Math.round((rawTotalScore / maxScore) * 100);
+
+    const scoreBreakdown = [
+        { key: 'role', label: 'Role', score: scores.role, max: scoreCaps.role },
+        { key: 'outputFormat', label: 'Format', score: scores.outputFormat, max: scoreCaps.outputFormat },
+        { key: 'constraints', label: 'Constraints', score: scores.constraints, max: scoreCaps.constraints },
+        { key: 'context', label: 'Context', score: scores.context, max: scoreCaps.context },
+        { key: 'specificity', label: 'Specificity', score: scores.specificity, max: scoreCaps.specificity },
+        { key: 'clarity', label: 'Clarity', score: scores.clarity, max: scoreCaps.clarity },
+        { key: 'structure', label: 'Structure', score: scores.structure, max: scoreCaps.structure },
+        { key: 'completeness', label: 'Completeness', score: scores.completeness, max: scoreCaps.completeness },
+        { key: 'consistency', label: 'Consistency', score: scores.consistency, max: scoreCaps.consistency },
+        { key: 'length', label: 'Length', score: scores.length, max: scoreCaps.length }
+    ];
 
     return {
-        totalScore,
+        totalScore: normalizedTotalScore,
+        rawTotalScore,
+        maxScore,
         scores,
+        scoreBreakdown,
         issues,
         metrics: {
             wordCount,

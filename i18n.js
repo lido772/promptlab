@@ -9,12 +9,12 @@ export const i18n = {
         flag: '🇺🇸',
         ui: {
             title: 'Prompt Analyzer',
-            subtitle: 'Optimize your AI prompts with instant heuristic scoring and <span class="text-blue-400 font-semibold">Local Browser AI</span>. Private, offline, and free.',
+            subtitle: 'Optimize your AI prompts with instant heuristic scoring and <span class="text-blue-400 font-semibold">optional AI rewriting</span>. Fast, clear, and free.',
             yourPrompt: 'Your Prompt',
             placeholder: 'Example: Act as an expert marketing consultant. Create a 3-month strategy for a new SaaS...',
             analyzeBtn: 'Analyze Instantly',
             rewriteBtn: 'Rewrite with AI',
-            localEngine: 'Local AI Engine',
+            localEngine: 'API Rewrite Engine',
             loadModel: 'Load Model',
             modelLoaded: '✅ Model Loaded',
             modelNotLoaded: 'No model loaded. Select a model and click Load Model.',
@@ -23,8 +23,8 @@ export const i18n = {
             errorLoadingModel: 'Error loading model',
             errorGeneratingPrompt: 'Error generating prompt',
             ecoModeWarning: 'Low battery detected. Consider a smaller model or plug in for optimal performance.',
-            prefetchingProModel: 'Silently preloading Pro model for offline access...',
-            proModelPrefetched: 'Pro model ready for offline use!',
+            prefetchingProModel: 'Preparing enhanced rewrite capabilities...',
+            proModelPrefetched: 'Enhanced rewrite capabilities are ready!',
             prefetchingFailed: 'Pro model prefetching failed',
             qualityScore: 'Quality Score',
             metrics: {
@@ -36,7 +36,7 @@ export const i18n = {
             issuesTitle: 'Suggested Improvements',
             optimizedVersion: 'Optimized Version',
             copyBtn: 'Copy',
-            waitingModel: 'Load a model above to enable AI-powered rewriting.',
+            waitingModel: 'Select an API model above to enable AI-powered rewriting.',
             perfectPrompt: '✨ Perfect prompt! No issues detected.',
             analyzing: '🧠 Analyzing and rewriting...',
             generateBtn: 'Generate Improved Prompt',
@@ -52,7 +52,7 @@ export const i18n = {
             retryBtn: 'Retry',
             fallbackMode: 'Fallback mode activated',
             cacheCleared: 'Cache cleared successfully!',
-            footer: 'Built with <span class="text-blue-400">Transformers.js</span> • Offline First • Privacy Optimized'
+            footer: 'Built for <span class="text-blue-400">prompt analysis</span> • Secure API rewriting • Privacy minded'
         },
         heuristics: {
             patterns: {
@@ -78,12 +78,12 @@ export const i18n = {
         flag: '🇫🇷',
         ui: {
             title: 'Analyseur de Prompt',
-            subtitle: 'Optimisez vos prompts IA avec un scoring heuristique instantané et une <span class="text-blue-400 font-semibold">IA locale</span>. Privé, hors-ligne et gratuit.',
+            subtitle: 'Optimisez vos prompts IA avec un scoring heuristique instantané et une <span class="text-blue-400 font-semibold">réécriture IA optionnelle</span>. Rapide, clair et gratuit.',
             yourPrompt: 'Votre Prompt',
             placeholder: 'Exemple : Agissez en tant qu\'expert en marketing. Créez une stratégie de 3 mois pour un nouveau SaaS...',
             analyzeBtn: 'Analyser instantanément',
             rewriteBtn: 'Réécrire avec l\'IA',
-            localEngine: 'Moteur d\'IA Local',
+            localEngine: 'Moteur de réécriture API',
             loadModel: 'Charger le modèle',
             modelLoaded: '✅ Modèle chargé',
             modelNotLoaded: 'Aucun modèle chargé. Sélectionnez un modèle et cliquez sur Charger le modèle.',
@@ -92,8 +92,8 @@ export const i18n = {
             errorLoadingModel: 'Erreur de chargement du modèle',
             errorGeneratingPrompt: 'Erreur de génération du prompt',
             ecoModeWarning: 'Batterie faible détectée. Pensez à un modèle plus petit ou branchez votre appareil pour des performances optimales.',
-            prefetchingProModel: 'Préchargement silencieux du modèle Pro pour un accès hors ligne...',
-            proModelPrefetched: 'Modèle Pro prêt pour une utilisation hors ligne !',
+            prefetchingProModel: 'Préparation des capacités de réécriture avancée...',
+            proModelPrefetched: 'Les capacités de réécriture avancée sont prêtes !',
             prefetchingFailed: 'Échec du préchargement du modèle Pro',
             qualityScore: 'Score de Qualité',
             metrics: {
@@ -105,7 +105,7 @@ export const i18n = {
             issuesTitle: 'Améliorations suggérées',
             optimizedVersion: 'Version optimisée',
             copyBtn: 'Copier',
-            waitingModel: 'Chargez un modèle ci-dessus pour activer la réécriture par IA.',
+            waitingModel: 'Sélectionnez un modèle API ci-dessus pour activer la réécriture par IA.',
             perfectPrompt: '✨ Prompt parfait ! Aucune erreur détectée.',
             analyzing: '🧠 Analyse et réécriture en cours...',
             generateBtn: 'Générer un prompt amélioré',
@@ -121,7 +121,7 @@ export const i18n = {
             retryBtn: 'Réessayer',
             fallbackMode: 'Mode dégradé activé',
             cacheCleared: 'Cache vidé avec succès !',
-            footer: 'Propulsé par <span class="text-blue-400">Transformers.js</span> • Hors-ligne • Privé'
+            footer: 'Conçu pour <span class="text-blue-400">l’analyse de prompts</span> • Réécriture API sécurisée • Respect de la vie privée'
         },
         heuristics: {
             patterns: {
@@ -147,12 +147,12 @@ export const i18n = {
         flag: '🇪🇸',
         ui: {
             title: 'Analizador de Prompts',
-            subtitle: 'Optimiza tus prompts de IA con puntuación heurística instantánea e <span class="text-blue-400 font-semibold">IA local</span>. Privado, offline y gratuito.',
+            subtitle: 'Optimiza tus prompts de IA con puntuación heurística instantánea y <span class="text-blue-400 font-semibold">reescritura opcional con IA</span>. Rápido, claro y gratuito.',
             yourPrompt: 'Tu Prompt',
             placeholder: 'Ejemplo: Actúa como un experto consultor de marketing. Crea una estrategia de 3 meses para un nuevo SaaS...',
             analyzeBtn: 'Analizar al instante',
             rewriteBtn: 'Reescribir con IA',
-            localEngine: 'Motor de IA Local',
+            localEngine: 'Motor de reescritura API',
             loadModel: 'Cargar Modelo',
             modelLoaded: '✅ Modelo cargado',
             modelNotLoaded: 'No hay modelo cargado. Selecciona uno y haz clic en Cargar Modelo.',
@@ -161,8 +161,8 @@ export const i18n = {
             errorLoadingModel: 'Error al cargar el modelo',
             errorGeneratingPrompt: 'Error al generar el prompt',
             ecoModeWarning: 'Batería baja detectada. Considera un modelo más pequeño o conecta el cargador para un rendimiento óptimo.',
-            prefetchingProModel: 'Precargando silenciosamente el modelo Pro para acceso sin conexión...',
-            proModelPrefetched: '¡Modelo Pro listo para usar sin conexión!',
+            prefetchingProModel: 'Preparando capacidades avanzadas de reescritura...',
+            proModelPrefetched: 'Las capacidades avanzadas de reescritura están listas.',
             prefetchingFailed: 'Fallo al precargar el modelo Pro',
             downloading: 'Herunterladen',
             qualityScore: 'Puntuación de Calidad',
@@ -175,7 +175,7 @@ export const i18n = {
             issuesTitle: 'Mejoras sugeridas',
             optimizedVersion: 'Versión optimizada',
             copyBtn: 'Copiar',
-            waitingModel: 'Carga un modelo arriba para activar la reescritura con IA.',
+            waitingModel: 'Selecciona un modelo API arriba para activar la reescritura con IA.',
             perfectPrompt: '✨ ¡Prompt perfecto! No se detectaron problemas.',
             analyzing: '🧠 Analizando y reescribiendo...',
             generateBtn: 'Generar prompt mejorado',
@@ -191,7 +191,7 @@ export const i18n = {
             retryBtn: 'Reintentar',
             fallbackMode: 'Modo degradado activado',
             cacheCleared: '¡Caché borrado exitosamente!',
-            footer: 'Desarrollado con <span class="text-blue-400">Transformers.js</span> • Offline primero • Privacidad optimizada'
+            footer: 'Creado para <span class="text-blue-400">analizar prompts</span> • Reescritura API segura • Privacidad cuidada'
         },
         heuristics: {
             patterns: {
@@ -217,12 +217,12 @@ export const i18n = {
         flag: '🇩🇪',
         ui: {
             title: 'Prompt-Analysator',
-            subtitle: 'Optimieren Sie Ihre KI-Prompts mit sofortiger heuristischer Bewertung und <span class="text-blue-400 font-semibold">Lokaler Browser-KI</span>. Privat, offline und kostenlos.',
+            subtitle: 'Optimieren Sie Ihre KI-Prompts mit sofortiger heuristischer Bewertung und <span class="text-blue-400 font-semibold">optionaler KI-Umschreibung</span>. Schnell, klar und kostenlos.',
             yourPrompt: 'Ihr Prompt',
             placeholder: 'Beispiel: Agieren Sie als erfahrener Marketingberater. Erstellen Sie eine 3-Monats-Strategie für ein neues SaaS...',
             analyzeBtn: 'Sofort analysieren',
             rewriteBtn: 'Mit KI umschreiben',
-            localEngine: 'Lokale KI-Engine',
+            localEngine: 'API-Umschreibungs-Engine',
             loadModel: 'Modell laden',
             modelLoaded: '✅ Modell geladen',
             modelNotLoaded: 'Kein Modell geladen. Wählen Sie eines aus und klicken Sie auf Modell laden.',
@@ -231,8 +231,8 @@ export const i18n = {
             errorLoadingModel: 'Fehler beim Laden des Modells',
             errorGeneratingPrompt: 'Fehler beim Generieren des Prompts',
             ecoModeWarning: 'Niedriger Akkustand erkannt. Erwägen Sie ein kleineres Modell oder schließen Sie das Gerät für optimale Leistung an.',
-            prefetchingProModel: 'Pro-Modell wird im Hintergrund für Offline-Zugriff vorgeladen...',
-            proModelPrefetched: 'Pro-Modell ist offline einsatzbereit!',
+            prefetchingProModel: 'Erweiterte Umschreibungsfunktionen werden vorbereitet...',
+            proModelPrefetched: 'Erweiterte Umschreibungsfunktionen sind bereit!',
             prefetchingFailed: 'Fehler beim Vorladen des Pro-Modells',
             downloading: 'Herunterladen',
             qualityScore: 'Qualitätsbewertung',
@@ -245,7 +245,7 @@ export const i18n = {
             issuesTitle: 'Empfohlene Verbesserungen',
             optimizedVersion: 'Optimierte Version',
             copyBtn: 'Kopieren',
-            waitingModel: 'Laden Sie oben ein Modell, um die KI-gestützte Umschreibung zu aktivieren.',
+            waitingModel: 'Wählen Sie oben ein API-Modell, um die KI-gestützte Umschreibung zu aktivieren.',
             perfectPrompt: '✨ Perfekter Prompt! Keine Probleme erkannt.',
             analyzing: '🧠 Analysieren und umschreiben...',
             generateBtn: 'Verbesserten Prompt generieren',
@@ -261,7 +261,7 @@ export const i18n = {
             retryBtn: 'Erneut versuchen',
             fallbackMode: 'Fallback-Modus aktiviert',
             cacheCleared: 'Cache erfolgreich gelöscht!',
-            footer: 'Erstellt mit <span class="text-blue-400">Transformers.js</span> • Zuerst Offline • Datenschutz optimiert'
+            footer: 'Entwickelt für <span class="text-blue-400">Prompt-Analyse</span> • Sichere API-Umschreibung • Datenschutzbewusst'
         },
         heuristics: {
             patterns: {
