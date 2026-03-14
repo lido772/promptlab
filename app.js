@@ -6,6 +6,7 @@
 import { analyzePromptHeuristics } from './promptAnalyzer.js';
 import { OPENROUTER } from './modelSelector.js';
 import { improvePromptWithOpenRouter } from './openRouter.js';
+import { generatePromptExamplesWithOpenRouter } from './openRouter.js';
 import { i18n } from './i18n.js';
 import { runHeuristicTests } from './test-prompts.js';
 
@@ -25,6 +26,7 @@ const themeToggleLabel = document.getElementById('theme-toggle-label');
 const heroTryExampleBtn = document.getElementById('hero-try-example-btn');
 const sampleMarketingBtn = document.getElementById('sample-marketing-btn');
 const sampleCodingBtn = document.getElementById('sample-coding-btn');
+const generateExamplesBtn = document.getElementById('generate-examples-btn');
 const copyBtn = document.getElementById('copy-btn');
 const exportTxtBtn = document.getElementById('export-txt-btn');
 const exportMdBtn = document.getElementById('export-md-btn');
@@ -34,6 +36,10 @@ const exportMdBtn = document.getElementById('export-md-btn');
 // Model Selector UI
 const generateAIBtn = document.getElementById('generate-ai-btn');
 const openRouterModelSelectorEl = document.getElementById('openrouter-model-selector');
+const modelInfoTriggerEl = document.getElementById('model-info-trigger');
+const modelInfoTextEl = document.getElementById('model-info-text');
+const aiExamplesStatusEl = document.getElementById('ai-examples-status');
+const aiExamplesListEl = document.getElementById('ai-examples-list');
 const donationAmountEl = document.getElementById('donation-amount');
 const donationCurrencyEl = document.getElementById('donation-currency');
 const donationPayCurrencyEl = document.getElementById('donation-pay-currency');
@@ -212,8 +218,88 @@ const populateModelSelector = () => {
             const option = document.createElement('option');
             option.value = key;
             option.textContent = model.name;
+            option.title = model.description || model.name;
+            option.dataset.description = model.description || model.name;
+            option.dataset.provider = model.provider || 'OpenRouter';
+            option.dataset.context = model.context || 'N/A';
             openRouterModelSelectorEl.appendChild(option);
         });
+    }
+};
+
+const updateSelectedModelTooltip = () => {
+    if (!openRouterModelSelectorEl || !modelInfoTextEl) return;
+
+    const selectedKey = openRouterModelSelectorEl.value;
+    const selectedModel = API_MODELS[selectedKey];
+    if (!selectedModel) {
+        modelInfoTextEl.textContent = 'Select a model to see a short description.';
+        return;
+    }
+
+    const provider = selectedModel.provider || 'OpenRouter';
+    const context = selectedModel.context || 'N/A';
+    const desc = selectedModel.description || selectedModel.name;
+    modelInfoTextEl.textContent = `${provider} • ${context} • ${desc}`;
+};
+
+const renderAIPromptExamples = (examples) => {
+    if (!aiExamplesListEl) return;
+
+    while (aiExamplesListEl.firstChild) {
+        aiExamplesListEl.removeChild(aiExamplesListEl.firstChild);
+    }
+
+    if (!Array.isArray(examples) || examples.length === 0) {
+        aiExamplesListEl.classList.add('hidden');
+        return;
+    }
+
+    examples.forEach((exampleText, index) => {
+        const li = document.createElement('li');
+        li.className = 'prompt-examples-item';
+
+        const text = document.createElement('span');
+        text.className = 'prompt-examples-text';
+        text.textContent = `${index + 1}. ${exampleText}`;
+
+        const useBtn = document.createElement('button');
+        useBtn.type = 'button';
+        useBtn.className = 'prompt-examples-use';
+        useBtn.textContent = 'Use';
+        useBtn.dataset.example = exampleText;
+
+        li.appendChild(text);
+        li.appendChild(useBtn);
+        aiExamplesListEl.appendChild(li);
+    });
+
+    aiExamplesListEl.classList.remove('hidden');
+};
+
+const handleGenerateExamples = async () => {
+    if (!generateExamplesBtn || !aiExamplesStatusEl) return;
+
+    if (!currentModelPath) {
+        aiExamplesStatusEl.classList.remove('hidden');
+        aiExamplesStatusEl.textContent = 'Select an API model first to generate examples.';
+        return;
+    }
+
+    const seed = promptInput.value.trim();
+    generateExamplesBtn.disabled = true;
+    aiExamplesStatusEl.classList.remove('hidden');
+    aiExamplesStatusEl.textContent = 'Generating prompt examples with selected model...';
+
+    try {
+        const examples = await generatePromptExamplesWithOpenRouter(seed, currentModelPath);
+        renderAIPromptExamples(examples);
+        aiExamplesStatusEl.textContent = 'Examples ready. Click Use to insert one in the editor.';
+    } catch (error) {
+        aiExamplesStatusEl.textContent = `Failed to generate examples: ${error.message}`;
+        renderAIPromptExamples([]);
+    } finally {
+        generateExamplesBtn.disabled = false;
     }
 };
 
@@ -248,6 +334,7 @@ const syncSelectorFromModelId = (modelId) => {
     const [key] = matched;
     openRouterModelSelectorEl.value = key;
     localStorage.setItem('lastSelectedApiModel', key);
+    updateSelectedModelTooltip();
 };
 
 const createNowPaymentDonation = async () => {
@@ -326,6 +413,17 @@ const initApp = async () => {
         isUsingOpenRouter = true;
         localStorage.setItem('lastSelectedApiModel', selectedApiModelKey);
     }
+    updateSelectedModelTooltip();
+
+    if (modelInfoTriggerEl) {
+        modelInfoTriggerEl.addEventListener('focus', () => {
+            modelInfoTriggerEl.setAttribute('aria-expanded', 'true');
+        });
+        modelInfoTriggerEl.addEventListener('blur', () => {
+            modelInfoTriggerEl.setAttribute('aria-expanded', 'false');
+        });
+    }
+
     updateLanguageUI();
 
     if (openRouterModelSelectorEl) {
@@ -336,6 +434,7 @@ const initApp = async () => {
             currentModelPath = model.id;
             isUsingOpenRouter = true;
             localStorage.setItem('lastSelectedApiModel', key);
+            updateSelectedModelTooltip();
             updateLanguageUI();
         });
     }
@@ -666,6 +765,22 @@ if (sampleMarketingBtn) {
 
 if (sampleCodingBtn) {
     sampleCodingBtn.addEventListener('click', () => applySamplePrompt(codingSamplePrompt));
+}
+
+if (generateExamplesBtn) {
+    generateExamplesBtn.addEventListener('click', handleGenerateExamples);
+}
+
+if (aiExamplesListEl) {
+    aiExamplesListEl.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        const useBtn = target.closest('.prompt-examples-use');
+        if (!useBtn) return;
+        const example = useBtn.dataset.example;
+        if (!example) return;
+        applySamplePrompt(example);
+    });
 }
 
 // Wait for DOM to be ready before initializing

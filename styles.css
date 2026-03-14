@@ -209,6 +209,95 @@ body {
     max-width: 280px;
 }
 
+.model-tooltip-wrap {
+    margin-top: 0.55rem;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    max-width: 100%;
+}
+
+.model-info-trigger {
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-default);
+    background: var(--surface);
+    color: var(--foreground-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    cursor: help;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+}
+
+.model-info-trigger:hover,
+.model-info-trigger:focus-visible {
+    color: var(--foreground);
+    border-color: var(--border-hover);
+    outline: none;
+}
+
+.model-info-text {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--foreground-muted);
+    border: 1px solid var(--border-default);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 0.45rem 0.6rem;
+}
+
+.prompt-examples-list {
+    margin: 0.65rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.45rem;
+}
+
+.prompt-examples-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 0.5rem 0.6rem;
+}
+
+.prompt-examples-text {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--foreground);
+}
+
+.prompt-examples-use {
+    border: 1px solid var(--border-default);
+    background: var(--background-elevated);
+    color: var(--foreground-muted);
+    border-radius: 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.45rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.prompt-examples-use:hover,
+.prompt-examples-use:focus-visible {
+    color: var(--foreground);
+    border-color: var(--border-hover);
+    outline: none;
+}
+
 .theme-toggle:hover {
     border-color: var(--border-hover);
     transform: translateY(-1px);

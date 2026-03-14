@@ -310,3 +310,98 @@ export const getAvailableModels = async () => {
         return [];
     }
 };
+
+/**
+ * Generate practical prompt examples using a configured OpenRouter model.
+ * @param {string} seedPrompt - Optional user seed prompt/context
+ * @param {string} modelId - The OpenRouter model ID
+ * @returns {Promise<string[]>} List of generated prompt examples
+ */
+export const generatePromptExamplesWithOpenRouter = async (seedPrompt, modelId) => {
+    const systemPrompt = `You generate practical, high-quality prompt examples for AI users.
+
+Rules:
+1. Return exactly 4 examples.
+2. Each example must be concise, specific, and production-ready.
+3. Cover varied use cases (strategy, content, technical, operations).
+4. Return strict JSON only in this shape: {"examples":["...","...","...","..."]}`;
+
+    const userPrompt = seedPrompt && seedPrompt.trim().length > 0
+        ? `Create 4 prompt examples related to this context: ${seedPrompt}`
+        : 'Create 4 high-impact prompt examples for B2B SaaS teams using AI assistants.';
+
+    const requestBody = {
+        model: modelId,
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 800,
+        stream: false
+    };
+
+    const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+
+    if (!USE_WORKER) {
+        if (!API_KEY) {
+            throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
+        }
+        headers['Authorization'] = `Bearer ${API_KEY}`;
+        headers['HTTP-Referer'] = window.location.href;
+        headers['X-Title'] = 'Prompt Analyzer';
+    }
+
+    const apiUrl = USE_WORKER ? endpoint : `${endpoint}/chat/completions`;
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content?.trim() || '';
+    if (!raw) {
+        throw new Error('No response received from model');
+    }
+
+    let parsedExamples = [];
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed?.examples)) {
+            parsedExamples = parsed.examples;
+        }
+    } catch {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                if (Array.isArray(parsed?.examples)) {
+                    parsedExamples = parsed.examples;
+                }
+            } catch {
+                // Fall back below
+            }
+        }
+    }
+
+    if (!parsedExamples.length) {
+        parsedExamples = raw
+            .split('\n')
+            .map((line) => line.replace(/^[-*\d.)\s]+/, '').trim())
+            .filter((line) => line.length > 0)
+            .slice(0, 4);
+    }
+
+    return parsedExamples.slice(0, 4);
+};
