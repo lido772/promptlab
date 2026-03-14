@@ -12,6 +12,7 @@ const WORKER_URL = '/api';
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const API_BASE = 'https://openrouter.ai/api/v1';
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+const OPENROUTER_MAX_MODELS_PER_REQUEST = 3;
 const MODELS_CACHE_STORAGE_KEY = 'promptup-openrouter-models-cache-v1';
 const MODELS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
@@ -29,7 +30,7 @@ const normalizeModelSelection = (modelSelection) => {
 };
 
 const buildModelPayload = (modelSelection) => {
-    const modelIds = normalizeModelSelection(modelSelection);
+    const modelIds = normalizeModelSelection(modelSelection).slice(0, OPENROUTER_MAX_MODELS_PER_REQUEST);
 
     if (modelIds.length === 0) {
         throw new Error('No OpenRouter model provided');

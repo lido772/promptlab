@@ -1145,6 +1145,7 @@ const FALLBACK_PRIORITY_IDS = [
     'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
     'liquid/lfm-2.5-1.2b-instruct:free'
 ];
+const MAX_FALLBACK_MODEL_IDS = 3;
 
 const isLowPriorityFallback = (modelId) => /thinking/i.test(modelId || '');
 
@@ -1172,7 +1173,9 @@ const getFallbackModelIds = (primaryModelId) => {
     ]));
 
     const preferredIds = orderedIds.filter((id) => !isModelBlocked(id));
-    return preferredIds.length > 0 ? preferredIds : orderedIds;
+    const limitedPreferredIds = preferredIds.slice(0, MAX_FALLBACK_MODEL_IDS);
+    const limitedOrderedIds = orderedIds.slice(0, MAX_FALLBACK_MODEL_IDS);
+    return limitedPreferredIds.length > 0 ? limitedPreferredIds : limitedOrderedIds;
 };
 
 const getRetryStatusMessage = (nextModelName) => {
