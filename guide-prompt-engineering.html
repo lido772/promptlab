@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Complet Prompt Engineering B2B | Promptup</title>
+    <meta name="description" content="Guide pratique pour optimiser vos prompts IA en entreprise: methode, checklist, exemples par metier et plan d'amelioration continue.">
+    <link rel="canonical" href="https://promptup.cloud/guide-prompt-engineering">
+    <meta property="og:title" content="Guide Prompt Engineering B2B - Promptup">
+    <meta property="og:description" content="Methode complete pour obtenir des reponses LLM plus fiables, actionnables et orientees business.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://promptup.cloud/guide-prompt-engineering">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.svg">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "Article",
+                    "headline": "Guide complet du prompt engineering B2B",
+                    "description": "Methode pour optimiser la qualite des prompts IA en environnement SaaS.",
+                    "author": {
+                        "@type": "Organization",
+                        "name": "Promptup"
+                    },
+                    "publisher": {
+                        "@type": "Organization",
+                        "name": "Promptup"
+                    },
+                    "mainEntityOfPage": "https://promptup.cloud/guide-prompt-engineering",
+                    "inLanguage": "fr"
+                },
+                {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        {
+                            "@type": "ListItem",
+                            "position": 1,
+                            "name": "Accueil",
+                            "item": "https://promptup.cloud/"
+                        },
+                        {
+                            "@type": "ListItem",
+                            "position": 2,
+                            "name": "Guide Prompt Engineering",
+                            "item": "https://promptup.cloud/guide-prompt-engineering"
+                        }
+                    ]
+                },
+                {
+                    "@type": "FAQPage",
+                    "mainEntity": [
+                        {
+                            "@type": "Question",
+                            "name": "Combien de temps faut-il pour optimiser un prompt?",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": "Avec une bonne structure, 5 a 10 minutes suffisent pour passer d'un prompt vague a un prompt exploitable en production."
+                            }
+                        },
+                        {
+                            "@type": "Question",
+                            "name": "Faut-il un prompt different par metier?",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": "Oui. Les objectifs, le ton, le format de sortie et les contraintes varient entre marketing, produit, support et operations."
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    </script>
+    <script>
+        (function() {
+            try {
+                var key = 'promptup-theme';
+                var stored = localStorage.getItem(key);
+                var theme = (stored === 'light' || stored === 'dark')
+                    ? stored
+                    : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background-base font-sans min-h-screen relative overflow-x-hidden text-foreground">
+    <header class="site-header">
+        <div class="site-header-inner container max-w-[92rem] mx-auto px-6 xl:px-8">
+            <a href="./index.html" class="site-logo" aria-label="Promptup home">
+                <span class="site-logo-mark">P</span>
+                <span class="site-logo-text">Promptup</span>
+            </a>
+            <nav class="site-nav" aria-label="Primary">
+                <a class="site-nav-link" href="./#analyzer">Analyze</a>
+                <a class="site-nav-link" href="./features">Features</a>
+                <a class="site-nav-link" href="./security">Security</a>
+                <a class="site-nav-link" href="./models">Models</a>
+            </nav>
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light mode" aria-pressed="false">
+                <span id="theme-toggle-icon" aria-hidden="true">☀</span>
+                <span id="theme-toggle-label">Light mode</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="container max-w-[92rem] mx-auto px-6 xl:px-8 py-12 relative z-10">
+        <article class="card">
+            <h1 class="section-title font-bold mb-4">Guide complet du prompt engineering B2B</h1>
+            <p class="text-foreground-muted leading-relaxed mb-6">Ce guide aide les equipes SaaS, freelances et responsables marketing a transformer des prompts vagues en consignes IA claires, mesurables et orientees conversion.</p>
+
+            <h2 class="text-2xl font-semibold mb-3">1. Structure standard d'un prompt performant</h2>
+            <ul class="site-footer-list mb-6">
+                <li>Role: definir l'expertise attendue du modele.</li>
+                <li>Contexte: expliquer le probleme business, la cible et les contraintes.</li>
+                <li>Tache: preciser l'action attendue.</li>
+                <li>Format: imposer un format de sortie exploitable.</li>
+                <li>Critere de qualite: indiquer comment juger une bonne reponse.</li>
+            </ul>
+
+            <h2 class="text-2xl font-semibold mb-3">2. Checklist rapide avant execution</h2>
+            <ul class="site-footer-list mb-6">
+                <li>Le resultat attendu est-il specifie en une phrase?</li>
+                <li>Le format final est-il explicitement impose (tableau, liste, JSON)?</li>
+                <li>Les contraintes sont-elles claires (ton, longueur, exclusions)?</li>
+                <li>Le prompt contient-il des exemples ou cas limites?</li>
+                <li>Le CTA business est-il aligne (lead, demo, conversion, retention)?</li>
+            </ul>
+
+            <h2 class="text-2xl font-semibold mb-3">3. Exemples metiers</h2>
+            <div class="grid md:grid-cols-2 gap-5 mb-6">
+                <section class="card">
+                    <h3 class="text-lg font-semibold mb-2">Equipe marketing</h3>
+                    <p class="text-foreground-muted text-sm">Generer un calendrier editorial SEO avec intentions de recherche, angle E-E-A-T et CTA par contenu.</p>
+                </section>
+                <section class="card">
+                    <h3 class="text-lg font-semibold mb-2">Equipe produit</h3>
+                    <p class="text-foreground-muted text-sm">Transformer des retours utilisateurs en backlog priorise avec hypotheses, impact et effort.</p>
+                </section>
+            </div>
+
+            <h2 class="text-2xl font-semibold mb-3">4. Mesurer l'amelioration</h2>
+            <ul class="site-footer-list mb-8">
+                <li>Taux de reponse exploitable du premier coup.</li>
+                <li>Temps moyen pour obtenir une sortie acceptable.</li>
+                <li>Taux de reutilisation des templates de prompts.</li>
+                <li>Impact sur KPI metier (conversion, vitesse de production, qualite).</li>
+            </ul>
+
+            <div class="card">
+                <h2 class="text-xl font-semibold mb-2">Passez a l'action</h2>
+                <p class="text-foreground-muted mb-3">Testez votre prompt actuel puis corrigez vos priorites avec Promptup.</p>
+                <a href="./#analyzer" class="site-footer-link">Analyser mon prompt maintenant</a>
+            </div>
+        </article>
+    </main>
+
+    <footer class="site-footer py-20 border-t border-border mt-24 text-foreground-muted text-sm relative z-10 bg-background-deep/50 backdrop-blur-sm">
+        <div class="container max-w-[92rem] mx-auto px-6 xl:px-8">
+            <div class="site-footer-grid">
+                <section>
+                    <h3 class="site-footer-title">Promptup</h3>
+                    <p class="site-footer-copy">Built for prompt analysis • Secure API rewriting • Privacy minded</p>
+                </section>
+                <section>
+                    <h3 class="site-footer-title">Quick Links</h3>
+                    <ul class="site-footer-list">
+                        <li><a class="site-footer-link" href="./#analyzer">Analyze</a></li>
+                        <li><a class="site-footer-link" href="./features">Features</a></li>
+                        <li><a class="site-footer-link" href="./security">Security</a></li>
+                        <li><a class="site-footer-link" href="./models">Models</a></li>
+                        <li><a class="site-footer-link" href="./guide-prompt-engineering">Guide</a></li>
+                        <li><a class="site-footer-link" href="./comparatif-outils-prompt">Comparatif</a></li>
+                    </ul>
+                </section>
+                <section>
+                    <h3 class="site-footer-title">Contact</h3>
+                    <ul class="site-footer-list">
+                        <li><a class="site-footer-link" href="mailto:contact@promptup.cloud">contact@promptup.cloud</a></li>
+                    </ul>
+                </section>
+            </div>
+            <div class="site-footer-bottom">© 2026 Promptup</div>
+        </div>
+    </footer>
+
+    <script>
+        (function() {
+            var key = 'promptup-theme';
+            var btn = document.getElementById('theme-toggle');
+            var icon = document.getElementById('theme-toggle-icon');
+            var label = document.getElementById('theme-toggle-label');
+            function apply(theme) {
+                var t = theme === 'light' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+                localStorage.setItem(key, t);
+                var isLight = t === 'light';
+                btn.setAttribute('aria-pressed', String(isLight));
+                btn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+                icon.textContent = isLight ? '🌙' : '☀';
+                label.textContent = isLight ? 'Dark mode' : 'Light mode';
+            }
+            apply(document.documentElement.getAttribute('data-theme'));
+            btn.addEventListener('click', function() {
+                apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+            });
+        })();
+    </script>
+</body>
+</html>

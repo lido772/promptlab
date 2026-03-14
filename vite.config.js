@@ -12,7 +12,9 @@ export default defineConfig({
         index: resolve(process.cwd(), 'index.html'),
         features: resolve(process.cwd(), 'features.html'),
         security: resolve(process.cwd(), 'security.html'),
-        models: resolve(process.cwd(), 'models.html')
+        models: resolve(process.cwd(), 'models.html'),
+        guidePromptEngineering: resolve(process.cwd(), 'guide-prompt-engineering.html'),
+        comparatifOutilsPrompt: resolve(process.cwd(), 'comparatif-outils-prompt.html')
       },
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
