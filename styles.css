@@ -362,11 +362,44 @@ body {
 }
 
 #improved-prompt {
+    position: relative;
     font-size: 0.95rem;
     line-height: 1.8;
     letter-spacing: 0.005em;
     word-break: break-word;
     tab-size: 4;
+    overflow-y: auto;
+    transition: border-color var(--duration-fast) var(--ease-expo-out), box-shadow var(--duration-fast) var(--ease-expo-out), background var(--duration-fast) var(--ease-expo-out);
+}
+
+#improved-prompt.streaming-active {
+    border-color: var(--border-accent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, transparent), transparent 26%),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+}
+
+#improved-prompt.streaming-active::after {
+    content: '';
+    display: inline-block;
+    width: 0.62ch;
+    height: 1.05em;
+    margin-left: 0.16ch;
+    vertical-align: -0.14em;
+    border-radius: 2px;
+    background: var(--accent-bright);
+    box-shadow: 0 0 18px var(--accent-glow);
+    animation: improved-prompt-caret 1s steps(1, end) infinite;
+}
+
+@keyframes improved-prompt-caret {
+    0%, 48% {
+        opacity: 1;
+    }
+    49%, 100% {
+        opacity: 0;
+    }
 }
 
 .theme-toggle:hover {

@@ -106,10 +106,21 @@ const SUPPORTED_LANGS = ['fr', 'en', 'de', 'zh'];
 const MODEL_PROBE_CONCURRENCY = 3;
 const MAX_BACKGROUND_MODEL_PROBES = 12;
 const KEY_STATUS_REFRESH_MS = 60 * 1000;
+const STREAM_FRAME_MIN_CHARS = 2;
+const STREAM_FRAME_MAX_CHARS = 26;
+const STREAM_BACKLOG_DIVISOR = 24;
 const MODEL_STATUS_TTLS = {
     available: 15 * 60 * 1000,
     rate_limited: 4 * 60 * 1000,
     unavailable: 10 * 60 * 1000
+};
+
+const streamingRenderState = {
+    active: false,
+    targetText: '',
+    renderedLength: 0,
+    rafId: null,
+    lastTimestamp: 0
 };
 
 const SCORE_BREAKDOWN_DESCRIPTIONS = {
@@ -269,6 +280,99 @@ const formatModelOutput = (rawText) => {
         .replace(/\n{3,}/g, '\n\n')
         .replace(/[ \t]+\n/g, '\n')
         .trim();
+};
+
+const syncImprovedPromptScroll = () => {
+    if (!improvedPromptEl) {
+        return;
+    }
+
+    improvedPromptEl.scrollTop = improvedPromptEl.scrollHeight;
+};
+
+const stopImprovedPromptStreaming = (finalText = null) => {
+    if (streamingRenderState.rafId !== null) {
+        window.cancelAnimationFrame(streamingRenderState.rafId);
+    }
+
+    streamingRenderState.active = false;
+    streamingRenderState.targetText = '';
+    streamingRenderState.renderedLength = 0;
+    streamingRenderState.rafId = null;
+    streamingRenderState.lastTimestamp = 0;
+
+    if (!improvedPromptEl) {
+        return;
+    }
+
+    improvedPromptEl.classList.remove('streaming-active');
+    improvedPromptEl.setAttribute('aria-busy', 'false');
+
+    if (typeof finalText === 'string') {
+        improvedPromptEl.textContent = finalText;
+        syncImprovedPromptScroll();
+    }
+};
+
+const renderImprovedPromptStreamFrame = (timestamp) => {
+    const backlog = streamingRenderState.targetText.length - streamingRenderState.renderedLength;
+    if (backlog <= 0) {
+        streamingRenderState.rafId = null;
+        streamingRenderState.lastTimestamp = 0;
+        return;
+    }
+
+    const elapsed = streamingRenderState.lastTimestamp > 0 ? (timestamp - streamingRenderState.lastTimestamp) : 16;
+    streamingRenderState.lastTimestamp = timestamp;
+
+    const frameMultiplier = Math.max(1, Math.round(elapsed / 16));
+    const charsPerFrame = Math.min(
+        STREAM_FRAME_MAX_CHARS,
+        Math.max(STREAM_FRAME_MIN_CHARS * frameMultiplier, Math.ceil(backlog / STREAM_BACKLOG_DIVISOR))
+    );
+
+    streamingRenderState.renderedLength += Math.min(backlog, charsPerFrame);
+
+    if (improvedPromptEl) {
+        improvedPromptEl.textContent = streamingRenderState.targetText.slice(0, streamingRenderState.renderedLength);
+        syncImprovedPromptScroll();
+    }
+
+    streamingRenderState.rafId = window.requestAnimationFrame(renderImprovedPromptStreamFrame);
+};
+
+const scheduleImprovedPromptStreamFrame = () => {
+    if (streamingRenderState.rafId !== null) {
+        return;
+    }
+
+    streamingRenderState.rafId = window.requestAnimationFrame(renderImprovedPromptStreamFrame);
+};
+
+const queueImprovedPromptStreaming = (nextText) => {
+    if (!improvedPromptEl) {
+        return;
+    }
+
+    const resolvedText = String(nextText || '');
+
+    if (!streamingRenderState.active) {
+        streamingRenderState.active = true;
+        streamingRenderState.targetText = '';
+        streamingRenderState.renderedLength = 0;
+        streamingRenderState.lastTimestamp = 0;
+        improvedPromptEl.textContent = '';
+        improvedPromptEl.classList.add('streaming-active');
+        improvedPromptEl.setAttribute('aria-busy', 'true');
+    }
+
+    if (resolvedText.length < streamingRenderState.renderedLength) {
+        streamingRenderState.renderedLength = 0;
+        improvedPromptEl.textContent = '';
+    }
+
+    streamingRenderState.targetText = resolvedText;
+    scheduleImprovedPromptStreamFrame();
 };
 
 const formatCreditAmount = (value) => {
@@ -1686,7 +1790,7 @@ const handleAIRewrite = async () => {
         }
         isRewriteGenerating = false;
         rewriteAbortController = null;
-        improvedPromptEl.textContent = 'Generation stopped.';
+        stopImprovedPromptStreaming('Generation stopped.');
         setGenerateButtonState(false, ui);
         return;
     }
@@ -1696,7 +1800,7 @@ const handleAIRewrite = async () => {
         if (resultsArea) {
             resultsArea.classList.remove('hidden');
         }
-        improvedPromptEl.textContent = ui.noPrompt || 'Enter a prompt before generating.';
+        stopImprovedPromptStreaming(ui.noPrompt || 'Enter a prompt before generating.');
         return;
     }
 
@@ -1715,7 +1819,7 @@ const handleAIRewrite = async () => {
     }
 
     if (!await ensureOpenRouterKeyAvailable()) {
-        improvedPromptEl.textContent = getLocalizedOpenRouterLimitExceededMessage();
+        stopImprovedPromptStreaming(getLocalizedOpenRouterLimitExceededMessage());
         setGenerateButtonState(false, ui);
         if (!isExecuteGenerating) {
             setExecuteButtonState(false);
@@ -1727,7 +1831,7 @@ const handleAIRewrite = async () => {
     isRewriteGenerating = true;
     rewriteAbortController = new AbortController();
     setGenerateButtonState(true, ui);
-    improvedPromptEl.textContent = ui.analyzing;
+    stopImprovedPromptStreaming(ui.analyzing);
 
     try {
         const heuristics = analyzePromptHeuristics(prompt, currentLang);
@@ -1743,13 +1847,13 @@ const handleAIRewrite = async () => {
                 prompt,
                 candidateModelIds,
                 (chunk) => {
-                    if (chunk) improvedPromptEl.textContent = chunk;
+                    if (chunk) queueImprovedPromptStreaming(chunk);
                 },
                 heuristics,
                 rewriteAbortController?.signal
             ),
             onRetrying: (message) => {
-                improvedPromptEl.textContent = message;
+                stopImprovedPromptStreaming(message);
             }
         });
 
@@ -1766,17 +1870,17 @@ const handleAIRewrite = async () => {
         } else {
             setModelFallbackNotice(null);
         }
-        improvedPromptEl.textContent = formatModelOutput(improved?.content || '');
+        stopImprovedPromptStreaming(formatModelOutput(improved?.content || ''));
         setWorkflowStep('export');
     } catch (err) {
         if (err?.name === 'AbortError') {
-            improvedPromptEl.textContent = 'Generation stopped.';
+            stopImprovedPromptStreaming('Generation stopped.');
         } else {
             const classification = classifyOpenRouterError(err);
             if (!classification.isRateLimit) {
                 handleModelRuntimeOutcome(currentModelPath, err);
             }
-            improvedPromptEl.textContent = err?.message || ui.rewriteFailed;
+            stopImprovedPromptStreaming(err?.message || ui.rewriteFailed);
         }
     } finally {
         isRewriteGenerating = false;
@@ -1795,7 +1899,7 @@ const handleExecutePrompt = async () => {
         }
         isExecuteGenerating = false;
         executeAbortController = null;
-        improvedPromptEl.textContent = 'Generation stopped.';
+        stopImprovedPromptStreaming('Generation stopped.');
         setExecuteButtonState(false);
         return;
     }
@@ -1805,7 +1909,7 @@ const handleExecutePrompt = async () => {
         if (resultsArea) {
             resultsArea.classList.remove('hidden');
         }
-        improvedPromptEl.textContent = 'Enter a prompt before executing it.';
+        stopImprovedPromptStreaming('Enter a prompt before executing it.');
         return;
     }
 
@@ -1826,7 +1930,7 @@ const handleExecutePrompt = async () => {
     const ui = (i18n[currentLang] || i18n.en).ui;
 
     if (!await ensureOpenRouterKeyAvailable()) {
-        improvedPromptEl.textContent = getLocalizedOpenRouterLimitExceededMessage();
+        stopImprovedPromptStreaming(getLocalizedOpenRouterLimitExceededMessage());
         if (!isRewriteGenerating) {
             setGenerateButtonState(false, ui);
         }
@@ -1844,7 +1948,7 @@ const handleExecutePrompt = async () => {
         generateAIBtn.disabled = true;
     }
 
-    improvedPromptEl.textContent = 'Executing prompt without system template...';
+    stopImprovedPromptStreaming('Executing prompt without system template...');
 
     try {
         if (!currentModelPath) {
@@ -1858,12 +1962,12 @@ const handleExecutePrompt = async () => {
                 prompt,
                 candidateModelIds,
                 (chunk) => {
-                    if (chunk) improvedPromptEl.textContent = formatModelOutput(chunk);
+                    if (chunk) queueImprovedPromptStreaming(formatModelOutput(chunk));
                 },
                 executeAbortController?.signal
             ),
             onRetrying: (message) => {
-                improvedPromptEl.textContent = message;
+                stopImprovedPromptStreaming(message);
             }
         });
 
@@ -1880,17 +1984,17 @@ const handleExecutePrompt = async () => {
         } else {
             setModelFallbackNotice(null);
         }
-        improvedPromptEl.textContent = formatModelOutput(modelOutput?.content || '');
+        stopImprovedPromptStreaming(formatModelOutput(modelOutput?.content || ''));
         setWorkflowStep('export');
     } catch (err) {
         if (err?.name === 'AbortError') {
-            improvedPromptEl.textContent = 'Generation stopped.';
+            stopImprovedPromptStreaming('Generation stopped.');
         } else {
             const classification = classifyOpenRouterError(err);
             if (!classification.isRateLimit) {
                 handleModelRuntimeOutcome(currentModelPath, err);
             }
-            improvedPromptEl.textContent = `Execution failed: ${err?.message || 'Unknown error'}`;
+            stopImprovedPromptStreaming(`Execution failed: ${err?.message || 'Unknown error'}`);
         }
     } finally {
         isExecuteGenerating = false;
