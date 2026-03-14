@@ -93,6 +93,17 @@ const createOpenRouterAuthHeaders = () => {
     };
 };
 
+const createOpenRouterCatalogHeaders = () => {
+    if (API_KEY) {
+        return createOpenRouterAuthHeaders();
+    }
+
+    return {
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Prompt Analyzer'
+    };
+};
+
 const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries = 2, signal = null) => {
     let lastError = null;
 
@@ -895,10 +906,18 @@ export const getAvailableModels = async (forceRefresh = false) => {
 
     try {
         const apiUrl = USE_WORKER ? `${WORKER_URL}/models` : `${API_BASE}/models`;
-        const response = await fetch(apiUrl, {
+        let response = await fetch(apiUrl, {
             method: 'GET',
-            headers: createOpenRouterAuthHeaders()
+            headers: USE_WORKER ? {} : createOpenRouterCatalogHeaders()
         });
+
+        // If the worker route is missing or stale in production, retry against the public models endpoint.
+        if (!response.ok && USE_WORKER && response.status === 405) {
+            response = await fetch(`${API_BASE}/models`, {
+                method: 'GET',
+                headers: createOpenRouterCatalogHeaders()
+            });
+        }
 
         if (!response.ok) {
             throw new Error('Failed to fetch models');
