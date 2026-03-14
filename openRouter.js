@@ -18,6 +18,62 @@ const USE_WORKER = !API_KEY || import.meta.env.PROD;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const normalizeModelSelection = (modelSelection) => {
+    if (Array.isArray(modelSelection)) {
+        return modelSelection.filter(Boolean);
+    }
+
+    return modelSelection ? [modelSelection] : [];
+};
+
+const buildModelPayload = (modelSelection) => {
+    const modelIds = normalizeModelSelection(modelSelection);
+
+    if (modelIds.length === 0) {
+        throw new Error('No OpenRouter model provided');
+    }
+
+    return modelIds.length === 1
+        ? { model: modelIds[0] }
+        : { models: modelIds };
+};
+
+const wrapOpenRouterError = (error) => {
+    const wrapped = new Error(`OpenRouter API error: ${error.message}`);
+    if (typeof error?.status !== 'undefined') {
+        wrapped.status = error.status;
+    }
+    if (typeof error?.responseText !== 'undefined') {
+        wrapped.responseText = error.responseText;
+    }
+    if (error?.name) {
+        wrapped.name = error.name;
+    }
+    return wrapped;
+};
+
+const createOpenRouterRequestContext = () => {
+    const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+
+    if (!USE_WORKER) {
+        if (!API_KEY) {
+            throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
+        }
+
+        headers.Authorization = `Bearer ${API_KEY}`;
+        headers['HTTP-Referer'] = window.location.href;
+        headers['X-Title'] = 'Prompt Analyzer';
+    }
+
+    return {
+        apiUrl: USE_WORKER ? endpoint : `${endpoint}/chat/completions`,
+        headers
+    };
+};
+
 const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries = 2, signal = null) => {
     let lastError = null;
 
@@ -34,7 +90,9 @@ const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries 
         }
 
         const errorText = await response.text();
-        lastError = new Error(`API error ${response.status}: ${errorText}`);
+    lastError = new Error(`API error ${response.status}: ${errorText}`);
+    lastError.status = response.status;
+    lastError.responseText = errorText;
 
         const canRetry = RETRYABLE_STATUS.has(response.status) && attempt < maxRetries;
         if (!canRetry) {
@@ -157,11 +215,11 @@ export const OPENROUTER_MODELS = {
  * Call OpenRouter API to improve a prompt
  * Routes through Worker in production, direct API in development
  * @param {string} prompt - The original prompt to improve
- * @param {string} modelId - The OpenRouter model ID to use
+ * @param {string|string[]} modelSelection - OpenRouter model ID or fallback list
  * @param {Function} onStream - Optional streaming callback
- * @returns {Promise<string>} Improved prompt
+ * @returns {Promise<{content: string, modelId: string|null}>} Improved prompt and resolved model
  */
-export const improvePromptWithOpenRouter = async (prompt, modelId, onStream = null, heuristics = null, signal = null) => {
+export const improvePromptWithOpenRouter = async (prompt, modelSelection, onStream = null, heuristics = null, signal = null) => {
     let targetingHint = '';
     if (heuristics && Array.isArray(heuristics.issues) && heuristics.issues.length > 0) {
         targetingHint = `\n7. Specifically address these weaknesses: ${heuristics.issues.join('; ')}`;
@@ -178,7 +236,7 @@ Follow these rules:
 6. Keep your response concise and focused on the improved prompt only${targetingHint}`;
 
     const requestBody = {
-        model: modelId,
+        ...buildModelPayload(modelSelection),
         messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `Improve this prompt: "${prompt}"` }
@@ -189,26 +247,12 @@ Follow these rules:
     };
 
     // Choose endpoint: Worker (production) or direct API (development)
-    const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
-    const headers = {
-        'Content-Type': 'application/json'
-    };
-
-    // Only add Authorization header for direct API calls (not Worker)
-    if (!USE_WORKER) {
-        if (!API_KEY) {
-            throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
-        }
-        headers['Authorization'] = `Bearer ${API_KEY}`;
-        headers['HTTP-Referer'] = window.location.href;
-        headers['X-Title'] = 'Prompt Analyzer';
-    }
-
-    const apiUrl = USE_WORKER ? endpoint : `${endpoint}/chat/completions`;
+    const { apiUrl, headers } = createOpenRouterRequestContext();
 
     if (onStream) {
         // Streaming implementation
         let fullResponse = '';
+        let resolvedModelId = null;
 
         try {
             const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 2, signal);
@@ -230,6 +274,9 @@ Follow these rules:
 
                         try {
                             const json = JSON.parse(data);
+                            if (!resolvedModelId && typeof json.model === 'string') {
+                                resolvedModelId = json.model;
+                            }
                             const content = json.choices?.[0]?.delta?.content;
                             if (content) {
                                 fullResponse += content;
@@ -242,9 +289,12 @@ Follow these rules:
                 }
             }
 
-            return fullResponse.trim();
+            return {
+                content: fullResponse.trim(),
+                modelId: resolvedModelId || normalizeModelSelection(modelSelection)[0] || null
+            };
         } catch (error) {
-            throw new Error(`OpenRouter API error: ${error.message}`);
+            throw wrapOpenRouterError(error);
         }
     } else {
         // Non-streaming implementation
@@ -255,9 +305,12 @@ Follow these rules:
             if (data?.error) {
                 throw new Error(data.error?.message || 'Provider returned an error response');
             }
-            return data.choices?.[0]?.message?.content?.trim() || 'No response received';
+            return {
+                content: data.choices?.[0]?.message?.content?.trim() || 'No response received',
+                modelId: typeof data?.model === 'string' ? data.model : (normalizeModelSelection(modelSelection)[0] || null)
+            };
         } catch (error) {
-            throw new Error(`OpenRouter API error: ${error.message}`);
+            throw wrapOpenRouterError(error);
         }
     }
 };
@@ -265,13 +318,13 @@ Follow these rules:
 /**
  * Execute the user prompt directly (without any injected system prompt).
  * @param {string} prompt - User prompt to execute as-is
- * @param {string} modelId - OpenRouter model ID
+ * @param {string|string[]} modelSelection - OpenRouter model ID or fallback list
  * @param {Function|null} onStream - Optional streaming callback
- * @returns {Promise<string>} Model output
+ * @returns {Promise<{content: string, modelId: string|null}>} Model output and resolved model
  */
-export const executePromptWithOpenRouter = async (prompt, modelId, onStream = null, signal = null) => {
+export const executePromptWithOpenRouter = async (prompt, modelSelection, onStream = null, signal = null) => {
     const requestBody = {
-        model: modelId,
+        ...buildModelPayload(modelSelection),
         messages: [
             { role: 'user', content: prompt }
         ],
@@ -280,24 +333,11 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
         stream: !!onStream
     };
 
-    const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
-    const headers = {
-        'Content-Type': 'application/json'
-    };
-
-    if (!USE_WORKER) {
-        if (!API_KEY) {
-            throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
-        }
-        headers['Authorization'] = `Bearer ${API_KEY}`;
-        headers['HTTP-Referer'] = window.location.href;
-        headers['X-Title'] = 'Prompt Analyzer';
-    }
-
-    const apiUrl = USE_WORKER ? endpoint : `${endpoint}/chat/completions`;
+    const { apiUrl, headers } = createOpenRouterRequestContext();
 
     if (onStream) {
         let fullResponse = '';
+        let resolvedModelId = null;
 
         const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 2, signal);
 
@@ -318,6 +358,9 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
 
                     try {
                         const json = JSON.parse(data);
+                        if (!resolvedModelId && typeof json.model === 'string') {
+                            resolvedModelId = json.model;
+                        }
                         const content = json.choices?.[0]?.delta?.content;
                         if (content) {
                             fullResponse += content;
@@ -330,7 +373,10 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
             }
         }
 
-        return fullResponse.trim();
+        return {
+            content: fullResponse.trim(),
+            modelId: resolvedModelId || normalizeModelSelection(modelSelection)[0] || null
+        };
     }
 
     const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 2, signal);
@@ -339,7 +385,10 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
     if (data?.error) {
         throw new Error(data.error?.message || 'Provider returned an error response');
     }
-    return data.choices?.[0]?.message?.content?.trim() || 'No response received';
+    return {
+        content: data.choices?.[0]?.message?.content?.trim() || 'No response received',
+        modelId: typeof data?.model === 'string' ? data.model : (normalizeModelSelection(modelSelection)[0] || null)
+    };
 };
 
 /**
@@ -409,6 +458,55 @@ export const getAvailableModels = async () => {
     }
 };
 
+export const probeOpenRouterModel = async (modelId, signal = null) => {
+    const requestBody = {
+        model: modelId,
+        messages: [
+            { role: 'user', content: 'Reply with exactly: OK' }
+        ],
+        temperature: 0,
+        max_tokens: 1,
+        stream: false
+    };
+
+    try {
+        const { apiUrl, headers } = createOpenRouterRequestContext();
+        const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 0, signal);
+        const data = await response.json();
+
+        if (data?.error) {
+            return {
+                status: 'unavailable',
+                httpStatus: response.status || 0,
+                reason: data.error?.message || 'Provider returned an error response'
+            };
+        }
+
+        return {
+            status: 'available',
+            httpStatus: response.status || 200
+        };
+    } catch (error) {
+        if (error?.name === 'AbortError') {
+            throw error;
+        }
+
+        if (error?.status === 429) {
+            return {
+                status: 'rate_limited',
+                httpStatus: 429,
+                reason: error.message
+            };
+        }
+
+        return {
+            status: 'unavailable',
+            httpStatus: error?.status || 0,
+            reason: error?.message || 'Probe failed'
+        };
+    }
+};
+
 /**
  * Generate practical prompt examples using a configured OpenRouter model.
  * @param {string} seedPrompt - Optional user seed prompt/context
@@ -439,21 +537,7 @@ Rules:
         stream: false
     };
 
-    const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
-    const headers = {
-        'Content-Type': 'application/json'
-    };
-
-    if (!USE_WORKER) {
-        if (!API_KEY) {
-            throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
-        }
-        headers['Authorization'] = `Bearer ${API_KEY}`;
-        headers['HTTP-Referer'] = window.location.href;
-        headers['X-Title'] = 'Prompt Analyzer';
-    }
-
-    const apiUrl = USE_WORKER ? endpoint : `${endpoint}/chat/completions`;
+    const { apiUrl, headers } = createOpenRouterRequestContext();
 
     const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
 

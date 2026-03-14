@@ -65,9 +65,12 @@ export default {
     try {
       const body = await request.json();
 
-      if (!body.model || !body.messages) {
+      const hasSingleModel = typeof body.model === 'string' && body.model.length > 0;
+      const hasFallbackModels = Array.isArray(body.models) && body.models.length > 0;
+
+      if ((!hasSingleModel && !hasFallbackModels) || !body.messages) {
         return new Response(
-          JSON.stringify({ error: 'Missing required fields: model, messages' }),
+          JSON.stringify({ error: 'Missing required fields: model or models, messages' }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -82,7 +85,7 @@ export default {
           'X-Title': 'Prompt Analyzer'
         },
         body: JSON.stringify({
-          model: body.model,
+          ...(hasFallbackModels ? { models: body.models } : { model: body.model }),
           messages: body.messages,
           temperature: body.temperature || 0.7,
           max_tokens: body.max_tokens || 1000,

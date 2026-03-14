@@ -8,6 +8,7 @@ import { OPENROUTER } from './modelSelector.js';
 import { improvePromptWithOpenRouter } from './openRouter.js';
 import { executePromptWithOpenRouter } from './openRouter.js';
 import { generatePromptExamplesWithOpenRouter } from './openRouter.js';
+import { probeOpenRouterModel } from './openRouter.js';
 import { i18n } from './i18n.js';
 
 // DOM Selectors
@@ -46,6 +47,7 @@ const generateAIBtn = document.getElementById('generate-ai-btn');
 const openRouterModelSelectorEl = document.getElementById('openrouter-model-selector');
 const modelInfoTriggerEl = document.getElementById('model-info-trigger');
 const modelInfoTextEl = document.getElementById('model-info-text');
+const modelFallbackNoteEl = document.getElementById('model-fallback-note');
 const aiExamplesStatusEl = document.getElementById('ai-examples-status');
 const aiExamplesListEl = document.getElementById('ai-examples-list');
 const donationAmountEl = document.getElementById('donation-amount');
@@ -78,6 +80,8 @@ let isRewriteGenerating = false;
 let rewriteAbortController = null;
 let isExecuteGenerating = false;
 let executeAbortController = null;
+const modelAvailability = new Map();
+let isRefreshingModelAvailability = false;
 
 const API_MODELS = {
     ...OPENROUTER
@@ -85,7 +89,13 @@ const API_MODELS = {
 
 const THEME_STORAGE_KEY = 'promptup-theme';
 const LANGUAGE_STORAGE_KEY = 'promptup-lang';
+const MODEL_AVAILABILITY_STORAGE_KEY = 'promptup-model-availability-v1';
 const SUPPORTED_LANGS = ['fr', 'en', 'de', 'zh'];
+const MODEL_STATUS_TTLS = {
+    available: 15 * 60 * 1000,
+    rate_limited: 4 * 60 * 1000,
+    unavailable: 10 * 60 * 1000
+};
 
 const SCORE_BREAKDOWN_DESCRIPTIONS = {
     role: 'Checks whether the prompt clearly assigns a role, persona, or expertise level to the AI. Example: "You are a senior SEO strategist."',
@@ -322,6 +332,11 @@ const updateLanguageUI = () => {
     document.getElementById('ui-issuesTitle').textContent = ui.issuesTitle;
     document.getElementById('ui-optimizedVersion').textContent = ui.optimizedVersion;
     document.getElementById('ui-footer').innerHTML = ui.footer;
+    if (modelFallbackNoteEl) {
+        modelFallbackNoteEl.textContent = ui.modelFallbackNote;
+    }
+
+    refreshModelSelectorUI(getModelKeyById(currentModelPath));
 
     if (!isUsingOpenRouter || !currentModelPath) {
         improvedPromptEl.textContent = ui.waitingModel;
@@ -351,19 +366,270 @@ const updateLanguageUI = () => {
 
 };
 
-const populateModelSelector = () => {
+const getLocalizedModelStatusLabel = (status) => {
+    if (currentLang === 'fr') {
+        if (status === 'available') return 'Disponible';
+        if (status === 'rate_limited') return 'Temporairement limite';
+        if (status === 'unavailable') return 'Indisponible';
+        if (status === 'checking') return 'Verification';
+        return 'Statut inconnu';
+    }
+
+    if (currentLang === 'de') {
+        if (status === 'available') return 'Verfuegbar';
+        if (status === 'rate_limited') return 'Voruebergehend limitiert';
+        if (status === 'unavailable') return 'Nicht verfuegbar';
+        if (status === 'checking') return 'Pruefung';
+        return 'Unbekannt';
+    }
+
+    if (currentLang === 'zh') {
+        if (status === 'available') return '可用';
+        if (status === 'rate_limited') return '暂时限流';
+        if (status === 'unavailable') return '不可用';
+        if (status === 'checking') return '检测中';
+        return '未知';
+    }
+
+    if (status === 'available') return 'Available';
+    if (status === 'rate_limited') return 'Temporarily rate limited';
+    if (status === 'unavailable') return 'Unavailable';
+    if (status === 'checking') return 'Checking';
+    return 'Unknown status';
+};
+
+const getLocalizedModelStatusDetail = (status) => {
+    if (currentLang === 'fr') {
+        if (status === 'rate_limited') return 'Ce modele a retourne 429 recemment et est masque temporairement.';
+        if (status === 'unavailable') return 'Ce modele a echoue lors du dernier test automatique.';
+        if (status === 'checking') return 'Test automatique en cours au chargement de la page.';
+        if (status === 'available') return 'Ce modele a repondu correctement lors du dernier test.';
+        return 'Le statut sera actualise automatiquement.';
+    }
+
+    if (currentLang === 'de') {
+        if (status === 'rate_limited') return 'Dieses Modell hat kuerzlich 429 geliefert und wird temporaer ausgeblendet.';
+        if (status === 'unavailable') return 'Dieses Modell ist beim letzten automatischen Test fehlgeschlagen.';
+        if (status === 'checking') return 'Automatischer Test laeuft beim Laden der Seite.';
+        if (status === 'available') return 'Dieses Modell hat beim letzten Test korrekt geantwortet.';
+        return 'Der Status wird automatisch aktualisiert.';
+    }
+
+    if (currentLang === 'zh') {
+        if (status === 'rate_limited') return '该模型最近返回过 429，已被临时隐藏。';
+        if (status === 'unavailable') return '该模型在最近一次自动检测中失败。';
+        if (status === 'checking') return '页面加载时正在自动检测该模型。';
+        if (status === 'available') return '该模型在最近一次检测中响应正常。';
+        return '状态会自动刷新。';
+    }
+
+    if (status === 'rate_limited') return 'This model recently returned 429 and is temporarily hidden.';
+    if (status === 'unavailable') return 'This model failed the latest automatic probe.';
+    if (status === 'checking') return 'Automatic availability check is in progress.';
+    if (status === 'available') return 'This model answered correctly during the latest probe.';
+    return 'Status will refresh automatically.';
+};
+
+const getModelAvailabilityRecord = (modelId) => modelAvailability.get(modelId) || null;
+
+const isAvailabilityRecordFresh = (record) => {
+    if (!record || !record.status || !record.checkedAt) {
+        return false;
+    }
+
+    const ttl = MODEL_STATUS_TTLS[record.status] || 0;
+    return ttl > 0 && (Date.now() - record.checkedAt) < ttl;
+};
+
+const persistModelAvailability = () => {
+    try {
+        const serializable = Object.fromEntries(
+            Array.from(modelAvailability.entries())
+                .filter(([_, record]) => record?.status && record.status !== 'checking')
+        );
+        localStorage.setItem(MODEL_AVAILABILITY_STORAGE_KEY, JSON.stringify(serializable));
+    } catch {
+        // Ignore storage failures.
+    }
+};
+
+const loadModelAvailability = () => {
+    modelAvailability.clear();
+
+    try {
+        const raw = localStorage.getItem(MODEL_AVAILABILITY_STORAGE_KEY);
+        if (!raw) return;
+
+        const parsed = JSON.parse(raw);
+        Object.values(API_MODELS).forEach((model) => {
+            const record = parsed?.[model.id];
+            if (isAvailabilityRecordFresh(record)) {
+                modelAvailability.set(model.id, record);
+            }
+        });
+    } catch {
+        localStorage.removeItem(MODEL_AVAILABILITY_STORAGE_KEY);
+    }
+};
+
+const isModelBlocked = (modelId) => {
+    const status = getModelAvailabilityRecord(modelId)?.status;
+    return status === 'rate_limited' || status === 'unavailable';
+};
+
+const getModelKeyById = (modelId) => {
+    const found = Object.entries(API_MODELS).find(([_, model]) => model.id === modelId);
+    return found?.[0] || null;
+};
+
+const getBestSelectableModelKey = (preferredKey = null) => {
+    const keys = Object.keys(API_MODELS);
+
+    if (preferredKey && API_MODELS[preferredKey] && !isModelBlocked(API_MODELS[preferredKey].id)) {
+        return preferredKey;
+    }
+
+    const recommendedKey = getRecommendedApiModelKey();
+    if (recommendedKey && API_MODELS[recommendedKey] && !isModelBlocked(API_MODELS[recommendedKey].id)) {
+        return recommendedKey;
+    }
+
+    return keys.find((key) => !isModelBlocked(API_MODELS[key].id)) || preferredKey || keys[0] || null;
+};
+
+const applySelectedModelKey = (key, persistSelection = true) => {
+    const model = API_MODELS[key];
+    if (!model) return;
+
+    currentModelPath = model.id;
+    isUsingOpenRouter = true;
+
+    if (openRouterModelSelectorEl) {
+        openRouterModelSelectorEl.value = key;
+    }
+
+    if (persistSelection) {
+        localStorage.setItem('lastSelectedApiModel', key);
+    }
+
+    updateSelectedModelTooltip();
+
+    const ui = (i18n[currentLang] || i18n.en).ui;
+    if (!isRewriteGenerating) {
+        setGenerateButtonState(false, ui);
+    }
+    if (!isExecuteGenerating) {
+        setExecuteButtonState(false);
+    }
+};
+
+const refreshModelSelectorUI = (preferredKey = null) => {
+    const fallbackKey = preferredKey
+        || getModelKeyById(currentModelPath)
+        || openRouterModelSelectorEl?.value
+        || localStorage.getItem('lastSelectedApiModel')
+        || getRecommendedApiModelKey();
+
+    populateModelSelector(fallbackKey);
+
+    const nextKey = getBestSelectableModelKey(fallbackKey);
+    if (nextKey && API_MODELS[nextKey]) {
+        applySelectedModelKey(nextKey);
+    }
+};
+
+const setModelAvailability = (modelId, status, reason = '') => {
+    modelAvailability.set(modelId, {
+        status,
+        reason,
+        checkedAt: Date.now()
+    });
+    persistModelAvailability();
+    refreshModelSelectorUI(getModelKeyById(currentModelPath));
+};
+
+const handleModelRuntimeOutcome = (modelId, error = null) => {
+    if (!error) {
+        setModelAvailability(modelId, 'available');
+        return;
+    }
+
+    if (error?.status === 429 || /\b429\b/.test(error?.message || '')) {
+        setModelAvailability(modelId, 'rate_limited', error.message || '429');
+        return;
+    }
+
+    if (error?.name !== 'AbortError') {
+        setModelAvailability(modelId, 'unavailable', error?.message || 'Request failed');
+    }
+};
+
+const refreshModelAvailabilityInBackground = async () => {
+    if (isRefreshingModelAvailability) {
+        return;
+    }
+
+    isRefreshingModelAvailability = true;
+
+    try {
+        for (const model of Object.values(API_MODELS)) {
+            const existing = getModelAvailabilityRecord(model.id);
+            if (isAvailabilityRecordFresh(existing)) {
+                continue;
+            }
+
+            modelAvailability.set(model.id, {
+                status: 'checking',
+                reason: '',
+                checkedAt: Date.now()
+            });
+            refreshModelSelectorUI(getModelKeyById(currentModelPath));
+
+            const controller = new AbortController();
+            const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
+            try {
+                const result = await probeOpenRouterModel(model.id, controller.signal);
+                setModelAvailability(model.id, result.status, result.reason || '');
+            } catch (error) {
+                if (error?.name === 'AbortError') {
+                    setModelAvailability(model.id, 'unavailable', 'Probe timed out');
+                } else {
+                    setModelAvailability(model.id, 'unavailable', error?.message || 'Probe failed');
+                }
+            } finally {
+                window.clearTimeout(timeoutId);
+            }
+
+            await new Promise((resolve) => window.setTimeout(resolve, 250));
+        }
+    } finally {
+        isRefreshingModelAvailability = false;
+    }
+};
+
+const populateModelSelector = (selectedKey = null) => {
     if (openRouterModelSelectorEl) {
         openRouterModelSelectorEl.innerHTML = '';
         Object.entries(API_MODELS).forEach(([key, model]) => {
+            const status = getModelAvailabilityRecord(model.id)?.status || 'unknown';
             const option = document.createElement('option');
             option.value = key;
-            option.textContent = model.name;
+            option.textContent = status === 'unknown'
+                ? model.name
+                : `${model.name} • ${getLocalizedModelStatusLabel(status)}`;
             option.title = model.description || model.name;
             option.dataset.description = model.description || model.name;
             option.dataset.provider = model.provider || 'OpenRouter';
             option.dataset.context = model.context || 'N/A';
+            option.dataset.status = status;
+            option.disabled = isModelBlocked(model.id);
             openRouterModelSelectorEl.appendChild(option);
         });
+
+        if (selectedKey && API_MODELS[selectedKey]) {
+            openRouterModelSelectorEl.value = selectedKey;
+        }
     }
 };
 
@@ -380,7 +646,8 @@ const updateSelectedModelTooltip = () => {
     const provider = selectedModel.provider || 'OpenRouter';
     const context = selectedModel.context || 'N/A';
     const desc = selectedModel.description || selectedModel.name;
-    modelInfoTextEl.textContent = `${provider} • ${context} • ${desc}`;
+    const status = getModelAvailabilityRecord(selectedModel.id)?.status || 'unknown';
+    modelInfoTextEl.textContent = `${provider} • ${context} • ${getLocalizedModelStatusLabel(status)} • ${desc} ${getLocalizedModelStatusDetail(status)}`;
 };
 
 const renderAIPromptExamples = (examples) => {
@@ -477,13 +744,16 @@ const getFallbackModelIds = (primaryModelId) => {
     const lowPriorityIds = remainingIds.filter((id) => isLowPriorityFallback(id));
     const standardIds = remainingIds.filter((id) => !isLowPriorityFallback(id));
 
-    return Array.from(new Set([
+    const orderedIds = Array.from(new Set([
         primaryModelId,
         ...recommendedIds,
         ...orderedPriorityIds,
         ...standardIds,
         ...lowPriorityIds
     ]));
+
+    const preferredIds = orderedIds.filter((id) => !isModelBlocked(id));
+    return preferredIds.length > 0 ? preferredIds : orderedIds;
 };
 
 const getRetryStatusMessage = (nextModelName) => {
@@ -505,15 +775,9 @@ const getModelNameById = (modelId) => {
 };
 
 const syncSelectorFromModelId = (modelId) => {
-    if (!openRouterModelSelectorEl) return;
-
-    const matched = Object.entries(API_MODELS).find(([_, model]) => model.id === modelId);
-    if (!matched) return;
-
-    const [key] = matched;
-    openRouterModelSelectorEl.value = key;
-    localStorage.setItem('lastSelectedApiModel', key);
-    updateSelectedModelTooltip();
+    const key = getModelKeyById(modelId);
+    if (!key) return;
+    applySelectedModelKey(key);
 };
 
 const createNowPaymentDonation = async () => {
@@ -575,6 +839,7 @@ const initApp = async () => {
     initLanguageSelector();
     setWorkflowStep('input');
 
+    loadModelAvailability();
     populateModelSelector();
 
     const recommendedApiModelKey = getRecommendedApiModelKey();
@@ -584,16 +849,10 @@ const initApp = async () => {
         ? lastSelectedApiModel
         : (recommendedApiModelKey || Object.keys(API_MODELS)[0]);
 
-    if (openRouterModelSelectorEl) {
-        openRouterModelSelectorEl.value = selectedApiModelKey;
+    const initialModelKey = getBestSelectableModelKey(selectedApiModelKey);
+    if (initialModelKey && API_MODELS[initialModelKey]) {
+        applySelectedModelKey(initialModelKey);
     }
-
-    if (selectedApiModelKey && API_MODELS[selectedApiModelKey]) {
-        currentModelPath = API_MODELS[selectedApiModelKey].id;
-        isUsingOpenRouter = true;
-        localStorage.setItem('lastSelectedApiModel', selectedApiModelKey);
-    }
-    updateSelectedModelTooltip();
 
     if (modelInfoTriggerEl) {
         modelInfoTriggerEl.addEventListener('focus', () => {
@@ -611,10 +870,11 @@ const initApp = async () => {
             const key = openRouterModelSelectorEl.value;
             const model = API_MODELS[key];
             if (!model) return;
-            currentModelPath = model.id;
-            isUsingOpenRouter = true;
-            localStorage.setItem('lastSelectedApiModel', key);
-            updateSelectedModelTooltip();
+            if (isModelBlocked(model.id)) {
+                refreshModelSelectorUI(getModelKeyById(currentModelPath));
+                return;
+            }
+            applySelectedModelKey(key);
             updateLanguageUI();
         });
     }
@@ -622,6 +882,10 @@ const initApp = async () => {
     if (donationBtn) {
         donationBtn.addEventListener('click', createNowPaymentDonation);
     }
+
+    window.setTimeout(() => {
+        refreshModelAvailabilityInBackground();
+    }, 250);
 };
 
 /**
@@ -841,49 +1105,28 @@ const handleAIRewrite = async () => {
         }
 
         const candidateModelIds = getFallbackModelIds(currentModelPath);
-        let improved = '';
-        let lastError = null;
+        const improved = await improvePromptWithOpenRouter(
+            prompt,
+            candidateModelIds,
+            (chunk) => {
+                if (chunk) improvedPromptEl.textContent = chunk;
+            },
+            heuristics,
+            rewriteAbortController?.signal
+        );
 
-        for (let i = 0; i < candidateModelIds.length; i += 1) {
-            const modelId = candidateModelIds[i];
-
-            if (i > 0) {
-                improvedPromptEl.textContent = getRetryStatusMessage(getModelNameById(modelId));
-            }
-
-            try {
-                improved = await improvePromptWithOpenRouter(
-                    prompt,
-                    modelId,
-                    (chunk) => {
-                        if (chunk) improvedPromptEl.textContent = chunk;
-                    },
-                    heuristics,
-                    rewriteAbortController?.signal
-                );
-
-                currentModelPath = modelId;
-                isUsingOpenRouter = true;
-                syncSelectorFromModelId(modelId);
-                break;
-            } catch (error) {
-                if (error?.name === 'AbortError') {
-                    throw error;
-                }
-                lastError = error;
-            }
-        }
-
-        if (!improved) {
-            throw lastError || new Error('All configured OpenRouter models failed');
-        }
-
-        improvedPromptEl.textContent = formatModelOutput(improved);
+        const resolvedModelId = improved?.modelId || candidateModelIds[0] || currentModelPath;
+        handleModelRuntimeOutcome(resolvedModelId, null);
+        currentModelPath = resolvedModelId;
+        isUsingOpenRouter = true;
+        syncSelectorFromModelId(resolvedModelId);
+        improvedPromptEl.textContent = formatModelOutput(improved?.content || '');
         setWorkflowStep('export');
     } catch (err) {
         if (err?.name === 'AbortError') {
             improvedPromptEl.textContent = 'Generation stopped.';
         } else {
+            handleModelRuntimeOutcome(currentModelPath, err);
             improvedPromptEl.textContent = ui.rewriteFailed;
         }
     } finally {
@@ -944,48 +1187,27 @@ const handleExecutePrompt = async () => {
         }
 
         const candidateModelIds = getFallbackModelIds(currentModelPath);
-        let modelOutput = '';
-        let lastError = null;
+        const modelOutput = await executePromptWithOpenRouter(
+            prompt,
+            candidateModelIds,
+            (chunk) => {
+                if (chunk) improvedPromptEl.textContent = formatModelOutput(chunk);
+            },
+            executeAbortController?.signal
+        );
 
-        for (let i = 0; i < candidateModelIds.length; i += 1) {
-            const modelId = candidateModelIds[i];
-
-            if (i > 0) {
-                improvedPromptEl.textContent = getRetryStatusMessage(getModelNameById(modelId));
-            }
-
-            try {
-                modelOutput = await executePromptWithOpenRouter(
-                    prompt,
-                    modelId,
-                    (chunk) => {
-                        if (chunk) improvedPromptEl.textContent = formatModelOutput(chunk);
-                    },
-                    executeAbortController?.signal
-                );
-
-                currentModelPath = modelId;
-                isUsingOpenRouter = true;
-                syncSelectorFromModelId(modelId);
-                break;
-            } catch (error) {
-                if (error?.name === 'AbortError') {
-                    throw error;
-                }
-                lastError = error;
-            }
-        }
-
-        if (!modelOutput) {
-            throw lastError || new Error('All configured OpenRouter models failed');
-        }
-
-        improvedPromptEl.textContent = formatModelOutput(modelOutput);
+        const resolvedModelId = modelOutput?.modelId || candidateModelIds[0] || currentModelPath;
+        handleModelRuntimeOutcome(resolvedModelId, null);
+        currentModelPath = resolvedModelId;
+        isUsingOpenRouter = true;
+        syncSelectorFromModelId(resolvedModelId);
+        improvedPromptEl.textContent = formatModelOutput(modelOutput?.content || '');
         setWorkflowStep('export');
     } catch (err) {
         if (err?.name === 'AbortError') {
             improvedPromptEl.textContent = 'Generation stopped.';
         } else {
+            handleModelRuntimeOutcome(currentModelPath, err);
             improvedPromptEl.textContent = `Execution failed: ${err?.message || 'Unknown error'}`;
         }
     } finally {
