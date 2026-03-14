@@ -95,6 +95,18 @@
                     <img class="donation-btn donation-btn-dark" src="https://nowpayments.io/images/embeds/donation-button-black.svg" alt="Bouton de don crypto par NOWPayments" loading="lazy">
                     <img class="donation-btn donation-btn-light" src="https://nowpayments.io/images/embeds/donation-button-white.svg" alt="Bouton de don Bitcoin et crypto par NOWPayments" loading="lazy">
                 </a>
+                <div class="language-selector">
+                    <button id="language-toggle" class="language-toggle" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Select language">
+                        <span id="language-current-flag" aria-hidden="true">🇫🇷</span>
+                        <span id="language-current-code">FR</span>
+                    </button>
+                    <div id="language-menu" class="language-menu hidden" role="menu" aria-label="Language options">
+                        <button class="language-option" type="button" role="menuitem" data-lang="fr">🇫🇷 Français</button>
+                        <button class="language-option" type="button" role="menuitem" data-lang="en">🇺🇸 English</button>
+                        <button class="language-option" type="button" role="menuitem" data-lang="de">🇩🇪 Deutsch</button>
+                        <button class="language-option" type="button" role="menuitem" data-lang="zh">🇨🇳 中文</button>
+                    </div>
+                </div>
                 <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light mode" aria-pressed="false">
                     <span id="theme-toggle-icon" aria-hidden="true">☀</span>
                     <span id="theme-toggle-label">Light mode</span>
@@ -230,23 +242,6 @@
             </div>
         </section>
 
-        <section class="card mb-14">
-            <h2 class="text-2xl md:text-3xl font-bold mb-3">Ressources SEO Prompt Engineering</h2>
-            <p class="text-foreground-muted mb-6">Developpez une strategie de croissance organique avec nos contenus pratiques pour equipes SaaS et experts IA.</p>
-            <div class="grid md:grid-cols-2 gap-5">
-                <article class="card">
-                    <h3 class="text-lg font-semibold mb-2">Guide complet: optimiser un prompt IA</h3>
-                    <p class="text-sm text-foreground-muted mb-4">Methodes, checklist et exemples concrets pour ameliorer la qualite des reponses LLM.</p>
-                    <a href="./guide-prompt-engineering" class="site-footer-link">Lire le guide</a>
-                </article>
-                <article class="card">
-                    <h3 class="text-lg font-semibold mb-2">Comparatif: meilleurs outils prompt engineering 2026</h3>
-                    <p class="text-sm text-foreground-muted mb-4">Comparez les solutions selon cas d'usage, securite, cout et performance en equipe.</p>
-                    <a href="./comparatif-outils-prompt" class="site-footer-link">Voir le comparatif</a>
-                </article>
-            </div>
-        </section>
-
         <!-- Divider -->
         <div class="flex items-center gap-4 my-12">
             <div class="flex-1 h-px bg-gradient-to-r from-transparent via-border-border to-transparent"></div>
@@ -272,6 +267,10 @@
                 <div class="mb-4 flex flex-wrap items-center gap-2">
                     <button id="sample-marketing-btn" class="btn-secondary !px-4 !py-2 text-xs">Try Marketing Example</button>
                     <button id="sample-coding-btn" class="btn-secondary !px-4 !py-2 text-xs">Try Coding Example</button>
+                    <button id="sample-seo-btn" class="btn-secondary !px-4 !py-2 text-xs">Try SEO Example</button>
+                    <button id="sample-sales-btn" class="btn-secondary !px-4 !py-2 text-xs">Try Sales Example</button>
+                    <button id="sample-support-btn" class="btn-secondary !px-4 !py-2 text-xs">Try Support Example</button>
+                    <button id="sample-product-btn" class="btn-secondary !px-4 !py-2 text-xs">Try Product Example</button>
                     <button id="generate-examples-btn" class="btn-secondary !px-4 !py-2 text-xs">Generate AI Examples</button>
                     <span class="text-xs text-foreground-muted">Tip: Start with Analyze Instantly, then use Rewrite with AI if needed.</span>
                 </div>

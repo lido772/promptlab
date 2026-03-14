@@ -281,5 +281,74 @@ export const i18n = {
                 structure: "Struktur durch Zeilenumbrüche, Aufzählungspunkte oder Überschriften verbessern"
             }
         }
+    },
+    zh: {
+        name: '中文',
+        flag: '🇨🇳',
+        ui: {
+            title: '提示词分析器',
+            subtitle: '通过即时启发式评分和<span class="text-blue-400 font-semibold">可选 AI 重写</span>优化你的提示词。快速、清晰、免费。',
+            yourPrompt: '你的提示词',
+            placeholder: '示例：请你作为资深营销顾问，为一个新的 SaaS 制定 3 个月增长策略……',
+            analyzeBtn: '立即分析',
+            rewriteBtn: 'AI 重写',
+            localEngine: 'API 重写引擎',
+            loadModel: '加载模型',
+            modelLoaded: '✅ 模型已加载',
+            modelNotLoaded: '未加载模型。请选择模型并点击加载。',
+            downloadingModel: '正在下载模型',
+            initializingModel: '正在初始化模型',
+            errorLoadingModel: '模型加载失败',
+            errorGeneratingPrompt: '生成失败',
+            ecoModeWarning: '检测到电量较低，建议使用更小模型或连接电源。',
+            prefetchingProModel: '正在准备增强重写能力…',
+            proModelPrefetched: '增强重写能力已就绪！',
+            prefetchingFailed: '增强能力预加载失败',
+            qualityScore: '质量评分',
+            metrics: {
+                role: '角色',
+                format: '格式',
+                constraints: '约束',
+                context: '上下文'
+            },
+            issuesTitle: '改进建议',
+            optimizedVersion: '优化版本',
+            copyBtn: '复制',
+            waitingModel: '请先选择上方 API 模型以启用 AI 重写。',
+            perfectPrompt: '✨ 提示词非常优秀！未发现问题。',
+            analyzing: '🧠 正在分析并重写…',
+            generateBtn: '生成优化提示词',
+            generating: '生成中…',
+            deleteCacheBtn: '删除当前缓存模型',
+            confirmDeleteCache: (modelName) => `确定要删除 ${modelName} 的缓存模型吗？此操作不可撤销。`,
+            modelCacheDeleted: (modelName) => `🗑️ 已删除 ${modelName} 的缓存模型！`,
+            errorDeletingCache: '删除缓存失败，请重试。',
+            deleteCurrentModelBtn: '删除当前缓存模型',
+            copiedToClipboard: '已复制到剪贴板！',
+            noPromptToCopy: '暂无可复制内容。',
+            rewriteFailed: '重写失败，请刷新后重试。',
+            retryBtn: '重试',
+            fallbackMode: '已启用回退模式',
+            cacheCleared: '缓存清理成功！',
+            footer: '专为<span class="text-blue-400">提示词分析</span>打造 • 安全 API 重写 • 注重隐私'
+        },
+        heuristics: {
+            patterns: {
+                role: ['你是', '请作为', '扮演', '专家', '顾问', '资深', '专业人士'],
+                format: ['格式', 'json', '表格', '列表', 'markdown', '输出', '返回', '结构化'],
+                constraints: ['必须', '不要', '仅限', '避免', '限制', '不得', '要求'],
+                context: ['背景', '上下文', '场景', '目标', '受众', '例如', '已知'],
+                specificity: ['具体', '详细', '精确', '明确', '数字', '示例']
+            },
+            issues: {
+                role: '缺少明确角色定义（例如：“你是一名专家……”）',
+                format: '缺少明确输出格式（例如：“请以 JSON 返回”）',
+                constraints: '缺少约束条件（例如：长度、语气、禁用项）',
+                context: '上下文信息不足，模型难以准确理解任务',
+                specificity: '提示词较模糊，建议补充更具体细节、数字或示例',
+                short: '提示词过短，不足以表达清楚需求',
+                structure: '建议使用分段、列表或标题提升结构清晰度'
+            }
+        }
     }
 };

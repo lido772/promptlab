@@ -23,15 +23,22 @@ const workflowStepExport = document.getElementById('wf-step-export');
 const themeToggleBtn = document.getElementById('theme-toggle');
 const themeToggleIcon = document.getElementById('theme-toggle-icon');
 const themeToggleLabel = document.getElementById('theme-toggle-label');
+const languageToggleBtn = document.getElementById('language-toggle');
+const languageCurrentFlagEl = document.getElementById('language-current-flag');
+const languageCurrentCodeEl = document.getElementById('language-current-code');
+const languageMenuEl = document.getElementById('language-menu');
+const languageOptionEls = document.querySelectorAll('.language-option');
 const heroTryExampleBtn = document.getElementById('hero-try-example-btn');
 const sampleMarketingBtn = document.getElementById('sample-marketing-btn');
 const sampleCodingBtn = document.getElementById('sample-coding-btn');
+const sampleSeoBtn = document.getElementById('sample-seo-btn');
+const sampleSalesBtn = document.getElementById('sample-sales-btn');
+const sampleSupportBtn = document.getElementById('sample-support-btn');
+const sampleProductBtn = document.getElementById('sample-product-btn');
 const generateExamplesBtn = document.getElementById('generate-examples-btn');
 const copyBtn = document.getElementById('copy-btn');
 const exportTxtBtn = document.getElementById('export-txt-btn');
 const exportMdBtn = document.getElementById('export-md-btn');
-
-// Language Selector UI - Removed (English only)
 
 // Model Selector UI
 const generateAIBtn = document.getElementById('generate-ai-btn');
@@ -63,7 +70,7 @@ const consistencyScoreEl = document.getElementById('consistency-score');
 const scoreBreakdownListEl = document.getElementById('score-breakdown-list');
 
 // State
-let currentLang = 'en'; // English only
+let currentLang = 'fr';
 let currentModelPath = null;
 let isUsingOpenRouter = false;
 
@@ -72,6 +79,8 @@ const API_MODELS = {
 };
 
 const THEME_STORAGE_KEY = 'promptup-theme';
+const LANGUAGE_STORAGE_KEY = 'promptup-lang';
+const SUPPORTED_LANGS = ['fr', 'en', 'de', 'zh'];
 
 const SCORE_BREAKDOWN_DESCRIPTIONS = {
     role: 'Checks whether the prompt clearly assigns a role, persona, or expertise level to the AI. Example: "You are a senior SEO strategist."',
@@ -127,6 +136,66 @@ const initTheme = () => {
     }
 };
 
+const getInitialLanguage = () => {
+    const storedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (storedLanguage && SUPPORTED_LANGS.includes(storedLanguage)) {
+        return storedLanguage;
+    }
+
+    const browser = (navigator.language || 'fr').toLowerCase();
+    if (browser.startsWith('de')) return 'de';
+    if (browser.startsWith('zh')) return 'zh';
+    if (browser.startsWith('en')) return 'en';
+    return 'fr';
+};
+
+const updateLanguageToggleUI = () => {
+    if (!languageCurrentFlagEl || !languageCurrentCodeEl) return;
+    const cfg = i18n[currentLang] || i18n.en;
+    languageCurrentFlagEl.textContent = cfg.flag || '🌐';
+    languageCurrentCodeEl.textContent = currentLang.toUpperCase();
+};
+
+const setLanguage = (lang) => {
+    const nextLang = SUPPORTED_LANGS.includes(lang) ? lang : 'en';
+    currentLang = nextLang;
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLang);
+    document.documentElement.lang = nextLang;
+    updateLanguageToggleUI();
+    updateLanguageUI();
+};
+
+const initLanguageSelector = () => {
+    setLanguage(getInitialLanguage());
+
+    if (!languageToggleBtn || !languageMenuEl) return;
+
+    languageToggleBtn.addEventListener('click', () => {
+        const isOpen = !languageMenuEl.classList.contains('hidden');
+        languageMenuEl.classList.toggle('hidden', isOpen);
+        languageToggleBtn.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    languageOptionEls.forEach((el) => {
+        el.addEventListener('click', () => {
+            const lang = el.getAttribute('data-lang') || 'en';
+            setLanguage(lang);
+            languageMenuEl.classList.add('hidden');
+            languageToggleBtn.setAttribute('aria-expanded', 'false');
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Node)) return;
+        const clickedInside = languageMenuEl.contains(target) || languageToggleBtn.contains(target);
+        if (!clickedInside) {
+            languageMenuEl.classList.add('hidden');
+            languageToggleBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
+};
+
 const setWorkflowStep = (step) => {
     const steps = [
         { el: workflowStepInput, key: 'input' },
@@ -166,7 +235,7 @@ const getModelStatusMessage = (ui) => {
  * Update UI Text based on current language
  */
 const updateLanguageUI = () => {
-    const config = i18n.en;
+    const config = i18n[currentLang] || i18n.en;
     const ui = config.ui;
 
     // Static Elements
@@ -393,6 +462,7 @@ const createNowPaymentDonation = async () => {
 const initApp = async () => {
 
     initTheme();
+    initLanguageSelector();
     setWorkflowStep('input');
 
     populateModelSelector();
@@ -751,6 +821,10 @@ exportMdBtn.addEventListener('click', () => handleExport('md'));
 
 const marketingSamplePrompt = 'You are a B2B growth strategist. Create a 90-day go-to-market plan for a SaaS startup targeting HR teams. Return a week-by-week plan in a markdown table with goals, channels, KPIs, and risks. Constraints: budget under $15,000, focus on organic + outbound, maximum 350 words.';
 const codingSamplePrompt = 'You are a senior JavaScript engineer. Refactor the function below for readability and performance, then provide unit tests. Return 1) improved code, 2) test cases, 3) explanation. Constraints: keep same behavior, avoid external libraries, include edge cases.';
+const seoSamplePrompt = 'You are a senior SEO consultant. Build a 3-month SEO action plan for a B2B SaaS website in France. Return: 1) 10 target keywords (intent + difficulty + page type), 2) on-page fixes (title, H1/H2, meta), 3) technical priorities, 4) weekly KPI dashboard. Constraints: practical, business-focused, no fluff.';
+const salesSamplePrompt = 'You are an enterprise sales strategist. Write a cold outreach sequence for selling an AI productivity SaaS to Head of Product personas. Return 1) 3 email drafts, 2) 2 LinkedIn messages, 3) objection handling script, 4) CTA variations. Constraints: concise, human tone, max 120 words per email.';
+const supportSamplePrompt = 'You are a customer support operations lead. Create a response playbook for handling AI tool onboarding tickets. Return: triage categories, SLA targets, 8 response templates, escalation rules, and quality checklist. Constraints: clear markdown table, professional tone, globally applicable.';
+const productSamplePrompt = 'You are a senior product manager. Draft a PRD outline for a Prompt Quality Scoring feature in a SaaS app. Include problem statement, target users, jobs-to-be-done, scope, non-goals, UX flows, success metrics, and rollout plan. Constraints: crisp bullets, no generic statements.';
 
 if (heroTryExampleBtn) {
     heroTryExampleBtn.addEventListener('click', () => {
@@ -765,6 +839,22 @@ if (sampleMarketingBtn) {
 
 if (sampleCodingBtn) {
     sampleCodingBtn.addEventListener('click', () => applySamplePrompt(codingSamplePrompt));
+}
+
+if (sampleSeoBtn) {
+    sampleSeoBtn.addEventListener('click', () => applySamplePrompt(seoSamplePrompt));
+}
+
+if (sampleSalesBtn) {
+    sampleSalesBtn.addEventListener('click', () => applySamplePrompt(salesSamplePrompt));
+}
+
+if (sampleSupportBtn) {
+    sampleSupportBtn.addEventListener('click', () => applySamplePrompt(supportSamplePrompt));
+}
+
+if (sampleProductBtn) {
+    sampleProductBtn.addEventListener('click', () => applySamplePrompt(productSamplePrompt));
 }
 
 if (generateExamplesBtn) {
