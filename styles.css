@@ -358,6 +358,14 @@ body {
     outline: none;
 }
 
+#improved-prompt {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    letter-spacing: 0.005em;
+    word-break: break-word;
+    tab-size: 4;
+}
+
 .theme-toggle:hover {
     border-color: var(--border-hover);
     transform: translateY(-1px);

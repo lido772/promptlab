@@ -245,6 +245,101 @@ Follow these rules:
 };
 
 /**
+ * Execute the user prompt directly (without any injected system prompt).
+ * @param {string} prompt - User prompt to execute as-is
+ * @param {string} modelId - OpenRouter model ID
+ * @param {Function|null} onStream - Optional streaming callback
+ * @returns {Promise<string>} Model output
+ */
+export const executePromptWithOpenRouter = async (prompt, modelId, onStream = null) => {
+    const requestBody = {
+        model: modelId,
+        messages: [
+            { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1200,
+        stream: !!onStream
+    };
+
+    const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+
+    if (!USE_WORKER) {
+        if (!API_KEY) {
+            throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
+        }
+        headers['Authorization'] = `Bearer ${API_KEY}`;
+        headers['HTTP-Referer'] = window.location.href;
+        headers['X-Title'] = 'Prompt Analyzer';
+    }
+
+    const apiUrl = USE_WORKER ? endpoint : `${endpoint}/chat/completions`;
+
+    if (onStream) {
+        let fullResponse = '';
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || `API error: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') continue;
+
+                    try {
+                        const json = JSON.parse(data);
+                        const content = json.choices?.[0]?.delta?.content;
+                        if (content) {
+                            fullResponse += content;
+                            onStream(fullResponse);
+                        }
+                    } catch {
+                        // Ignore malformed chunks
+                    }
+                }
+            }
+        }
+
+        return fullResponse.trim();
+    }
+
+    const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || 'No response received';
+};
+
+/**
  * Test OpenRouter API connection
  * @returns {Promise<boolean>} True if connection is successful
  */

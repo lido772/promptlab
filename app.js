@@ -6,6 +6,7 @@
 import { analyzePromptHeuristics } from './promptAnalyzer.js';
 import { OPENROUTER } from './modelSelector.js';
 import { improvePromptWithOpenRouter } from './openRouter.js';
+import { executePromptWithOpenRouter } from './openRouter.js';
 import { generatePromptExamplesWithOpenRouter } from './openRouter.js';
 import { i18n } from './i18n.js';
 import { runHeuristicTests } from './test-prompts.js';
@@ -36,6 +37,7 @@ const sampleSalesBtn = document.getElementById('sample-sales-btn');
 const sampleSupportBtn = document.getElementById('sample-support-btn');
 const sampleProductBtn = document.getElementById('sample-product-btn');
 const generateExamplesBtn = document.getElementById('generate-examples-btn');
+const executePromptBtn = document.getElementById('execute-prompt-btn');
 const copyBtn = document.getElementById('copy-btn');
 const exportTxtBtn = document.getElementById('export-txt-btn');
 const exportMdBtn = document.getElementById('export-md-btn');
@@ -231,6 +233,16 @@ const getModelStatusMessage = (ui) => {
     return ui.modelNotLoaded;
 };
 
+const formatModelOutput = (rawText) => {
+    if (!rawText) return '';
+
+    return String(rawText)
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]+\n/g, '\n')
+        .trim();
+};
+
 /**
  * Update UI Text based on current language
  */
@@ -268,9 +280,17 @@ const updateLanguageUI = () => {
         improvedPromptEl.textContent = ui.waitingModel;
         generateAIBtn.disabled = true;
         generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        if (executePromptBtn) {
+            executePromptBtn.disabled = true;
+            executePromptBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
     } else {
         generateAIBtn.disabled = false;
         generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (executePromptBtn) {
+            executePromptBtn.disabled = false;
+            executePromptBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
     }
 
     // Update Analysis if results are visible
@@ -751,7 +771,7 @@ const handleAIRewrite = async () => {
             throw lastError || new Error('All configured OpenRouter models failed');
         }
 
-        improvedPromptEl.textContent = improved;
+        improvedPromptEl.textContent = formatModelOutput(improved);
         setWorkflowStep('export');
         generateAIBtn.textContent = ui.generateBtn;
         generateAIBtn.disabled = false;
@@ -759,6 +779,95 @@ const handleAIRewrite = async () => {
         improvedPromptEl.textContent = ui.rewriteFailed;
         generateAIBtn.textContent = ui.generateBtn;
         generateAIBtn.disabled = false;
+    }
+};
+
+/**
+ * Execute the prompt directly against the selected model (no system prompt).
+ */
+const handleExecutePrompt = async () => {
+    const prompt = promptInput.value.trim();
+    if (!prompt) return;
+
+    if (resultsArea) {
+        resultsArea.classList.remove('hidden');
+    }
+
+    const optimizedTitleEl = document.getElementById('ui-optimizedVersion');
+    const optimizedCardEl = optimizedTitleEl ? optimizedTitleEl.closest('.card') : null;
+    const scrollTargetEl = optimizedCardEl || improvedPromptEl;
+
+    if (scrollTargetEl) {
+        const headerOffset = 96;
+        const y = scrollTargetEl.getBoundingClientRect().top + window.scrollY - headerOffset;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }
+
+    const ui = (i18n[currentLang] || i18n.en).ui;
+    setWorkflowStep('improve');
+
+    if (executePromptBtn) {
+        executePromptBtn.disabled = true;
+        executePromptBtn.textContent = 'Executing...';
+    }
+
+    if (generateAIBtn) {
+        generateAIBtn.disabled = true;
+    }
+
+    improvedPromptEl.textContent = 'Executing prompt without system template...';
+
+    try {
+        if (!currentModelPath) {
+            throw new Error('No API model selected for OpenRouter');
+        }
+
+        const candidateModelIds = getFallbackModelIds(currentModelPath);
+        let modelOutput = '';
+        let lastError = null;
+
+        for (let i = 0; i < candidateModelIds.length; i += 1) {
+            const modelId = candidateModelIds[i];
+
+            if (i > 0) {
+                improvedPromptEl.textContent = `Selected model unavailable. Retrying with ${getModelNameById(modelId)}...`;
+            }
+
+            try {
+                modelOutput = await executePromptWithOpenRouter(
+                    prompt,
+                    modelId,
+                    (chunk) => {
+                        if (chunk) improvedPromptEl.textContent = formatModelOutput(chunk);
+                    }
+                );
+
+                currentModelPath = modelId;
+                isUsingOpenRouter = true;
+                syncSelectorFromModelId(modelId);
+                break;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        if (!modelOutput) {
+            throw lastError || new Error('All configured OpenRouter models failed');
+        }
+
+        improvedPromptEl.textContent = formatModelOutput(modelOutput);
+        setWorkflowStep('export');
+    } catch (err) {
+        improvedPromptEl.textContent = `Execution failed: ${err?.message || 'Unknown error'}`;
+    } finally {
+        if (executePromptBtn) {
+            executePromptBtn.disabled = false;
+            executePromptBtn.textContent = 'Execute Prompt';
+        }
+        if (generateAIBtn) {
+            generateAIBtn.disabled = false;
+            generateAIBtn.textContent = ui.generateBtn;
+        }
     }
 };
 
@@ -815,6 +924,9 @@ if (analyzeBtn) {
     analyzeBtn.addEventListener('click', handleAnalysis);
 }
 generateAIBtn.addEventListener('click', handleAIRewrite);
+if (executePromptBtn) {
+    executePromptBtn.addEventListener('click', handleExecutePrompt);
+}
 copyBtn.addEventListener('click', handleCopyPrompt);
 exportTxtBtn.addEventListener('click', () => handleExport('txt'));
 exportMdBtn.addEventListener('click', () => handleExport('md'));
