@@ -679,6 +679,14 @@ const getLocalizedModelStatusLabel = (status) => {
     return 'Unknown status';
 };
 
+const getModelStatusIndicator = (status) => {
+    if (status === 'available') return '🟢';
+    if (status === 'unavailable') return '🔴';
+    if (status === 'rate_limited') return '🟠';
+    if (status === 'checking') return '🟡';
+    return '⚪';
+};
+
 const getLocalizedModelStatusDetail = (status) => {
     if (currentLang === 'fr') {
         if (status === 'rate_limited') return 'Ce modele a retourne 429 recemment et est masque temporairement.';
@@ -1074,7 +1082,7 @@ const populateModelSelector = (selectedKey = null) => {
                 option.value = key;
                 option.textContent = status === 'unknown'
                     ? `${model.name} ${modalityBadge}`
-                    : `${model.name} ${modalityBadge} • ${getLocalizedModelStatusLabel(status)}`;
+                    : `${model.name} ${modalityBadge} ${getModelStatusIndicator(status)}`;
                 option.title = model.description || model.name;
                 option.dataset.description = model.description || model.name;
                 option.dataset.provider = model.provider || 'OpenRouter';
