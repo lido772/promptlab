@@ -6,6 +6,7 @@
 import { analyzePromptHeuristics } from './promptAnalyzer.js';
 import { OPENROUTER } from './modelSelector.js';
 import { clearOpenRouterModelsCache } from './openRouter.js';
+import { classifyOpenRouterError } from './openRouter.js';
 import { getOpenRouterModelsCacheInfo } from './openRouter.js';
 import { improvePromptWithOpenRouter } from './openRouter.js';
 import { executePromptWithOpenRouter } from './openRouter.js';
@@ -92,6 +93,7 @@ let isRefreshingModelAvailability = false;
 let openRouterKeyStatus = null;
 let isRefreshingOpenRouterKeyStatus = false;
 let isRefreshingModelCatalog = false;
+let activeModelFallbackNotice = null;
 
 const API_MODELS = {
     ...OPENROUTER
@@ -386,6 +388,72 @@ const getLocalizedOpenRouterLimitExceededMessage = () => {
     return 'The OpenRouter key has reached its current limit. Try again later.';
 };
 
+const getLocalizedFreeModelRetryMessage = (limitedModelName, nextModelName) => {
+    if (currentLang === 'fr') {
+        return `${limitedModelName} est temporairement limite. Nouvelle tentative automatique avec ${nextModelName}...`;
+    }
+    if (currentLang === 'de') {
+        return `${limitedModelName} ist voruebergehend limitiert. Automatischer neuer Versuch mit ${nextModelName}...`;
+    }
+    if (currentLang === 'zh') {
+        return `${limitedModelName} 当前临时限流，正在自动切换到 ${nextModelName} 重试...`;
+    }
+    return `${limitedModelName} is temporarily rate limited. Retrying automatically with ${nextModelName}...`;
+};
+
+const getLocalizedFreeModelFailureMessage = (limitedModelName) => {
+    if (currentLang === 'fr') {
+        return `${limitedModelName} est temporairement limite et aucun autre modele sain n'est disponible pour reprendre la requete.`;
+    }
+    if (currentLang === 'de') {
+        return `${limitedModelName} ist voruebergehend limitiert und es ist kein weiterer gesunder Ersatz verfuegbar.`;
+    }
+    if (currentLang === 'zh') {
+        return `${limitedModelName} 当前临时限流，且没有可立即接管的健康模型。`;
+    }
+    return `${limitedModelName} is temporarily rate limited and no other healthy model is available to take over.`;
+};
+
+const getLocalizedRecoveredAfterRetryMessage = (limitedModelName, resolvedModelName) => {
+    if (currentLang === 'fr') {
+        return `${limitedModelName} a ete ignore automatiquement. Requete finalisee avec ${resolvedModelName}.`;
+    }
+    if (currentLang === 'de') {
+        return `${limitedModelName} wurde automatisch uebersprungen. Anfrage mit ${resolvedModelName} abgeschlossen.`;
+    }
+    if (currentLang === 'zh') {
+        return `已自动跳过 ${limitedModelName}，请求已通过 ${resolvedModelName} 完成。`;
+    }
+    return `${limitedModelName} was skipped automatically. The request completed with ${resolvedModelName}.`;
+};
+
+const getLocalizedGlobalLimitNote = () => {
+    if (currentLang === 'fr') return 'Limite globale OpenRouter atteinte. Le reroutage automatique est suspendu jusqu au reset du quota.';
+    if (currentLang === 'de') return 'Globales OpenRouter-Limit erreicht. Automatisches Rerouting ist bis zum Reset pausiert.';
+    if (currentLang === 'zh') return 'OpenRouter 全局额度已触发限制，自动切换已暂停，需等待额度重置。';
+    return 'The global OpenRouter quota is exhausted. Automatic rerouting is paused until the quota resets.';
+};
+
+const renderModelFallbackNote = () => {
+    if (!modelFallbackNoteEl) {
+        return;
+    }
+
+    const ui = (i18n[currentLang] || i18n.en).ui;
+    const tone = activeModelFallbackNotice?.tone || 'default';
+
+    modelFallbackNoteEl.textContent = activeModelFallbackNotice?.message || ui.modelFallbackNote;
+    modelFallbackNoteEl.classList.toggle('text-amber-300', tone === 'warning');
+    modelFallbackNoteEl.classList.toggle('text-red-300', tone === 'error');
+    modelFallbackNoteEl.classList.toggle('text-emerald-300', tone === 'success');
+    modelFallbackNoteEl.classList.toggle('text-foreground-muted', tone === 'default');
+};
+
+const setModelFallbackNotice = (message = null, tone = 'default') => {
+    activeModelFallbackNotice = message ? { message, tone } : null;
+    renderModelFallbackNote();
+};
+
 const renderOpenRouterKeyStatus = () => {
     if (!openRouterKeyStatusEl) {
         return;
@@ -544,9 +612,7 @@ const updateLanguageUI = () => {
     document.getElementById('ui-issuesTitle').textContent = ui.issuesTitle;
     document.getElementById('ui-optimizedVersion').textContent = ui.optimizedVersion;
     document.getElementById('ui-footer').innerHTML = ui.footer;
-    if (modelFallbackNoteEl) {
-        modelFallbackNoteEl.textContent = ui.modelFallbackNote;
-    }
+    renderModelFallbackNote();
     setRefreshModelCatalogButtonState(isRefreshingModelCatalog);
     renderModelCatalogMeta();
     renderOpenRouterKeyStatus();
@@ -1195,6 +1261,13 @@ const getModelNameById = (modelId) => {
     const entry = Object.values(API_MODELS).find((model) => model.id === modelId);
     return entry?.name || modelId;
 };
+const createRuntimeRetryError = (message, originalError = null) => {
+    const nextError = new Error(message);
+    nextError.status = originalError?.status;
+    nextError.responseText = originalError?.responseText || '';
+    nextError.originalError = originalError || null;
+    return nextError;
+};
 
 const syncSelectorFromModelId = (modelId) => {
     const key = getModelKeyById(modelId);
@@ -1576,30 +1649,47 @@ const handleAIRewrite = async () => {
             throw new Error('No API model selected for OpenRouter');
         }
 
-        const candidateModelIds = getFallbackModelIds(currentModelPath);
-        const improved = await improvePromptWithOpenRouter(
-            prompt,
-            candidateModelIds,
-            (chunk) => {
-                if (chunk) improvedPromptEl.textContent = chunk;
-            },
-            heuristics,
-            rewriteAbortController?.signal
-        );
+        setModelFallbackNotice(null);
+        const { response: improved, reroutedFromModelId } = await executeWithModelRecovery({
+            primaryModelId: currentModelPath,
+            executeRequest: (candidateModelIds) => improvePromptWithOpenRouter(
+                prompt,
+                candidateModelIds,
+                (chunk) => {
+                    if (chunk) improvedPromptEl.textContent = chunk;
+                },
+                heuristics,
+                rewriteAbortController?.signal
+            ),
+            onRetrying: (message) => {
+                improvedPromptEl.textContent = message;
+            }
+        });
 
-        const resolvedModelId = improved?.modelId || candidateModelIds[0] || currentModelPath;
+        const resolvedModelId = improved?.modelId || getFallbackModelIds(currentModelPath)[0] || currentModelPath;
         handleModelRuntimeOutcome(resolvedModelId, null);
         currentModelPath = resolvedModelId;
         isUsingOpenRouter = true;
         syncSelectorFromModelId(resolvedModelId);
+        if (reroutedFromModelId && reroutedFromModelId !== resolvedModelId) {
+            setModelFallbackNotice(
+                getLocalizedRecoveredAfterRetryMessage(getModelNameById(reroutedFromModelId), getModelNameById(resolvedModelId)),
+                'success'
+            );
+        } else {
+            setModelFallbackNotice(null);
+        }
         improvedPromptEl.textContent = formatModelOutput(improved?.content || '');
         setWorkflowStep('export');
     } catch (err) {
         if (err?.name === 'AbortError') {
             improvedPromptEl.textContent = 'Generation stopped.';
         } else {
-            handleModelRuntimeOutcome(currentModelPath, err);
-            improvedPromptEl.textContent = ui.rewriteFailed;
+            const classification = classifyOpenRouterError(err);
+            if (!classification.isRateLimit) {
+                handleModelRuntimeOutcome(currentModelPath, err);
+            }
+            improvedPromptEl.textContent = err?.message || ui.rewriteFailed;
         }
     } finally {
         isRewriteGenerating = false;
@@ -1668,28 +1758,45 @@ const handleExecutePrompt = async () => {
             throw new Error('No API model selected for OpenRouter');
         }
 
-        const candidateModelIds = getFallbackModelIds(currentModelPath);
-        const modelOutput = await executePromptWithOpenRouter(
-            prompt,
-            candidateModelIds,
-            (chunk) => {
-                if (chunk) improvedPromptEl.textContent = formatModelOutput(chunk);
-            },
-            executeAbortController?.signal
-        );
+        setModelFallbackNotice(null);
+        const { response: modelOutput, reroutedFromModelId } = await executeWithModelRecovery({
+            primaryModelId: currentModelPath,
+            executeRequest: (candidateModelIds) => executePromptWithOpenRouter(
+                prompt,
+                candidateModelIds,
+                (chunk) => {
+                    if (chunk) improvedPromptEl.textContent = formatModelOutput(chunk);
+                },
+                executeAbortController?.signal
+            ),
+            onRetrying: (message) => {
+                improvedPromptEl.textContent = message;
+            }
+        });
 
-        const resolvedModelId = modelOutput?.modelId || candidateModelIds[0] || currentModelPath;
+        const resolvedModelId = modelOutput?.modelId || getFallbackModelIds(currentModelPath)[0] || currentModelPath;
         handleModelRuntimeOutcome(resolvedModelId, null);
         currentModelPath = resolvedModelId;
         isUsingOpenRouter = true;
         syncSelectorFromModelId(resolvedModelId);
+        if (reroutedFromModelId && reroutedFromModelId !== resolvedModelId) {
+            setModelFallbackNotice(
+                getLocalizedRecoveredAfterRetryMessage(getModelNameById(reroutedFromModelId), getModelNameById(resolvedModelId)),
+                'success'
+            );
+        } else {
+            setModelFallbackNotice(null);
+        }
         improvedPromptEl.textContent = formatModelOutput(modelOutput?.content || '');
         setWorkflowStep('export');
     } catch (err) {
         if (err?.name === 'AbortError') {
             improvedPromptEl.textContent = 'Generation stopped.';
         } else {
-            handleModelRuntimeOutcome(currentModelPath, err);
+            const classification = classifyOpenRouterError(err);
+            if (!classification.isRateLimit) {
+                handleModelRuntimeOutcome(currentModelPath, err);
+            }
             improvedPromptEl.textContent = `Execution failed: ${err?.message || 'Unknown error'}`;
         }
     } finally {
@@ -1739,35 +1846,106 @@ const handleExport = (format) => {
     a.download = `optimized-prompt.${format}`;
     a.click();
     URL.revokeObjectURL(url);
+    const buildOrderedCandidateModelIds = (primaryModelId) => {
+        const allEntries = Object.entries(API_MODELS);
+        const allIds = allEntries.map(([_, model]) => model.id);
+        const recommendedIds = allEntries
+            .filter(([_, model]) => model.recommended && model.id !== primaryModelId)
+            .map(([_, model]) => model.id);
+
+        const orderedPriorityIds = FALLBACK_PRIORITY_IDS
+            .filter((id) => allIds.includes(id) && id !== primaryModelId);
+
+        const remainingIds = allIds.filter((id) => id !== primaryModelId);
+        const lowPriorityIds = remainingIds.filter((id) => isLowPriorityFallback(id));
+        const standardIds = remainingIds.filter((id) => !isLowPriorityFallback(id));
+
+        return Array.from(new Set([
+            primaryModelId,
+            ...recommendedIds,
+            ...orderedPriorityIds,
+            ...standardIds,
+            ...lowPriorityIds
+        ]));
+    };
 };
 
-/**
- * Event Listeners
- */
-let debounceTimer;
-promptInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        handleAnalysis();
-    }, 400); // 400ms debounce
-});
-
-if (analyzeBtn) {
-    analyzeBtn.addEventListener('click', handleAnalysis);
-}
-generateAIBtn.addEventListener('click', handleAIRewrite);
-if (executePromptBtn) {
-    executePromptBtn.addEventListener('click', handleExecutePrompt);
-}
-copyBtn.addEventListener('click', handleCopyPrompt);
-exportTxtBtn.addEventListener('click', () => handleExport('txt'));
-exportMdBtn.addEventListener('click', () => handleExport('md'));
+        const orderedIds = buildOrderedCandidateModelIds(primaryModelId);
 
 const marketingSamplePrompt = 'You are a B2B growth strategist. Create a 90-day go-to-market plan for a SaaS startup targeting HR teams. Return a week-by-week plan in a markdown table with goals, channels, KPIs, and risks. Constraints: budget under $15,000, focus on organic + outbound, maximum 350 words.';
 const codingSamplePrompt = 'You are a senior JavaScript engineer. Refactor the function below for readability and performance, then provide unit tests. Return 1) improved code, 2) test cases, 3) explanation. Constraints: keep same behavior, avoid external libraries, include edge cases.';
 const seoSamplePrompt = 'You are a senior SEO consultant. Build a 3-month SEO action plan for a B2B SaaS website in France. Return: 1) 10 target keywords (intent + difficulty + page type), 2) on-page fixes (title, H1/H2, meta), 3) technical priorities, 4) weekly KPI dashboard. Constraints: practical, business-focused, no fluff.';
 const salesSamplePrompt = 'You are an enterprise sales strategist. Write a cold outreach sequence for selling an AI productivity SaaS to Head of Product personas. Return 1) 3 email drafts, 2) 2 LinkedIn messages, 3) objection handling script, 4) CTA variations. Constraints: concise, human tone, max 120 words per email.';
 const supportSamplePrompt = 'You are a customer support operations lead. Create a response playbook for handling AI tool onboarding tickets. Return: triage categories, SLA targets, 8 response templates, escalation rules, and quality checklist. Constraints: clear markdown table, professional tone, globally applicable.';
+    const executeWithModelRecovery = async ({
+        primaryModelId,
+        executeRequest,
+        onRetrying = null
+    }) => {
+        const orderedIds = buildOrderedCandidateModelIds(primaryModelId);
+        const runtimeBlockedIds = new Set();
+        let reroutedFromModelId = null;
+        let lastError = null;
+
+        while (true) {
+            const candidateModelIds = orderedIds
+                .filter((id) => !runtimeBlockedIds.has(id) && !isModelBlocked(id))
+                .slice(0, MAX_FALLBACK_MODEL_IDS);
+
+            if (candidateModelIds.length === 0) {
+                throw lastError || new Error(getLocalizedFreeModelFailureMessage(getModelNameById(primaryModelId)));
+            }
+
+            try {
+                const response = await executeRequest(candidateModelIds);
+                return {
+                    response,
+                    reroutedFromModelId
+                };
+            } catch (error) {
+                if (error?.name === 'AbortError') {
+                    throw error;
+                }
+
+                lastError = error;
+                const classification = classifyOpenRouterError(error);
+
+                if (!classification.isRateLimit) {
+                    throw error;
+                }
+
+                const keyStatus = await refreshOpenRouterKeyStatus(true);
+                if (keyStatus?.status === 'limited') {
+                    setModelFallbackNotice(getLocalizedGlobalLimitNote(), 'error');
+                    throw createRuntimeRetryError(getLocalizedOpenRouterLimitExceededMessage(), error);
+                }
+
+                const blockedModelId = classification.rateLimitedModelId || candidateModelIds[0];
+                reroutedFromModelId = reroutedFromModelId || blockedModelId;
+                handleModelRuntimeOutcome(blockedModelId, error);
+                runtimeBlockedIds.add(blockedModelId);
+
+                const nextCandidateIds = orderedIds
+                    .filter((id) => !runtimeBlockedIds.has(id) && !isModelBlocked(id))
+                    .slice(0, MAX_FALLBACK_MODEL_IDS);
+
+                if (nextCandidateIds.length === 0) {
+                    const limitedModelName = getModelNameById(blockedModelId);
+                    const failureMessage = getLocalizedFreeModelFailureMessage(limitedModelName);
+                    setModelFallbackNotice(failureMessage, 'error');
+                    throw createRuntimeRetryError(failureMessage, error);
+                }
+
+                const limitedModelName = getModelNameById(blockedModelId);
+                const nextModelName = getModelNameById(nextCandidateIds[0]);
+                const retryMessage = getLocalizedFreeModelRetryMessage(limitedModelName, nextModelName);
+                setModelFallbackNotice(retryMessage, 'warning');
+                if (typeof onRetrying === 'function') {
+                    onRetrying(retryMessage);
+                }
+            }
+        }
+    };
 const productSamplePrompt = 'You are a senior product manager. Draft a PRD outline for a Prompt Quality Scoring feature in a SaaS app. Include problem statement, target users, jobs-to-be-done, scope, non-goals, UX flows, success metrics, and rollout plan. Constraints: crisp bullets, no generic statements.';
 
 if (heroTryExampleBtn) {

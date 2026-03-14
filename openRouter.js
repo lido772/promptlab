@@ -55,6 +55,96 @@ const wrapOpenRouterError = (error) => {
     return wrapped;
 };
 
+const tryParseJson = (value) => {
+    if (typeof value !== 'string' || !value.trim()) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(value);
+    } catch {
+        return null;
+    }
+};
+
+const extractJsonSubstring = (value) => {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const start = value.indexOf('{');
+    const end = value.lastIndexOf('}');
+    if (start === -1 || end === -1 || end <= start) {
+        return null;
+    }
+
+    return value.slice(start, end + 1);
+};
+
+const parseOpenRouterErrorPayload = (value) => {
+    const direct = tryParseJson(value);
+    if (direct) {
+        return direct;
+    }
+
+    const extracted = extractJsonSubstring(value);
+    if (!extracted) {
+        return null;
+    }
+
+    return tryParseJson(extracted);
+};
+
+const inferRateLimitedModelId = (...sources) => {
+    for (const source of sources) {
+        if (typeof source !== 'string' || !source) {
+            continue;
+        }
+
+        const match = source.match(/([a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._:-]*)/i);
+        if (match?.[1]) {
+            return match[1];
+        }
+    }
+
+    return null;
+};
+
+export const classifyOpenRouterError = (error) => {
+    const parsedPayload = parseOpenRouterErrorPayload(error?.responseText)
+        || parseOpenRouterErrorPayload(error?.message)
+        || null;
+
+    const payloadError = parsedPayload?.error;
+    const errorObject = (payloadError && typeof payloadError === 'object')
+        ? payloadError
+        : (parsedPayload && typeof parsedPayload === 'object' ? parsedPayload : null);
+    const payloadMessage = typeof payloadError === 'string'
+        ? payloadError
+        : errorObject?.message || '';
+    const metadataRaw = errorObject?.metadata?.raw || '';
+    const combinedDetails = [metadataRaw, payloadMessage, error?.responseText, error?.message]
+        .filter((value) => typeof value === 'string' && value)
+        .join(' ');
+
+    const status = error?.status || errorObject?.code || null;
+    const isRateLimit = status === 429
+        || /\b429\b|rate[- ]?limit|temporarily rate-limited|too many requests/i.test(combinedDetails);
+    const rateLimitedModelId = inferRateLimitedModelId(metadataRaw, payloadMessage, error?.responseText, error?.message);
+
+    return {
+        status,
+        isRateLimit,
+        scope: isRateLimit ? (rateLimitedModelId ? 'model' : 'global') : 'unknown',
+        rateLimitedModelId,
+        providerMessage: payloadMessage,
+        rawMessage: metadataRaw,
+        responseText: error?.responseText || '',
+        parsedPayload,
+        message: error?.message || payloadMessage || 'OpenRouter request failed'
+    };
+};
+
 const createOpenRouterRequestContext = () => {
     const endpoint = USE_WORKER ? WORKER_URL : API_BASE;
     const headers = {
