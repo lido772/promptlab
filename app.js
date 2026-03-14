@@ -109,6 +109,9 @@ const KEY_STATUS_REFRESH_MS = 60 * 1000;
 const STREAM_FRAME_MIN_CHARS = 2;
 const STREAM_FRAME_MAX_CHARS = 26;
 const STREAM_BACKLOG_DIVISOR = 24;
+const STREAM_EASE_EXPONENT = 0.7;
+const STREAM_PUNCTUATION_PAUSE_MS = 70;
+const STREAM_LINE_BREAK_PAUSE_MS = 110;
 const MODEL_STATUS_TTLS = {
     available: 15 * 60 * 1000,
     rate_limited: 4 * 60 * 1000,
@@ -120,7 +123,9 @@ const streamingRenderState = {
     targetText: '',
     renderedLength: 0,
     rafId: null,
-    lastTimestamp: 0
+    lastTimestamp: 0,
+    fractionalCarry: 0,
+    pauseUntil: 0
 };
 
 const SCORE_BREAKDOWN_DESCRIPTIONS = {
@@ -300,6 +305,8 @@ const stopImprovedPromptStreaming = (finalText = null) => {
     streamingRenderState.renderedLength = 0;
     streamingRenderState.rafId = null;
     streamingRenderState.lastTimestamp = 0;
+    streamingRenderState.fractionalCarry = 0;
+    streamingRenderState.pauseUntil = 0;
 
     if (!improvedPromptEl) {
         return;
@@ -314,11 +321,40 @@ const stopImprovedPromptStreaming = (finalText = null) => {
     }
 };
 
+const getStreamingPauseDuration = (text, nextLength) => {
+    const renderedText = text.slice(0, nextLength);
+    if (renderedText.endsWith('\n\n')) {
+        return STREAM_LINE_BREAK_PAUSE_MS;
+    }
+
+    const trailingChar = renderedText.trimEnd().slice(-1);
+    if (!trailingChar) {
+        return 0;
+    }
+
+    if (/[.!?;:]/.test(trailingChar)) {
+        return STREAM_PUNCTUATION_PAUSE_MS;
+    }
+
+    if (trailingChar === ',') {
+        return Math.round(STREAM_PUNCTUATION_PAUSE_MS * 0.65);
+    }
+
+    return 0;
+};
+
 const renderImprovedPromptStreamFrame = (timestamp) => {
+    if (streamingRenderState.pauseUntil > timestamp) {
+        streamingRenderState.rafId = window.requestAnimationFrame(renderImprovedPromptStreamFrame);
+        return;
+    }
+
     const backlog = streamingRenderState.targetText.length - streamingRenderState.renderedLength;
     if (backlog <= 0) {
         streamingRenderState.rafId = null;
         streamingRenderState.lastTimestamp = 0;
+        streamingRenderState.fractionalCarry = 0;
+        streamingRenderState.pauseUntil = 0;
         return;
     }
 
@@ -326,17 +362,28 @@ const renderImprovedPromptStreamFrame = (timestamp) => {
     streamingRenderState.lastTimestamp = timestamp;
 
     const frameMultiplier = Math.max(1, Math.round(elapsed / 16));
-    const charsPerFrame = Math.min(
+    const backlogPressure = Math.min(1, backlog / 160);
+    const easedPressure = 0.42 + (Math.pow(backlogPressure, STREAM_EASE_EXPONENT) * 1.78);
+    const rawCharsPerFrame = Math.min(
         STREAM_FRAME_MAX_CHARS,
-        Math.max(STREAM_FRAME_MIN_CHARS * frameMultiplier, Math.ceil(backlog / STREAM_BACKLOG_DIVISOR))
-    );
+        Math.max(
+            STREAM_FRAME_MIN_CHARS * frameMultiplier,
+            (backlog / STREAM_BACKLOG_DIVISOR) * easedPressure
+        )
+    ) + streamingRenderState.fractionalCarry;
+    const charsPerFrame = Math.max(STREAM_FRAME_MIN_CHARS, Math.floor(rawCharsPerFrame));
+    streamingRenderState.fractionalCarry = rawCharsPerFrame - charsPerFrame;
 
-    streamingRenderState.renderedLength += Math.min(backlog, charsPerFrame);
+    const nextLength = streamingRenderState.renderedLength + Math.min(backlog, charsPerFrame);
+    streamingRenderState.renderedLength = nextLength;
 
     if (improvedPromptEl) {
         improvedPromptEl.textContent = streamingRenderState.targetText.slice(0, streamingRenderState.renderedLength);
         syncImprovedPromptScroll();
     }
+
+    const pauseDuration = getStreamingPauseDuration(streamingRenderState.targetText, nextLength);
+    streamingRenderState.pauseUntil = pauseDuration > 0 ? timestamp + pauseDuration : 0;
 
     streamingRenderState.rafId = window.requestAnimationFrame(renderImprovedPromptStreamFrame);
 };
@@ -361,6 +408,8 @@ const queueImprovedPromptStreaming = (nextText) => {
         streamingRenderState.targetText = '';
         streamingRenderState.renderedLength = 0;
         streamingRenderState.lastTimestamp = 0;
+        streamingRenderState.fractionalCarry = 0;
+        streamingRenderState.pauseUntil = 0;
         improvedPromptEl.textContent = '';
         improvedPromptEl.classList.add('streaming-active');
         improvedPromptEl.setAttribute('aria-busy', 'true');
@@ -368,6 +417,8 @@ const queueImprovedPromptStreaming = (nextText) => {
 
     if (resolvedText.length < streamingRenderState.renderedLength) {
         streamingRenderState.renderedLength = 0;
+        streamingRenderState.fractionalCarry = 0;
+        streamingRenderState.pauseUntil = 0;
         improvedPromptEl.textContent = '';
     }
 
