@@ -91,6 +91,7 @@ const THEME_STORAGE_KEY = 'promptup-theme';
 const LANGUAGE_STORAGE_KEY = 'promptup-lang';
 const MODEL_AVAILABILITY_STORAGE_KEY = 'promptup-model-availability-v1';
 const SUPPORTED_LANGS = ['fr', 'en', 'de', 'zh'];
+const MODEL_PROBE_CONCURRENCY = 3;
 const MODEL_STATUS_TTLS = {
     available: 15 * 60 * 1000,
     rate_limited: 4 * 60 * 1000,
@@ -572,37 +573,49 @@ const refreshModelAvailabilityInBackground = async () => {
     isRefreshingModelAvailability = true;
 
     try {
-        for (const model of Object.values(API_MODELS)) {
+        const staleModels = Object.values(API_MODELS).filter((model) => {
             const existing = getModelAvailabilityRecord(model.id);
-            if (isAvailabilityRecordFresh(existing)) {
-                continue;
-            }
+            return !isAvailabilityRecordFresh(existing);
+        });
 
+        if (staleModels.length === 0) {
+            return;
+        }
+
+        staleModels.forEach((model) => {
             modelAvailability.set(model.id, {
                 status: 'checking',
                 reason: '',
                 checkedAt: Date.now()
             });
-            refreshModelSelectorUI(getModelKeyById(currentModelPath));
+        });
+        refreshModelSelectorUI(getModelKeyById(currentModelPath));
 
-            const controller = new AbortController();
-            const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+        let nextIndex = 0;
+        const workerCount = Math.max(1, Math.min(MODEL_PROBE_CONCURRENCY, staleModels.length));
 
-            try {
-                const result = await probeOpenRouterModel(model.id, controller.signal);
-                setModelAvailability(model.id, result.status, result.reason || '');
-            } catch (error) {
-                if (error?.name === 'AbortError') {
-                    setModelAvailability(model.id, 'unavailable', 'Probe timed out');
-                } else {
-                    setModelAvailability(model.id, 'unavailable', error?.message || 'Probe failed');
+        await Promise.allSettled(Array.from({ length: workerCount }, async () => {
+            while (nextIndex < staleModels.length) {
+                const model = staleModels[nextIndex];
+                nextIndex += 1;
+
+                const controller = new AbortController();
+                const timeoutId = window.setTimeout(() => controller.abort(), 8000);
+
+                try {
+                    const result = await probeOpenRouterModel(model.id, controller.signal);
+                    setModelAvailability(model.id, result.status, result.reason || '');
+                } catch (error) {
+                    if (error?.name === 'AbortError') {
+                        setModelAvailability(model.id, 'unavailable', 'Probe timed out');
+                    } else {
+                        setModelAvailability(model.id, 'unavailable', error?.message || 'Probe failed');
+                    }
+                } finally {
+                    window.clearTimeout(timeoutId);
                 }
-            } finally {
-                window.clearTimeout(timeoutId);
             }
-
-            await new Promise((resolve) => window.setTimeout(resolve, 250));
-        }
+        }));
     } finally {
         isRefreshingModelAvailability = false;
     }
