@@ -18,14 +18,15 @@ const USE_WORKER = !API_KEY || import.meta.env.PROD;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries = 2) => {
+const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries = 2, signal = null) => {
     let lastError = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers,
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(requestBody),
+            signal
         });
 
         if (response.ok) {
@@ -160,7 +161,7 @@ export const OPENROUTER_MODELS = {
  * @param {Function} onStream - Optional streaming callback
  * @returns {Promise<string>} Improved prompt
  */
-export const improvePromptWithOpenRouter = async (prompt, modelId, onStream = null, heuristics = null) => {
+export const improvePromptWithOpenRouter = async (prompt, modelId, onStream = null, heuristics = null, signal = null) => {
     let targetingHint = '';
     if (heuristics && Array.isArray(heuristics.issues) && heuristics.issues.length > 0) {
         targetingHint = `\n7. Specifically address these weaknesses: ${heuristics.issues.join('; ')}`;
@@ -210,7 +211,7 @@ Follow these rules:
         let fullResponse = '';
 
         try {
-            const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
+            const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 2, signal);
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
@@ -248,7 +249,7 @@ Follow these rules:
     } else {
         // Non-streaming implementation
         try {
-            const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
+            const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 2, signal);
 
             const data = await response.json();
             if (data?.error) {

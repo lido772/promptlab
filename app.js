@@ -75,6 +75,8 @@ const scoreBreakdownListEl = document.getElementById('score-breakdown-list');
 let currentLang = 'fr';
 let currentModelPath = null;
 let isUsingOpenRouter = false;
+let isRewriteGenerating = false;
+let rewriteAbortController = null;
 
 const API_MODELS = {
     ...OPENROUTER
@@ -243,6 +245,28 @@ const formatModelOutput = (rawText) => {
         .trim();
 };
 
+const setGenerateButtonState = (isGenerating, ui) => {
+    if (!generateAIBtn) return;
+
+    if (isGenerating) {
+        generateAIBtn.disabled = false;
+        generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        generateAIBtn.textContent = 'Stop generating';
+        return;
+    }
+
+    if (!isUsingOpenRouter || !currentModelPath) {
+        generateAIBtn.disabled = true;
+        generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        generateAIBtn.textContent = ui.generateBtn;
+        return;
+    }
+
+    generateAIBtn.disabled = false;
+    generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    generateAIBtn.textContent = ui.generateBtn;
+};
+
 /**
  * Update UI Text based on current language
  */
@@ -278,15 +302,17 @@ const updateLanguageUI = () => {
 
     if (!isUsingOpenRouter || !currentModelPath) {
         improvedPromptEl.textContent = ui.waitingModel;
-        generateAIBtn.disabled = true;
-        generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        if (!isRewriteGenerating) {
+            setGenerateButtonState(false, ui);
+        }
         if (executePromptBtn) {
             executePromptBtn.disabled = true;
             executePromptBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
     } else {
-        generateAIBtn.disabled = false;
-        generateAIBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (!isRewriteGenerating) {
+            setGenerateButtonState(false, ui);
+        }
         if (executePromptBtn) {
             executePromptBtn.disabled = false;
             executePromptBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -746,6 +772,19 @@ const applySamplePrompt = (samplePrompt) => {
  * Handle AI Rewriting
  */
 const handleAIRewrite = async () => {
+    const ui = (i18n[currentLang] || i18n.en).ui;
+
+    if (isRewriteGenerating) {
+        if (rewriteAbortController) {
+            rewriteAbortController.abort();
+        }
+        isRewriteGenerating = false;
+        rewriteAbortController = null;
+        improvedPromptEl.textContent = 'Generation stopped.';
+        setGenerateButtonState(false, ui);
+        return;
+    }
+
     const prompt = promptInput.value.trim();
     if (!prompt) return;
 
@@ -763,10 +802,10 @@ const handleAIRewrite = async () => {
         window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
     }
 
-    const ui = (i18n[currentLang] || i18n.en).ui;
     setWorkflowStep('improve');
-    generateAIBtn.disabled = true;
-    generateAIBtn.textContent = ui.generating;
+    isRewriteGenerating = true;
+    rewriteAbortController = new AbortController();
+    setGenerateButtonState(true, ui);
     improvedPromptEl.textContent = ui.analyzing;
 
     try {
@@ -794,7 +833,8 @@ const handleAIRewrite = async () => {
                     (chunk) => {
                         if (chunk) improvedPromptEl.textContent = chunk;
                     },
-                    heuristics
+                    heuristics,
+                    rewriteAbortController?.signal
                 );
 
                 currentModelPath = modelId;
@@ -802,6 +842,9 @@ const handleAIRewrite = async () => {
                 syncSelectorFromModelId(modelId);
                 break;
             } catch (error) {
+                if (error?.name === 'AbortError') {
+                    throw error;
+                }
                 lastError = error;
             }
         }
@@ -812,12 +855,16 @@ const handleAIRewrite = async () => {
 
         improvedPromptEl.textContent = formatModelOutput(improved);
         setWorkflowStep('export');
-        generateAIBtn.textContent = ui.generateBtn;
-        generateAIBtn.disabled = false;
     } catch (err) {
-        improvedPromptEl.textContent = ui.rewriteFailed;
-        generateAIBtn.textContent = ui.generateBtn;
-        generateAIBtn.disabled = false;
+        if (err?.name === 'AbortError') {
+            improvedPromptEl.textContent = 'Generation stopped.';
+        } else {
+            improvedPromptEl.textContent = ui.rewriteFailed;
+        }
+    } finally {
+        isRewriteGenerating = false;
+        rewriteAbortController = null;
+        setGenerateButtonState(false, ui);
     }
 };
 
