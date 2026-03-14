@@ -5,9 +5,13 @@
 
 import { analyzePromptHeuristics } from './promptAnalyzer.js';
 import { OPENROUTER } from './modelSelector.js';
+import { clearOpenRouterModelsCache } from './openRouter.js';
+import { getOpenRouterModelsCacheInfo } from './openRouter.js';
 import { improvePromptWithOpenRouter } from './openRouter.js';
 import { executePromptWithOpenRouter } from './openRouter.js';
+import { getAvailableModels } from './openRouter.js';
 import { generatePromptExamplesWithOpenRouter } from './openRouter.js';
+import { getOpenRouterKeyStatus } from './openRouter.js';
 import { probeOpenRouterModel } from './openRouter.js';
 import { i18n } from './i18n.js';
 
@@ -45,9 +49,12 @@ const exportMdBtn = document.getElementById('export-md-btn');
 // Model Selector UI
 const generateAIBtn = document.getElementById('generate-ai-btn');
 const openRouterModelSelectorEl = document.getElementById('openrouter-model-selector');
+const refreshModelCatalogBtn = document.getElementById('refresh-model-catalog-btn');
+const modelCatalogMetaEl = document.getElementById('model-catalog-meta');
 const modelInfoTriggerEl = document.getElementById('model-info-trigger');
 const modelInfoTextEl = document.getElementById('model-info-text');
 const modelFallbackNoteEl = document.getElementById('model-fallback-note');
+const openRouterKeyStatusEl = document.getElementById('openrouter-key-status');
 const aiExamplesStatusEl = document.getElementById('ai-examples-status');
 const aiExamplesListEl = document.getElementById('ai-examples-list');
 const donationAmountEl = document.getElementById('donation-amount');
@@ -82,6 +89,9 @@ let isExecuteGenerating = false;
 let executeAbortController = null;
 const modelAvailability = new Map();
 let isRefreshingModelAvailability = false;
+let openRouterKeyStatus = null;
+let isRefreshingOpenRouterKeyStatus = false;
+let isRefreshingModelCatalog = false;
 
 const API_MODELS = {
     ...OPENROUTER
@@ -92,6 +102,8 @@ const LANGUAGE_STORAGE_KEY = 'promptup-lang';
 const MODEL_AVAILABILITY_STORAGE_KEY = 'promptup-model-availability-v1';
 const SUPPORTED_LANGS = ['fr', 'en', 'de', 'zh'];
 const MODEL_PROBE_CONCURRENCY = 3;
+const MAX_BACKGROUND_MODEL_PROBES = 12;
+const KEY_STATUS_REFRESH_MS = 60 * 1000;
 const MODEL_STATUS_TTLS = {
     available: 15 * 60 * 1000,
     rate_limited: 4 * 60 * 1000,
@@ -257,6 +269,205 @@ const formatModelOutput = (rawText) => {
         .trim();
 };
 
+const formatCreditAmount = (value) => {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+        return null;
+    }
+
+    if (Math.abs(value) >= 100) {
+        return Math.round(value).toString();
+    }
+
+    if (Math.abs(value) >= 10) {
+        return value.toFixed(1);
+    }
+
+    return value.toFixed(2);
+};
+
+const formatOpenRouterResetTime = (value) => {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    try {
+        return new Intl.DateTimeFormat(currentLang === 'zh' ? 'zh-CN' : currentLang, {
+            dateStyle: 'short',
+            timeStyle: 'short'
+        }).format(date);
+    } catch {
+        return date.toLocaleString();
+    }
+};
+
+const isOpenRouterKeyLimited = () => openRouterKeyStatus?.status === 'limited';
+
+const getLocalizedOpenRouterKeyStatusText = () => {
+    const remaining = formatCreditAmount(openRouterKeyStatus?.limitRemaining);
+    const dailyUsage = formatCreditAmount(openRouterKeyStatus?.usageDaily);
+    const limitReset = formatOpenRouterResetTime(openRouterKeyStatus?.limitReset);
+
+    if (currentLang === 'fr') {
+        if (!openRouterKeyStatus || openRouterKeyStatus.status === 'checking') return 'Vérification des limites OpenRouter...';
+        if (openRouterKeyStatus.status === 'limited') {
+            return [
+                'Cle OpenRouter limitee. Reessayez plus tard.',
+                dailyUsage !== null ? `Usage jour: ${dailyUsage}` : null,
+                limitReset ? `Reset: ${limitReset}` : null
+            ].filter(Boolean).join(' • ');
+        }
+        if (openRouterKeyStatus.status === 'error') return 'Impossible de vérifier la limite OpenRouter pour le moment.';
+        return [
+            remaining !== null ? `Credits restants: ${remaining}` : 'Cle OpenRouter active. Quota disponible.',
+            dailyUsage !== null ? `Usage jour: ${dailyUsage}` : null,
+            limitReset ? `Reset: ${limitReset}` : null
+        ].filter(Boolean).join(' • ');
+    }
+
+    if (currentLang === 'de') {
+        if (!openRouterKeyStatus || openRouterKeyStatus.status === 'checking') return 'OpenRouter-Limits werden geprüft...';
+        if (openRouterKeyStatus.status === 'limited') {
+            return [
+                'OpenRouter-Schluessel ist limitiert. Bitte spaeter erneut versuchen.',
+                dailyUsage !== null ? `Tagesnutzung: ${dailyUsage}` : null,
+                limitReset ? `Reset: ${limitReset}` : null
+            ].filter(Boolean).join(' • ');
+        }
+        if (openRouterKeyStatus.status === 'error') return 'OpenRouter-Limit konnte gerade nicht geprüft werden.';
+        return [
+            remaining !== null ? `Verbleibende Credits: ${remaining}` : 'OpenRouter-Schluessel aktiv. Kontingent verfuegbar.',
+            dailyUsage !== null ? `Tagesnutzung: ${dailyUsage}` : null,
+            limitReset ? `Reset: ${limitReset}` : null
+        ].filter(Boolean).join(' • ');
+    }
+
+    if (currentLang === 'zh') {
+        if (!openRouterKeyStatus || openRouterKeyStatus.status === 'checking') return '正在检查 OpenRouter 限额...';
+        if (openRouterKeyStatus.status === 'limited') {
+            return [
+                'OpenRouter 密钥当前已达到限额，请稍后重试。',
+                dailyUsage !== null ? `今日用量：${dailyUsage}` : null,
+                limitReset ? `重置时间：${limitReset}` : null
+            ].filter(Boolean).join(' • ');
+        }
+        if (openRouterKeyStatus.status === 'error') return '暂时无法检查 OpenRouter 限额。';
+        return [
+            remaining !== null ? `OpenRouter 剩余额度：${remaining}` : 'OpenRouter 密钥可用，额度正常。',
+            dailyUsage !== null ? `今日用量：${dailyUsage}` : null,
+            limitReset ? `重置时间：${limitReset}` : null
+        ].filter(Boolean).join(' • ');
+    }
+
+    if (!openRouterKeyStatus || openRouterKeyStatus.status === 'checking') return 'Checking OpenRouter limits...';
+    if (openRouterKeyStatus.status === 'limited') {
+        return [
+            'OpenRouter key is rate limited. Try again later.',
+            dailyUsage !== null ? `Daily usage: ${dailyUsage}` : null,
+            limitReset ? `Reset: ${limitReset}` : null
+        ].filter(Boolean).join(' • ');
+    }
+    if (openRouterKeyStatus.status === 'error') return 'Unable to check OpenRouter limits right now.';
+    return [
+        remaining !== null ? `OpenRouter credits remaining: ${remaining}` : 'OpenRouter key is active. Quota available.',
+        dailyUsage !== null ? `Daily usage: ${dailyUsage}` : null,
+        limitReset ? `Reset: ${limitReset}` : null
+    ].filter(Boolean).join(' • ');
+};
+
+const getLocalizedOpenRouterLimitExceededMessage = () => {
+    if (currentLang === 'fr') return 'La clé OpenRouter a atteint sa limite actuelle. Réessayez plus tard.';
+    if (currentLang === 'de') return 'Der OpenRouter-Schlüssel hat sein aktuelles Limit erreicht. Bitte später erneut versuchen.';
+    if (currentLang === 'zh') return 'OpenRouter 密钥已达到当前限额，请稍后再试。';
+    return 'The OpenRouter key has reached its current limit. Try again later.';
+};
+
+const renderOpenRouterKeyStatus = () => {
+    if (!openRouterKeyStatusEl) {
+        return;
+    }
+
+    openRouterKeyStatusEl.textContent = getLocalizedOpenRouterKeyStatusText();
+    openRouterKeyStatusEl.classList.toggle('text-red-300', isOpenRouterKeyLimited());
+    openRouterKeyStatusEl.classList.toggle('text-foreground-muted', !isOpenRouterKeyLimited());
+};
+
+const setRefreshModelCatalogButtonState = (isRefreshing) => {
+    if (!refreshModelCatalogBtn) {
+        return;
+    }
+
+    const ui = (i18n[currentLang] || i18n.en).ui;
+    refreshModelCatalogBtn.disabled = isRefreshing;
+    refreshModelCatalogBtn.textContent = isRefreshing ? ui.refreshingModels : ui.refreshModelsBtn;
+};
+
+const refreshOpenRouterKeyStatus = async (force = false) => {
+    const isFresh = !force
+        && openRouterKeyStatus?.checkedAt
+        && (Date.now() - openRouterKeyStatus.checkedAt) < KEY_STATUS_REFRESH_MS;
+
+    if (isFresh) {
+        renderOpenRouterKeyStatus();
+        return openRouterKeyStatus;
+    }
+
+    if (isRefreshingOpenRouterKeyStatus) {
+        return openRouterKeyStatus;
+    }
+
+    isRefreshingOpenRouterKeyStatus = true;
+
+    if (!openRouterKeyStatus || force) {
+        openRouterKeyStatus = {
+            status: 'checking',
+            checkedAt: Date.now()
+        };
+        renderOpenRouterKeyStatus();
+    }
+
+    try {
+        const keyStatus = await getOpenRouterKeyStatus();
+        openRouterKeyStatus = {
+            ...keyStatus,
+            status: typeof keyStatus.limitRemaining === 'number' && keyStatus.limitRemaining <= 0
+                ? 'limited'
+                : 'available',
+            checkedAt: Date.now()
+        };
+    } catch (error) {
+        openRouterKeyStatus = {
+            status: error?.status === 429 ? 'limited' : 'error',
+            reason: error?.message || 'Unable to check OpenRouter limits',
+            checkedAt: Date.now()
+        };
+    } finally {
+        isRefreshingOpenRouterKeyStatus = false;
+        renderOpenRouterKeyStatus();
+    }
+
+    return openRouterKeyStatus;
+};
+
+const ensureOpenRouterKeyAvailable = async () => {
+    const keyStatus = await refreshOpenRouterKeyStatus();
+    return keyStatus?.status !== 'limited';
+};
+
+const refreshDynamicModelCatalog = async (forceRefresh = false) => {
+    const nextModels = await getAvailableModels(forceRefresh);
+    if (nextModels && Object.keys(nextModels).length > 0) {
+        replaceApiModels(nextModels);
+        loadModelAvailability();
+        renderModelCatalogMeta();
+    }
+    return nextModels;
+};
+
 const setGenerateButtonState = (isGenerating, ui) => {
     if (!generateAIBtn) return;
 
@@ -267,7 +478,7 @@ const setGenerateButtonState = (isGenerating, ui) => {
         return;
     }
 
-    if (!isUsingOpenRouter || !currentModelPath) {
+    if (!isUsingOpenRouter || !currentModelPath || isOpenRouterKeyLimited()) {
         generateAIBtn.disabled = true;
         generateAIBtn.classList.add('opacity-50', 'cursor-not-allowed');
         generateAIBtn.textContent = ui.generateBtn;
@@ -289,7 +500,7 @@ const setExecuteButtonState = (isGenerating) => {
         return;
     }
 
-    if (!isUsingOpenRouter || !currentModelPath) {
+    if (!isUsingOpenRouter || !currentModelPath || isOpenRouterKeyLimited()) {
         executePromptBtn.disabled = true;
         executePromptBtn.classList.add('opacity-50', 'cursor-not-allowed');
         executePromptBtn.textContent = 'Execute Prompt';
@@ -336,6 +547,9 @@ const updateLanguageUI = () => {
     if (modelFallbackNoteEl) {
         modelFallbackNoteEl.textContent = ui.modelFallbackNote;
     }
+    setRefreshModelCatalogButtonState(isRefreshingModelCatalog);
+    renderModelCatalogMeta();
+    renderOpenRouterKeyStatus();
 
     refreshModelSelectorUI(getModelKeyById(currentModelPath));
 
@@ -431,6 +645,126 @@ const getLocalizedModelStatusDetail = (status) => {
     return 'Status will refresh automatically.';
 };
 
+const getLocalizedModelFieldLabels = () => {
+    if (currentLang === 'fr') {
+        return {
+            slug: 'slug',
+            modalities: 'modalites',
+            params: 'params'
+        };
+    }
+
+    if (currentLang === 'de') {
+        return {
+            slug: 'slug',
+            modalities: 'modalitaeten',
+            params: 'parameter'
+        };
+    }
+
+    if (currentLang === 'zh') {
+        return {
+            slug: 'slug',
+            modalities: '模态',
+            params: '参数'
+        };
+    }
+
+    return {
+        slug: 'slug',
+        modalities: 'modalities',
+        params: 'params'
+    };
+};
+
+const getModelModalitySummary = (model) => {
+    const modality = model?.architecture?.modality;
+    if (typeof modality === 'string' && modality.trim()) {
+        return modality.trim();
+    }
+
+    const inputs = Array.isArray(model?.architecture?.input_modalities)
+        ? model.architecture.input_modalities.join(', ')
+        : '';
+    const outputs = Array.isArray(model?.architecture?.output_modalities)
+        ? model.architecture.output_modalities.join(', ')
+        : '';
+
+    if (inputs || outputs) {
+        return `${inputs || '?'} -> ${outputs || '?'}`;
+    }
+
+    return '';
+};
+
+const getSupportedParametersSummary = (model) => {
+    const params = Array.isArray(model?.supportedParameters) ? model.supportedParameters : [];
+    if (params.length === 0) {
+        return '';
+    }
+
+    const preview = params.slice(0, 5).join(', ');
+    return params.length > 5 ? `${preview} +${params.length - 5}` : preview;
+};
+
+const getModelSelectorBadge = (model) => {
+    const modality = String(model?.architecture?.modality || '').toLowerCase();
+    const inputs = Array.isArray(model?.architecture?.input_modalities)
+        ? model.architecture.input_modalities.map((value) => String(value).toLowerCase())
+        : [];
+    const outputs = Array.isArray(model?.architecture?.output_modalities)
+        ? model.architecture.output_modalities.map((value) => String(value).toLowerCase())
+        : [];
+    const modalities = new Set([modality, ...inputs, ...outputs]);
+
+    const hasVision = Array.from(modalities).some((value) => value.includes('image') || value.includes('vision'));
+    const hasAudio = Array.from(modalities).some((value) => value.includes('audio') || value.includes('speech') || value.includes('hearing'));
+
+    if (hasVision && hasAudio) return '[MULTI]';
+    if (hasVision) return '[VISION]';
+    if (hasAudio) return '[AUDIO]';
+    return '[TEXT]';
+};
+
+const getModelGroupKey = (model) => {
+    const badge = getModelSelectorBadge(model);
+    if (badge === '[VISION]') return 'vision';
+    if (badge === '[AUDIO]') return 'audio';
+    if (badge === '[MULTI]') return 'multi';
+    return 'text';
+};
+
+const formatModelCatalogRefreshTime = (value) => {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    try {
+        return new Intl.DateTimeFormat(currentLang === 'zh' ? 'zh-CN' : currentLang, {
+            dateStyle: 'short',
+            timeStyle: 'short'
+        }).format(date);
+    } catch {
+        return date.toLocaleString();
+    }
+};
+
+const renderModelCatalogMeta = () => {
+    if (!modelCatalogMetaEl) {
+        return;
+    }
+
+    const ui = (i18n[currentLang] || i18n.en).ui;
+    const cacheInfo = getOpenRouterModelsCacheInfo();
+    const formatted = formatModelCatalogRefreshTime(cacheInfo.cachedAt);
+    modelCatalogMetaEl.textContent = `${ui.modelCatalogLastRefresh}: ${formatted || ui.modelCatalogNeverRefreshed}`;
+};
+
 const getModelAvailabilityRecord = (modelId) => modelAvailability.get(modelId) || null;
 
 const isAvailabilityRecordFresh = (record) => {
@@ -476,6 +810,16 @@ const loadModelAvailability = () => {
 const isModelBlocked = (modelId) => {
     const status = getModelAvailabilityRecord(modelId)?.status;
     return status === 'rate_limited' || status === 'unavailable';
+};
+
+const replaceApiModels = (models) => {
+    Object.keys(API_MODELS).forEach((key) => {
+        delete API_MODELS[key];
+    });
+
+    Object.entries(models || {}).forEach(([key, model]) => {
+        API_MODELS[key] = model;
+    });
 };
 
 const getModelKeyById = (modelId) => {
@@ -565,6 +909,18 @@ const handleModelRuntimeOutcome = (modelId, error = null) => {
     }
 };
 
+const getBackgroundProbeCandidates = () => {
+    const preferredIds = new Set([
+        currentModelPath,
+        ...FALLBACK_PRIORITY_IDS
+    ].filter(Boolean));
+
+    const allModels = Object.values(API_MODELS);
+    const prioritized = allModels.filter((model) => preferredIds.has(model.id));
+    const secondary = allModels.filter((model) => !preferredIds.has(model.id));
+    return [...prioritized, ...secondary].slice(0, MAX_BACKGROUND_MODEL_PROBES);
+};
+
 const refreshModelAvailabilityInBackground = async () => {
     if (isRefreshingModelAvailability) {
         return;
@@ -573,7 +929,7 @@ const refreshModelAvailabilityInBackground = async () => {
     isRefreshingModelAvailability = true;
 
     try {
-        const staleModels = Object.values(API_MODELS).filter((model) => {
+        const staleModels = getBackgroundProbeCandidates().filter((model) => {
             const existing = getModelAvailabilityRecord(model.id);
             return !isAvailabilityRecordFresh(existing);
         });
@@ -624,20 +980,46 @@ const refreshModelAvailabilityInBackground = async () => {
 const populateModelSelector = (selectedKey = null) => {
     if (openRouterModelSelectorEl) {
         openRouterModelSelectorEl.innerHTML = '';
+        const ui = (i18n[currentLang] || i18n.en).ui;
+        const groupedEntries = new Map([
+            ['text', []],
+            ['vision', []],
+            ['audio', []],
+            ['multi', []]
+        ]);
+
         Object.entries(API_MODELS).forEach(([key, model]) => {
-            const status = getModelAvailabilityRecord(model.id)?.status || 'unknown';
-            const option = document.createElement('option');
-            option.value = key;
-            option.textContent = status === 'unknown'
-                ? model.name
-                : `${model.name} • ${getLocalizedModelStatusLabel(status)}`;
-            option.title = model.description || model.name;
-            option.dataset.description = model.description || model.name;
-            option.dataset.provider = model.provider || 'OpenRouter';
-            option.dataset.context = model.context || 'N/A';
-            option.dataset.status = status;
-            option.disabled = isModelBlocked(model.id);
-            openRouterModelSelectorEl.appendChild(option);
+            groupedEntries.get(getModelGroupKey(model))?.push([key, model]);
+        });
+
+        ['text', 'vision', 'audio', 'multi'].forEach((groupKey) => {
+            const entries = groupedEntries.get(groupKey) || [];
+            if (entries.length === 0) {
+                return;
+            }
+
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = ui.modelGroups?.[groupKey] || groupKey;
+
+            entries.forEach(([key, model]) => {
+                const status = getModelAvailabilityRecord(model.id)?.status || 'unknown';
+                const modalityBadge = getModelSelectorBadge(model);
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = status === 'unknown'
+                    ? `${model.name} ${modalityBadge}`
+                    : `${model.name} ${modalityBadge} • ${getLocalizedModelStatusLabel(status)}`;
+                option.title = model.description || model.name;
+                option.dataset.description = model.description || model.name;
+                option.dataset.provider = model.provider || 'OpenRouter';
+                option.dataset.context = model.context || 'N/A';
+                option.dataset.modality = modalityBadge;
+                option.dataset.status = status;
+                option.disabled = isModelBlocked(model.id);
+                optgroup.appendChild(option);
+            });
+
+            openRouterModelSelectorEl.appendChild(optgroup);
         });
 
         if (selectedKey && API_MODELS[selectedKey]) {
@@ -660,7 +1042,21 @@ const updateSelectedModelTooltip = () => {
     const context = selectedModel.context || 'N/A';
     const desc = selectedModel.description || selectedModel.name;
     const status = getModelAvailabilityRecord(selectedModel.id)?.status || 'unknown';
-    modelInfoTextEl.textContent = `${provider} • ${context} • ${getLocalizedModelStatusLabel(status)} • ${desc} ${getLocalizedModelStatusDetail(status)}`;
+    const labels = getLocalizedModelFieldLabels();
+    const modalitySummary = getModelModalitySummary(selectedModel);
+    const supportedParameters = getSupportedParametersSummary(selectedModel);
+    const canonicalSlug = selectedModel.canonicalSlug || selectedModel.id;
+
+    modelInfoTextEl.textContent = [
+        provider,
+        context,
+        getLocalizedModelStatusLabel(status),
+        canonicalSlug ? `${labels.slug}: ${canonicalSlug}` : null,
+        modalitySummary ? `${labels.modalities}: ${modalitySummary}` : null,
+        supportedParameters ? `${labels.params}: ${supportedParameters}` : null,
+        desc,
+        getLocalizedModelStatusDetail(status)
+    ].filter(Boolean).join(' • ');
 };
 
 const renderAIPromptExamples = (examples) => {
@@ -730,13 +1126,23 @@ const getRecommendedApiModelKey = () => {
 
 const FALLBACK_PRIORITY_IDS = [
     'qwen/qwen3-next-80b-a3b-instruct:free',
+    'openrouter/hunter-alpha',
+    'nvidia/nemotron-3-super-120b-a12b:free',
+    'openai/gpt-oss-120b:free',
     'meta-llama/llama-3.3-70b-instruct:free',
+    'qwen/qwen3-coder:free',
+    'stepfun/step-3.5-flash:free',
+    'arcee-ai/trinity-large-preview:free',
+    'z-ai/glm-4.5-air:free',
     'mistralai/mistral-small-3.1-24b-instruct:free',
     'google/gemma-3-27b-it:free',
+    'openai/gpt-oss-20b:free',
+    'nvidia/nemotron-3-nano-30b-a3b:free',
     'google/gemma-3n-e4b-it:free',
+    'nousresearch/hermes-3-llama-3.1-405b:free',
     'meta-llama/llama-3.2-3b-instruct:free',
     'qwen/qwen3-4b:free',
-    'venice/uncensored:free',
+    'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
     'liquid/lfm-2.5-1.2b-instruct:free'
 ];
 
@@ -852,6 +1258,8 @@ const initApp = async () => {
     initLanguageSelector();
     setWorkflowStep('input');
 
+    await refreshDynamicModelCatalog();
+
     loadModelAvailability();
     populateModelSelector();
 
@@ -877,6 +1285,7 @@ const initApp = async () => {
     }
 
     updateLanguageUI();
+    refreshOpenRouterKeyStatus();
 
     if (openRouterModelSelectorEl) {
         openRouterModelSelectorEl.addEventListener('change', () => {
@@ -892,6 +1301,40 @@ const initApp = async () => {
         });
     }
 
+    if (refreshModelCatalogBtn) {
+        refreshModelCatalogBtn.addEventListener('click', async () => {
+            if (isRefreshingModelCatalog) {
+                return;
+            }
+
+            isRefreshingModelCatalog = true;
+            setRefreshModelCatalogButtonState(true);
+
+            try {
+                clearOpenRouterModelsCache();
+                const selectedModelId = currentModelPath;
+                await refreshDynamicModelCatalog(true);
+                refreshModelSelectorUI(getModelKeyById(selectedModelId));
+                renderModelCatalogMeta();
+                if (openRouterKeyStatusEl) {
+                    openRouterKeyStatusEl.textContent = (i18n[currentLang] || i18n.en).ui.modelsRefreshed;
+                }
+                window.setTimeout(() => renderOpenRouterKeyStatus(), 2000);
+            } catch {
+                if (openRouterKeyStatusEl) {
+                    openRouterKeyStatusEl.textContent = (i18n[currentLang] || i18n.en).ui.modelsRefreshFailed;
+                }
+                window.setTimeout(() => renderOpenRouterKeyStatus(), 2500);
+            } finally {
+                isRefreshingModelCatalog = false;
+                setRefreshModelCatalogButtonState(false);
+                window.setTimeout(() => {
+                    refreshModelAvailabilityInBackground();
+                }, 100);
+            }
+        });
+    }
+
     if (donationBtn) {
         donationBtn.addEventListener('click', createNowPaymentDonation);
     }
@@ -899,6 +1342,10 @@ const initApp = async () => {
     window.setTimeout(() => {
         refreshModelAvailabilityInBackground();
     }, 250);
+
+    window.setTimeout(() => {
+        refreshOpenRouterKeyStatus();
+    }, 400);
 };
 
 /**
@@ -1104,6 +1551,15 @@ const handleAIRewrite = async () => {
         window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
     }
 
+    if (!await ensureOpenRouterKeyAvailable()) {
+        improvedPromptEl.textContent = getLocalizedOpenRouterLimitExceededMessage();
+        setGenerateButtonState(false, ui);
+        if (!isExecuteGenerating) {
+            setExecuteButtonState(false);
+        }
+        return;
+    }
+
     setWorkflowStep('improve');
     isRewriteGenerating = true;
     rewriteAbortController = new AbortController();
@@ -1182,6 +1638,16 @@ const handleExecutePrompt = async () => {
     }
 
     const ui = (i18n[currentLang] || i18n.en).ui;
+
+    if (!await ensureOpenRouterKeyAvailable()) {
+        improvedPromptEl.textContent = getLocalizedOpenRouterLimitExceededMessage();
+        if (!isRewriteGenerating) {
+            setGenerateButtonState(false, ui);
+        }
+        setExecuteButtonState(false);
+        return;
+    }
+
     setWorkflowStep('improve');
     isExecuteGenerating = true;
     executeAbortController = new AbortController();

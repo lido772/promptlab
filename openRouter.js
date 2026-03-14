@@ -12,6 +12,8 @@ const WORKER_URL = '/api';
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const API_BASE = 'https://openrouter.ai/api/v1';
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+const MODELS_CACHE_STORAGE_KEY = 'promptup-openrouter-models-cache-v1';
+const MODELS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 // Use Worker in production, direct API in development
 const USE_WORKER = !API_KEY || import.meta.env.PROD;
@@ -74,6 +76,22 @@ const createOpenRouterRequestContext = () => {
     };
 };
 
+const createOpenRouterAuthHeaders = () => {
+    if (USE_WORKER) {
+        return {};
+    }
+
+    if (!API_KEY) {
+        throw new Error('OpenRouter API key not configured. Please add VITE_OPENROUTER_API_KEY to .env.local');
+    }
+
+    return {
+        Authorization: `Bearer ${API_KEY}`,
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'Prompt Analyzer'
+    };
+};
+
 const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries = 2, signal = null) => {
     let lastError = null;
 
@@ -108,6 +126,116 @@ const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries 
 
 // OpenRouter free models configuration
 export const OPENROUTER_MODELS = {
+    'step-3-5-flash': {
+        id: 'stepfun/step-3.5-flash:free',
+        name: 'Step 3.5 Flash (free)',
+        provider: 'StepFun',
+        size: '196B (11B active)',
+        context: '256K',
+        price: '$0/M tokens',
+        description: 'Large MoE model optimized for fast reasoning on long-context prompts',
+        engine: 'openrouter'
+    },
+    'trinity-large-preview': {
+        id: 'arcee-ai/trinity-large-preview:free',
+        name: 'Trinity Large Preview (free)',
+        provider: 'Arcee AI',
+        size: '400B (13B active)',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'Frontier sparse MoE model tuned for long prompts, creativity, and agent workflows',
+        engine: 'openrouter'
+    },
+    'hunter-alpha': {
+        id: 'openrouter/hunter-alpha',
+        name: 'Hunter Alpha',
+        provider: 'OpenRouter',
+        size: '1T+',
+        context: '1M',
+        price: '$0/M tokens',
+        description: 'Ultra-long-context frontier model for planning, reasoning, and multi-step execution',
+        engine: 'openrouter'
+    },
+    'nemotron-3-super': {
+        id: 'nvidia/nemotron-3-super-120b-a12b:free',
+        name: 'Nemotron 3 Super (free)',
+        provider: 'NVIDIA',
+        size: '120B (12B active)',
+        context: '262K',
+        price: '$0/M tokens',
+        description: 'Open hybrid MoE model built for high-accuracy agentic and reasoning workflows',
+        engine: 'openrouter'
+    },
+    'healer-alpha': {
+        id: 'openrouter/healer-alpha',
+        name: 'Healer Alpha',
+        provider: 'OpenRouter',
+        size: 'Frontier',
+        context: '262K',
+        price: '$0/M tokens',
+        description: 'Omni-modal model for reasoning and real-world multi-step task execution',
+        engine: 'openrouter'
+    },
+    'glm-4-5-air': {
+        id: 'z-ai/glm-4.5-air:free',
+        name: 'GLM 4.5 Air (free)',
+        provider: 'Z.ai',
+        size: 'Air',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'Compact MoE agent model with controllable reasoning and fast interactive mode',
+        engine: 'openrouter'
+    },
+    'nemotron-3-nano-30b': {
+        id: 'nvidia/nemotron-3-nano-30b-a3b:free',
+        name: 'Nemotron 3 Nano 30B A3B (free)',
+        provider: 'NVIDIA',
+        size: '30B (A3B)',
+        context: '256K',
+        price: '$0/M tokens',
+        description: 'Efficient MoE model for specialized agentic use cases with long context',
+        engine: 'openrouter'
+    },
+    'trinity-mini': {
+        id: 'arcee-ai/trinity-mini:free',
+        name: 'Trinity Mini (free)',
+        provider: 'Arcee AI',
+        size: '26B (3B active)',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'Compact sparse MoE model designed for efficient reasoning and agent tasks',
+        engine: 'openrouter'
+    },
+    'nemotron-nano-12b-2-vl': {
+        id: 'nvidia/nemotron-nano-12b-v2-vl:free',
+        name: 'Nemotron Nano 12B 2 VL (free)',
+        provider: 'NVIDIA',
+        size: '12B',
+        context: '128K',
+        price: '$0/M tokens',
+        description: 'Multimodal reasoning model for document, OCR, and video understanding tasks',
+        engine: 'openrouter'
+    },
+    'nemotron-nano-9b-v2': {
+        id: 'nvidia/nemotron-nano-9b-v2:free',
+        name: 'Nemotron Nano 9B V2 (free)',
+        provider: 'NVIDIA',
+        size: '9B',
+        context: '128K',
+        price: '$0/M tokens',
+        description: 'Unified model for reasoning and standard chat with controllable reasoning traces',
+        engine: 'openrouter'
+    },
+    'qwen3-coder-480b-a35b': {
+        id: 'qwen/qwen3-coder:free',
+        name: 'Qwen3 Coder 480B A35B (free)',
+        provider: 'Qwen',
+        size: '480B (A35B)',
+        context: '262K',
+        price: '$0/M tokens',
+        description: 'Large code-focused MoE model for repositories, tools, and long-context coding tasks',
+        engine: 'openrouter'
+    },
     'qwen3-next-80b-a3b': {
         id: 'qwen/qwen3-next-80b-a3b-instruct:free',
         name: 'Qwen3 Next 80B A3B Instruct (free)',
@@ -130,13 +258,13 @@ export const OPENROUTER_MODELS = {
         engine: 'openrouter'
     },
     'gpt-oss-120b': {
-        id: 'meta-llama/llama-3.2-3b-instruct:free',
-        name: 'Llama 3.2 3B Instruct (free)',
-        provider: 'Meta',
-        size: '3B',
-        context: '128K',
+        id: 'openai/gpt-oss-120b:free',
+        name: 'gpt-oss-120b (free)',
+        provider: 'OpenAI',
+        size: '120B',
+        context: '131K',
         price: '$0/M tokens',
-        description: 'Fast lightweight model for low-latency prompt execution and quick rewrites',
+        description: 'Open-weight MoE model for strong reasoning, tools, and agentic production tasks',
         engine: 'openrouter'
     },
     'lfm-2-5-1-2b-thinking': {
@@ -180,13 +308,13 @@ export const OPENROUTER_MODELS = {
         engine: 'openrouter'
     },
     'gpt-oss-20b': {
-        id: 'google/gemma-3n-e4b-it:free',
-        name: 'Gemma 3n E4B IT (free)',
-        provider: 'Google',
-        size: 'E4B',
-        context: '32K',
+        id: 'openai/gpt-oss-20b:free',
+        name: 'gpt-oss-20b (free)',
+        provider: 'OpenAI',
+        size: '20B',
+        context: '131K',
         price: '$0/M tokens',
-        description: 'Efficient instruction model with good quality/speed tradeoff for production prompts',
+        description: 'Lower-latency open MoE model with tool use and structured output support',
         engine: 'openrouter'
     },
     'qwen3-4b': {
@@ -199,8 +327,68 @@ export const OPENROUTER_MODELS = {
         description: 'Compact model with balanced chat efficiency and reasoning quality',
         engine: 'openrouter'
     },
+    'hermes-3-405b': {
+        id: 'nousresearch/hermes-3-llama-3.1-405b:free',
+        name: 'Hermes 3 405B Instruct (free)',
+        provider: 'Nous',
+        size: '405B',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'Very large generalist model with strong tool use, steering, and long-context coherence',
+        engine: 'openrouter'
+    },
+    'meta-llama-3-2-3b': {
+        id: 'meta-llama/llama-3.2-3b-instruct:free',
+        name: 'Llama 3.2 3B Instruct (free)',
+        provider: 'Meta',
+        size: '3B',
+        context: '131K',
+        price: '$0/M tokens',
+        description: 'Lightweight multilingual model for low-latency chat, reasoning, and summaries',
+        engine: 'openrouter'
+    },
+    'gemma-3-4b': {
+        id: 'google/gemma-3-4b-it:free',
+        name: 'Gemma 3 4B (free)',
+        provider: 'Google',
+        size: '4B',
+        context: '33K',
+        price: '$0/M tokens',
+        description: 'Compact multimodal-capable instruction model with strong multilingual support',
+        engine: 'openrouter'
+    },
+    'gemma-3n-4b': {
+        id: 'google/gemma-3n-e4b-it:free',
+        name: 'Gemma 3n 4B (free)',
+        provider: 'Google',
+        size: '4B',
+        context: '8K',
+        price: '$0/M tokens',
+        description: 'Efficient multimodal model optimized for mobile and low-resource execution',
+        engine: 'openrouter'
+    },
+    'gemma-3-12b': {
+        id: 'google/gemma-3-12b-it:free',
+        name: 'Gemma 3 12B (free)',
+        provider: 'Google',
+        size: '12B',
+        context: '33K',
+        price: '$0/M tokens',
+        description: 'Mid-sized Gemma model with strong reasoning, multilingual support, and structure',
+        engine: 'openrouter'
+    },
+    'gemma-3n-2b': {
+        id: 'google/gemma-3n-e2b-it:free',
+        name: 'Gemma 3n 2B (free)',
+        provider: 'Google',
+        size: '2B',
+        context: '8K',
+        price: '$0/M tokens',
+        description: 'Small multimodal model tuned for low-resource deployment and quick interactions',
+        engine: 'openrouter'
+    },
     'venice-uncensored': {
-        id: 'venice/uncensored:free',
+        id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
         name: 'Venice Uncensored (free)',
         provider: 'Venice',
         size: '24B',
@@ -208,6 +396,190 @@ export const OPENROUTER_MODELS = {
         price: '$0/M tokens',
         description: 'High-steerability instruct model with minimal alignment constraints',
         engine: 'openrouter'
+    }
+};
+const STATIC_MODEL_OVERRIDES_BY_ID = new Map(
+    Object.values(OPENROUTER_MODELS).map((model) => [model.id, model])
+);
+const RECOMMENDED_DYNAMIC_MODEL_IDS = new Set([
+    'qwen/qwen3-next-80b-a3b-instruct:free',
+    'openrouter/hunter-alpha',
+    'nvidia/nemotron-3-super-120b-a12b:free',
+    'openai/gpt-oss-120b:free'
+]);
+const isZeroPriced = (value) => {
+    const parsed = Number(value || 0);
+    return Number.isFinite(parsed) && parsed === 0;
+};
+const isFreeOpenRouterModel = (model) => {
+    const pricing = model?.pricing || {};
+    return isZeroPriced(pricing.prompt)
+        && isZeroPriced(pricing.completion)
+        && isZeroPriced(pricing.request)
+        && isZeroPriced(pricing.image);
+};
+const toModelKey = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+const formatContextLength = (value) => {
+    const numeric = Number(value || 0);
+    if (!Number.isFinite(numeric) || numeric <= 0) {
+        return 'N/A';
+    }
+    if (numeric >= 1000000) {
+        return `${Math.round(numeric / 100000) / 10}M`;
+    }
+    return `${Math.round(numeric / 1000)}K`;
+};
+const inferProviderName = (model) => {
+    const override = STATIC_MODEL_OVERRIDES_BY_ID.get(model.id);
+    if (override?.provider) {
+        return override.provider;
+    }
+    const name = String(model?.name || '');
+    if (name.includes(':')) {
+        return name.split(':')[0].trim();
+    }
+    const vendor = String(model?.id || '').split('/')[0] || 'OpenRouter';
+    return vendor
+        .split('-')
+        .map((part) => part ? part[0].toUpperCase() + part.slice(1) : '')
+        .join(' ');
+};
+const inferModelSize = (model) => {
+    const override = STATIC_MODEL_OVERRIDES_BY_ID.get(model.id);
+    if (override?.size) {
+        return override.size;
+    }
+    const match = String(model?.name || '').match(/(\d+(?:\.\d+)?\s*(?:[BMK]|T))(?:\s*\(([^)]+)\))?/i);
+    if (!match) {
+        return 'N/A';
+    }
+    const main = match[1].replace(/\s+/g, '');
+    const extra = match[2] ? ` (${match[2].trim()})` : '';
+    return `${main}${extra}`;
+};
+const normalizeOpenRouterModel = (model) => {
+    const override = STATIC_MODEL_OVERRIDES_BY_ID.get(model.id) || {};
+    const key = toModelKey(model.canonical_slug || model.id);
+    return [key, {
+        id: model.id,
+        canonicalSlug: model.canonical_slug || model.id,
+        name: model.name || override.name || model.id,
+        provider: inferProviderName(model),
+        size: inferModelSize(model),
+        context: override.context || formatContextLength(model.top_provider?.context_length || model.context_length),
+        price: '$0/M tokens',
+        description: override.description || String(model.description || model.name || model.id).replace(/\s+/g, ' ').trim(),
+        engine: 'openrouter',
+        recommended: Boolean(override.recommended || RECOMMENDED_DYNAMIC_MODEL_IDS.has(model.id)),
+        architecture: model.architecture || null,
+        supportedParameters: Array.isArray(model.supported_parameters) ? model.supported_parameters : [],
+        raw: model
+    }];
+};
+const sortNormalizedModels = (models) => {
+    const priorityIndex = new Map(
+        [
+            'qwen/qwen3-next-80b-a3b-instruct:free',
+            'openrouter/hunter-alpha',
+            'nvidia/nemotron-3-super-120b-a12b:free',
+            'openai/gpt-oss-120b:free',
+            'meta-llama/llama-3.3-70b-instruct:free',
+            'qwen/qwen3-coder:free',
+            'stepfun/step-3.5-flash:free',
+            'arcee-ai/trinity-large-preview:free',
+            'z-ai/glm-4.5-air:free',
+            'mistralai/mistral-small-3.1-24b-instruct:free'
+        ].map((id, index) => [id, index])
+    );
+    return [...models].sort((left, right) => {
+        const leftRank = priorityIndex.has(left.id) ? priorityIndex.get(left.id) : Number.MAX_SAFE_INTEGER;
+        const rightRank = priorityIndex.has(right.id) ? priorityIndex.get(right.id) : Number.MAX_SAFE_INTEGER;
+        if (leftRank !== rightRank) {
+            return leftRank - rightRank;
+        }
+        return left.name.localeCompare(right.name);
+    });
+};
+
+const readCachedModelCatalog = (allowStale = false) => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return null;
+    }
+
+    try {
+        const raw = window.localStorage.getItem(MODELS_CACHE_STORAGE_KEY);
+        if (!raw) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw);
+        const models = parsed?.models;
+        const cachedAt = Number(parsed?.cachedAt || 0);
+
+        if (!models || typeof models !== 'object') {
+            return null;
+        }
+
+        const isFresh = cachedAt > 0 && (Date.now() - cachedAt) < MODELS_CACHE_TTL_MS;
+        if (!allowStale && !isFresh) {
+            return null;
+        }
+
+        return models;
+    } catch {
+        window.localStorage.removeItem(MODELS_CACHE_STORAGE_KEY);
+        return null;
+    }
+};
+
+const writeCachedModelCatalog = (models) => {
+    if (typeof window === 'undefined' || !window.localStorage || !models || typeof models !== 'object') {
+        return;
+    }
+
+    try {
+        window.localStorage.setItem(MODELS_CACHE_STORAGE_KEY, JSON.stringify({
+            cachedAt: Date.now(),
+            models
+        }));
+    } catch {
+        // Ignore storage failures.
+    }
+};
+
+export const clearOpenRouterModelsCache = () => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return;
+    }
+
+    try {
+        window.localStorage.removeItem(MODELS_CACHE_STORAGE_KEY);
+    } catch {
+        // Ignore storage failures.
+    }
+};
+
+export const getOpenRouterModelsCacheInfo = () => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return { cachedAt: null };
+    }
+
+    try {
+        const raw = window.localStorage.getItem(MODELS_CACHE_STORAGE_KEY);
+        if (!raw) {
+            return { cachedAt: null };
+        }
+
+        const parsed = JSON.parse(raw);
+        const cachedAt = Number(parsed?.cachedAt || 0);
+        return {
+            cachedAt: cachedAt > 0 ? cachedAt : null
+        };
+    } catch {
+        return { cachedAt: null };
     }
 };
 
@@ -421,43 +793,6 @@ export const testOpenRouterConnection = async () => {
     }
 };
 
-/**
- * Get available OpenRouter models
- * @returns {Promise<Array>} List of available models
- */
-export const getAvailableModels = async () => {
-    // In production with Worker, return predefined models
-    if (USE_WORKER) {
-        return Object.values(OPENROUTER_MODELS);
-    }
-
-    // In development, fetch from API
-    if (!API_KEY) {
-        return [];
-    }
-
-    try {
-        const response = await fetch(`${API_BASE}/models`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${API_KEY}`,
-                'HTTP-Referer': window.location.href,
-                'X-Title': 'Prompt Analyzer'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch models');
-        }
-
-        const data = await response.json();
-        return data.data || [];
-    } catch (error) {
-        console.error('Error fetching OpenRouter models:', error);
-        return [];
-    }
-};
-
 export const probeOpenRouterModel = async (modelId, signal = null) => {
     const requestBody = {
         model: modelId,
@@ -504,6 +839,87 @@ export const probeOpenRouterModel = async (modelId, signal = null) => {
             httpStatus: error?.status || 0,
             reason: error?.message || 'Probe failed'
         };
+    }
+};
+
+export const getOpenRouterKeyStatus = async (signal = null) => {
+    const apiUrl = USE_WORKER ? `${WORKER_URL}/key` : `${API_BASE}/key`;
+    const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: createOpenRouterAuthHeaders(),
+        signal
+    });
+
+    const rawText = await response.text();
+    let parsed;
+
+    try {
+        parsed = rawText ? JSON.parse(rawText) : {};
+    } catch {
+        parsed = {};
+    }
+
+    if (!response.ok) {
+        const error = new Error(parsed?.error || `API error ${response.status}`);
+        error.status = response.status;
+        error.responseText = rawText;
+        throw error;
+    }
+
+    const keyData = parsed?.data || {};
+
+    return {
+        label: keyData.label || '',
+        limit: typeof keyData.limit === 'number' ? keyData.limit : null,
+        limitRemaining: typeof keyData.limit_remaining === 'number' ? keyData.limit_remaining : null,
+        limitReset: keyData.limit_reset || null,
+        usage: typeof keyData.usage === 'number' ? keyData.usage : null,
+        usageDaily: typeof keyData.usage_daily === 'number' ? keyData.usage_daily : null,
+        usageWeekly: typeof keyData.usage_weekly === 'number' ? keyData.usage_weekly : null,
+        usageMonthly: typeof keyData.usage_monthly === 'number' ? keyData.usage_monthly : null,
+        isFreeTier: Boolean(keyData.is_free_tier),
+        checkedAt: Date.now()
+    };
+};
+
+/**
+ * Get available OpenRouter models dynamically and keep only free ones.
+ * @returns {Promise<Record<string, object>>} Free model catalog keyed for UI selection
+ */
+export const getAvailableModels = async (forceRefresh = false) => {
+    const freshCache = forceRefresh ? null : readCachedModelCatalog();
+    if (freshCache) {
+        return freshCache;
+    }
+
+    try {
+        const apiUrl = USE_WORKER ? `${WORKER_URL}/models` : `${API_BASE}/models`;
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: createOpenRouterAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch models');
+        }
+
+        const data = await response.json();
+        const freeModels = sortNormalizedModels((data.data || []).filter(isFreeOpenRouterModel));
+
+        if (freeModels.length === 0) {
+            return { ...OPENROUTER_MODELS };
+        }
+
+        const normalizedModels = Object.fromEntries(freeModels.map(normalizeOpenRouterModel));
+        writeCachedModelCatalog(normalizedModels);
+        return normalizedModels;
+    } catch (error) {
+        console.error('Error fetching OpenRouter models:', error);
+        const staleCache = readCachedModelCatalog(true);
+        if (staleCache) {
+            return staleCache;
+        }
+        return { ...OPENROUTER_MODELS };
     }
 };
 

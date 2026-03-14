@@ -279,12 +279,15 @@
                     <select id="openrouter-model-selector" class="api-model-select themed-select bg-[#0F0F12] border border-white/10 p-3 rounded-lg text-sm text-[#EDEDEF] focus:outline-none focus:border-[#5E6AD2] transition-all duration-300" aria-label="OpenRouter free model selector">
                         <!-- Populated by JS -->
                     </select>
+                    <button id="refresh-model-catalog-btn" type="button" class="btn-secondary !px-4 !py-2 text-xs">Refresh models</button>
                 </div>
+                <p id="model-catalog-meta" class="mt-2 text-xs text-foreground-muted">Last refresh: never</p>
                 <div class="model-tooltip-wrap" aria-live="polite">
                     <button id="model-info-trigger" type="button" class="model-info-trigger" aria-label="Model description" aria-expanded="false">i</button>
                     <span id="model-info-text" class="model-info-text">Select a model to see a short description.</span>
                 </div>
                 <p id="model-fallback-note" class="mt-3 text-xs text-foreground-muted">Automatic fallback is active. Recently rate-limited models are skipped.</p>
+                <p id="openrouter-key-status" class="mt-2 text-xs text-foreground-muted">Checking OpenRouter key limits...</p>
                 <p id="ai-examples-status" class="mt-3 text-xs text-foreground-muted hidden">Generating prompt examples...</p>
                 <ul id="ai-examples-list" class="prompt-examples-list hidden"></ul>
                 <p class="mt-4 text-xs text-foreground-muted">OpenRouter API models are available below for optional rewriting.</p>

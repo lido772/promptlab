@@ -47,6 +47,69 @@ export default {
       );
     }
 
+    if (request.method === 'GET' && (url.pathname === '/api/key' || url.pathname === '/api/key/')) {
+      if (!env.OPENROUTER_API_KEY) {
+        return new Response(
+          JSON.stringify({ error: 'OpenRouter API key not configured' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      if (request.method === 'GET' && (url.pathname === '/api/models' || url.pathname === '/api/models/')) {
+        try {
+          const headers = {
+            'HTTP-Referer': 'https://promptup.cloud',
+            'X-Title': 'Prompt Analyzer'
+          };
+          if (env.OPENROUTER_API_KEY) {
+            headers.Authorization = `Bearer ${env.OPENROUTER_API_KEY}`;
+          }
+          const response = await fetch('https://openrouter.ai/api/v1/models', {
+            method: 'GET',
+            headers
+          });
+          const payload = await response.text();
+          return new Response(payload, {
+            status: response.status,
+            headers: {
+              'Content-Type': response.headers.get('Content-Type') || 'application/json',
+              'Access-Control-Allow-Origin': '*'
+            }
+          });
+        } catch (error) {
+          return new Response(
+            JSON.stringify({ error: error.message }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/key', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+            'HTTP-Referer': 'https://promptup.cloud',
+            'X-Title': 'Prompt Analyzer'
+          }
+        });
+
+        const payload = await response.text();
+
+        return new Response(payload, {
+          status: response.status,
+          headers: {
+            'Content-Type': response.headers.get('Content-Type') || 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      } catch (error) {
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     if (request.method !== 'POST') {
       return new Response('Method not allowed', {
         status: 405,
