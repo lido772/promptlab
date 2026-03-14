@@ -77,6 +77,8 @@ let currentModelPath = null;
 let isUsingOpenRouter = false;
 let isRewriteGenerating = false;
 let rewriteAbortController = null;
+let isExecuteGenerating = false;
+let executeAbortController = null;
 
 const API_MODELS = {
     ...OPENROUTER
@@ -267,6 +269,28 @@ const setGenerateButtonState = (isGenerating, ui) => {
     generateAIBtn.textContent = ui.generateBtn;
 };
 
+const setExecuteButtonState = (isGenerating) => {
+    if (!executePromptBtn) return;
+
+    if (isGenerating) {
+        executePromptBtn.disabled = false;
+        executePromptBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        executePromptBtn.textContent = 'Stop generating';
+        return;
+    }
+
+    if (!isUsingOpenRouter || !currentModelPath) {
+        executePromptBtn.disabled = true;
+        executePromptBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        executePromptBtn.textContent = 'Execute Prompt';
+        return;
+    }
+
+    executePromptBtn.disabled = false;
+    executePromptBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    executePromptBtn.textContent = 'Execute Prompt';
+};
+
 /**
  * Update UI Text based on current language
  */
@@ -306,16 +330,18 @@ const updateLanguageUI = () => {
             setGenerateButtonState(false, ui);
         }
         if (executePromptBtn) {
-            executePromptBtn.disabled = true;
-            executePromptBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            if (!isExecuteGenerating) {
+                setExecuteButtonState(false);
+            }
         }
     } else {
         if (!isRewriteGenerating) {
             setGenerateButtonState(false, ui);
         }
         if (executePromptBtn) {
-            executePromptBtn.disabled = false;
-            executePromptBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            if (!isExecuteGenerating) {
+                setExecuteButtonState(false);
+            }
         }
     }
 
@@ -872,6 +898,17 @@ const handleAIRewrite = async () => {
  * Execute the prompt directly against the selected model (no system prompt).
  */
 const handleExecutePrompt = async () => {
+    if (isExecuteGenerating) {
+        if (executeAbortController) {
+            executeAbortController.abort();
+        }
+        isExecuteGenerating = false;
+        executeAbortController = null;
+        improvedPromptEl.textContent = 'Generation stopped.';
+        setExecuteButtonState(false);
+        return;
+    }
+
     const prompt = promptInput.value.trim();
     if (!prompt) return;
 
@@ -891,11 +928,10 @@ const handleExecutePrompt = async () => {
 
     const ui = (i18n[currentLang] || i18n.en).ui;
     setWorkflowStep('improve');
+    isExecuteGenerating = true;
+    executeAbortController = new AbortController();
 
-    if (executePromptBtn) {
-        executePromptBtn.disabled = true;
-        executePromptBtn.textContent = 'Executing...';
-    }
+    setExecuteButtonState(true);
 
     if (generateAIBtn) {
         generateAIBtn.disabled = true;
@@ -925,7 +961,8 @@ const handleExecutePrompt = async () => {
                     modelId,
                     (chunk) => {
                         if (chunk) improvedPromptEl.textContent = formatModelOutput(chunk);
-                    }
+                    },
+                    executeAbortController?.signal
                 );
 
                 currentModelPath = modelId;
@@ -933,6 +970,9 @@ const handleExecutePrompt = async () => {
                 syncSelectorFromModelId(modelId);
                 break;
             } catch (error) {
+                if (error?.name === 'AbortError') {
+                    throw error;
+                }
                 lastError = error;
             }
         }
@@ -944,12 +984,15 @@ const handleExecutePrompt = async () => {
         improvedPromptEl.textContent = formatModelOutput(modelOutput);
         setWorkflowStep('export');
     } catch (err) {
-        improvedPromptEl.textContent = `Execution failed: ${err?.message || 'Unknown error'}`;
-    } finally {
-        if (executePromptBtn) {
-            executePromptBtn.disabled = false;
-            executePromptBtn.textContent = 'Execute Prompt';
+        if (err?.name === 'AbortError') {
+            improvedPromptEl.textContent = 'Generation stopped.';
+        } else {
+            improvedPromptEl.textContent = `Execution failed: ${err?.message || 'Unknown error'}`;
         }
+    } finally {
+        isExecuteGenerating = false;
+        executeAbortController = null;
+        setExecuteButtonState(false);
         if (generateAIBtn) {
             generateAIBtn.disabled = false;
             generateAIBtn.textContent = ui.generateBtn;

@@ -269,7 +269,7 @@ Follow these rules:
  * @param {Function|null} onStream - Optional streaming callback
  * @returns {Promise<string>} Model output
  */
-export const executePromptWithOpenRouter = async (prompt, modelId, onStream = null) => {
+export const executePromptWithOpenRouter = async (prompt, modelId, onStream = null, signal = null) => {
     const requestBody = {
         model: modelId,
         messages: [
@@ -299,7 +299,7 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
     if (onStream) {
         let fullResponse = '';
 
-        const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
+        const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 2, signal);
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -333,7 +333,7 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
         return fullResponse.trim();
     }
 
-    const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
+    const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody, 2, signal);
 
     const data = await response.json();
     if (data?.error) {
