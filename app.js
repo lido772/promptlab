@@ -9,7 +9,6 @@ import { improvePromptWithOpenRouter } from './openRouter.js';
 import { executePromptWithOpenRouter } from './openRouter.js';
 import { generatePromptExamplesWithOpenRouter } from './openRouter.js';
 import { i18n } from './i18n.js';
-import { runHeuristicTests } from './test-prompts.js';
 
 // DOM Selectors
 const promptInput = document.getElementById('prompt-input');
@@ -1114,25 +1113,28 @@ if (aiExamplesListEl) {
     });
 }
 
+const maybeRunHeuristicTests = async () => {
+    if (!import.meta.env.DEV) {
+        return;
+    }
+
+    try {
+        const { runHeuristicTests } = await import('./test-prompts.js');
+        runHeuristicTests();
+    } catch (error) {
+        console.warn('Tests failed to run', error);
+    }
+};
+
 // Wait for DOM to be ready before initializing
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initApp();
-        // Run heuristic regression tests in background for developers
-        try {
-            runHeuristicTests();
-        } catch (e) {
-            console.warn("Tests failed to run", e);
-        }
+        maybeRunHeuristicTests();
     });
 } else {
     // DOM already loaded
     initApp();
-    // Run heuristic regression tests in background for developers
-    try {
-        runHeuristicTests();
-    } catch (e) {
-        console.warn("Tests failed to run", e);
-    }
+    maybeRunHeuristicTests();
 }
 

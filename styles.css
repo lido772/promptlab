@@ -2,9 +2,6 @@
    LINEAR DESIGN SYSTEM - Design Tokens
    ============================================ */
 
-/* Google Fonts - Geist Sans + Geist Mono */
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -36,8 +33,8 @@
     --border-accent: rgba(94, 106, 210, 0.30);
     
     /* Typography */
-    --font-sans: 'Geist', 'Geist Sans', system-ui, -apple-system, sans-serif;
-    --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Aptos', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Mono', 'SF Mono', 'Fira Code', 'Consolas', monospace;
     
     /* Animation Easings */
     --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -1042,6 +1039,35 @@ body {
     transform: translateX(-50%);
     filter: blur(80px);
     animation: pulse 8s ease-in-out infinite;
+}
+
+/* Mobile: keep atmosphere but avoid expensive blur layers during first paint. */
+@media (max-width: 768px) {
+    .site-header {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .ambient-background::after,
+    .ambient-background .blob,
+    .ambient-background > .absolute {
+        display: none !important;
+    }
+
+    .ambient-background::before {
+        background: linear-gradient(180deg, #0a0a0f 0%, #050506 58%, #020203 100%);
+    }
+
+    :root[data-theme='light'] .ambient-background::before {
+        background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 60%, #edf3ff 100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .blob,
+    .text-gradient-accent {
+        animation: none !important;
+    }
 }
 
 @keyframes float {

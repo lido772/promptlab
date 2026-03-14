@@ -59,10 +59,6 @@
         })();
     </script>
     
-    <!-- Google Fonts - Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-background-base font-sans min-h-screen relative overflow-x-hidden text-foreground">
@@ -91,9 +87,9 @@
                 <a class="site-nav-link" href="./models">Models</a>
             </nav>
             <div class="site-header-actions">
-                <a href="https://nowpayments.io/donation?api_key=a5b6be7f-9d76-433c-a950-1452160995c3" target="_blank" rel="noreferrer noopener" aria-label="Donate with NOWPayments" class="header-donate-link">
-                    <img class="donation-btn donation-btn-dark" src="https://nowpayments.io/images/embeds/donation-button-black.svg" alt="Bouton de don crypto par NOWPayments" loading="lazy">
-                    <img class="donation-btn donation-btn-light" src="https://nowpayments.io/images/embeds/donation-button-white.svg" alt="Bouton de don Bitcoin et crypto par NOWPayments" loading="lazy">
+                <a href="https://nowpayments.io/donation?api_key=a5b6be7f-9d76-433c-a950-1452160995c3" target="_blank" rel="noreferrer noopener" aria-label="Donate with NOWPayments" class="theme-toggle header-donate-link">
+                    <span aria-hidden="true">Support</span>
+                    <span class="sr-only">Donate with NOWPayments</span>
                 </a>
                 <div class="language-selector">
                     <button id="language-toggle" class="language-toggle" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Select language">
@@ -150,7 +146,7 @@
                         </li>
                     </ul>
                     <div class="flex flex-wrap items-center gap-3">
-                        <a href="#analyzer" class="inline-flex items-center gap-2 bg-accent text-white font-semibold px-6 py-3 rounded-lg hover:bg-accent-bright transition-all duration-300 shadow-glow">
+                        <a href="./#analyzer" class="inline-flex items-center gap-2 bg-accent text-white font-semibold px-6 py-3 rounded-lg hover:bg-accent-bright transition-all duration-300 shadow-glow">
                             <span>Start Analyzing</span>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m0 0M13 17l-5-5m0 0l10-10m0 0"></path>
@@ -343,10 +339,6 @@
                     </div>
                 </div>
 
-            <div class="card spotlight-card border-[#5E6AD2]/20 stagger-reveal-initial">
-                <script async="async" data-cfasync="false" src="https://latherachelesscatastrophe.com/72243473abb5417a0f414d4950c80145/invoke.js"></script>
-                <div id="container-72243473abb5417a0f414d4950c80145"></div>
-            </div>
         </div>
 
         <section class="card mb-12 spotlight-card border-[#5E6AD2]/20" id="donation-zone">
@@ -356,16 +348,9 @@
                     <p class="text-sm text-foreground-muted mb-4">Promptup is 100% free to use, with no paywall. If this tool helps you write better prompts, your donation keeps it online, fast, and continuously improved for everyone.</p>
                     <p class="text-xs text-foreground-muted mt-3">Even a small contribution makes a real difference. Use the donation button in the top-right header or the widget below.</p>
                 </div>
-                <div class="donation-widget-wrap">
-                    <iframe
-                        class="donation-widget-frame"
-                        src="https://nowpayments.io/embeds/donation-widget?api_key=a5b6be7f-9d76-433c-a950-1452160995c3"
-                        width="346"
-                        height="623"
-                        frameborder="0"
-                        scrolling="no"
-                        title="NOWPayments donation widget">
-                    </iframe>
+                <div class="donation-widget-wrap card p-6">
+                    <p class="text-sm text-foreground/75 leading-relaxed mb-4">For the fastest and most private experience, donations open on the NOWPayments page instead of embedding a third-party widget here.</p>
+                    <a href="https://nowpayments.io/donation?api_key=a5b6be7f-9d76-433c-a950-1452160995c3" target="_blank" rel="noreferrer noopener" class="btn-primary inline-flex items-center justify-center">Open donation page</a>
                 </div>
             </div>
         </section>
