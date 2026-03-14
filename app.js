@@ -397,16 +397,55 @@ const getRecommendedApiModelKey = () => {
     return recommended ? recommended[0] : Object.keys(API_MODELS)[0];
 };
 
+const FALLBACK_PRIORITY_IDS = [
+    'qwen/qwen3-next-80b-a3b-instruct:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'mistralai/mistral-small-3.1-24b-instruct:free',
+    'google/gemma-3-27b-it:free',
+    'google/gemma-3n-e4b-it:free',
+    'meta-llama/llama-3.2-3b-instruct:free',
+    'qwen/qwen3-4b:free',
+    'venice/uncensored:free',
+    'liquid/lfm-2.5-1.2b-instruct:free'
+];
+
+const isLowPriorityFallback = (modelId) => /thinking/i.test(modelId || '');
+
 const getFallbackModelIds = (primaryModelId) => {
     const allEntries = Object.entries(API_MODELS);
-    const recommendedIds = allEntries
-        .filter(([_, model]) => model.recommended)
+    const allIds = allEntries
         .map(([_, model]) => model.id);
-    const remainingIds = allEntries
-        .map(([_, model]) => model.id)
-        .filter((id) => id !== primaryModelId);
+    const recommendedIds = allEntries
+        .filter(([_, model]) => model.recommended && model.id !== primaryModelId)
+        .map(([_, model]) => model.id);
 
-    return Array.from(new Set([primaryModelId, ...recommendedIds, ...remainingIds]));
+    const orderedPriorityIds = FALLBACK_PRIORITY_IDS
+        .filter((id) => allIds.includes(id) && id !== primaryModelId);
+
+    const remainingIds = allIds.filter((id) => id !== primaryModelId);
+    const lowPriorityIds = remainingIds.filter((id) => isLowPriorityFallback(id));
+    const standardIds = remainingIds.filter((id) => !isLowPriorityFallback(id));
+
+    return Array.from(new Set([
+        primaryModelId,
+        ...recommendedIds,
+        ...orderedPriorityIds,
+        ...standardIds,
+        ...lowPriorityIds
+    ]));
+};
+
+const getRetryStatusMessage = (nextModelName) => {
+    if (currentLang === 'fr') {
+        return `Modele temporairement indisponible. Bascule automatique vers ${nextModelName}...`;
+    }
+    if (currentLang === 'de') {
+        return `Modell voruebergehend nicht verfuegbar. Automatischer Wechsel zu ${nextModelName}...`;
+    }
+    if (currentLang === 'zh') {
+        return `当前模型暂时不可用，正在自动切换到 ${nextModelName}...`;
+    }
+    return `Model temporarily unavailable. Switching automatically to ${nextModelName}...`;
 };
 
 const getModelNameById = (modelId) => {
@@ -745,7 +784,7 @@ const handleAIRewrite = async () => {
             const modelId = candidateModelIds[i];
 
             if (i > 0) {
-                improvedPromptEl.textContent = `Selected model unavailable. Retrying with ${getModelNameById(modelId)}...`;
+                improvedPromptEl.textContent = getRetryStatusMessage(getModelNameById(modelId));
             }
 
             try {
@@ -830,7 +869,7 @@ const handleExecutePrompt = async () => {
             const modelId = candidateModelIds[i];
 
             if (i > 0) {
-                improvedPromptEl.textContent = `Selected model unavailable. Retrying with ${getModelNameById(modelId)}...`;
+                improvedPromptEl.textContent = getRetryStatusMessage(getModelNameById(modelId));
             }
 
             try {
