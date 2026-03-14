@@ -11,9 +11,41 @@ const WORKER_URL = '/api';
 // Direct API endpoint (development fallback)
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 const API_BASE = 'https://openrouter.ai/api/v1';
+const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 
 // Use Worker in production, direct API in development
 const USE_WORKER = !API_KEY || import.meta.env.PROD;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const callOpenRouterWithRetry = async (apiUrl, headers, requestBody, maxRetries = 2) => {
+    let lastError = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(requestBody)
+        });
+
+        if (response.ok) {
+            return response;
+        }
+
+        const errorText = await response.text();
+        lastError = new Error(`API error ${response.status}: ${errorText}`);
+
+        const canRetry = RETRYABLE_STATUS.has(response.status) && attempt < maxRetries;
+        if (!canRetry) {
+            throw lastError;
+        }
+
+        // Exponential-ish backoff to reduce pressure on rate-limited endpoints.
+        await sleep(900 * (attempt + 1));
+    }
+
+    throw lastError || new Error('OpenRouter request failed after retries');
+};
 
 // OpenRouter free models configuration
 export const OPENROUTER_MODELS = {
@@ -39,13 +71,13 @@ export const OPENROUTER_MODELS = {
         engine: 'openrouter'
     },
     'gpt-oss-120b': {
-        id: 'openai/gpt-oss-120b:free',
-        name: 'gpt-oss-120b (free)',
-        provider: 'OpenAI',
-        size: '120B MoE',
-        context: '131K',
+        id: 'meta-llama/llama-3.2-3b-instruct:free',
+        name: 'Llama 3.2 3B Instruct (free)',
+        provider: 'Meta',
+        size: '3B',
+        context: '128K',
         price: '$0/M tokens',
-        description: 'High-reasoning open-weight MoE model with tool-use capabilities',
+        description: 'Fast lightweight model for low-latency prompt execution and quick rewrites',
         engine: 'openrouter'
     },
     'lfm-2-5-1-2b-thinking': {
@@ -89,13 +121,13 @@ export const OPENROUTER_MODELS = {
         engine: 'openrouter'
     },
     'gpt-oss-20b': {
-        id: 'openai/gpt-oss-20b:free',
-        name: 'gpt-oss-20b (free)',
-        provider: 'OpenAI',
-        size: '20B MoE',
-        context: '131K',
+        id: 'google/gemma-3n-e4b-it:free',
+        name: 'Gemma 3n E4B IT (free)',
+        provider: 'Google',
+        size: 'E4B',
+        context: '32K',
         price: '$0/M tokens',
-        description: 'Lower-latency MoE option for fast and instruction-following generation',
+        description: 'Efficient instruction model with good quality/speed tradeoff for production prompts',
         engine: 'openrouter'
     },
     'qwen3-4b': {
@@ -178,16 +210,7 @@ Follow these rules:
         let fullResponse = '';
 
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(requestBody)
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error?.message || `API error: ${response.status}`);
-            }
+            const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
@@ -225,18 +248,12 @@ Follow these rules:
     } else {
         // Non-streaming implementation
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(requestBody)
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error?.message || `API error: ${response.status}`);
-            }
+            const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
 
             const data = await response.json();
+            if (data?.error) {
+                throw new Error(data.error?.message || 'Provider returned an error response');
+            }
             return data.choices?.[0]?.message?.content?.trim() || 'No response received';
         } catch (error) {
             throw new Error(`OpenRouter API error: ${error.message}`);
@@ -281,16 +298,7 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
     if (onStream) {
         let fullResponse = '';
 
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error?.message || `API error: ${response.status}`);
-        }
+        const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -324,18 +332,12 @@ export const executePromptWithOpenRouter = async (prompt, modelId, onStream = nu
         return fullResponse.trim();
     }
 
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || `API error: ${response.status}`);
-    }
+    const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
 
     const data = await response.json();
+    if (data?.error) {
+        throw new Error(data.error?.message || 'Provider returned an error response');
+    }
     return data.choices?.[0]?.message?.content?.trim() || 'No response received';
 };
 
@@ -452,18 +454,12 @@ Rules:
 
     const apiUrl = USE_WORKER ? endpoint : `${endpoint}/chat/completions`;
 
-    const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || `API error: ${response.status}`);
-    }
+    const response = await callOpenRouterWithRetry(apiUrl, headers, requestBody);
 
     const data = await response.json();
+    if (data?.error) {
+        throw new Error(data.error?.message || 'Provider returned an error response');
+    }
     const raw = data.choices?.[0]?.message?.content?.trim() || '';
     if (!raw) {
         throw new Error('No response received from model');
