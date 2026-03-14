@@ -1692,7 +1692,13 @@ const handleAIRewrite = async () => {
     }
 
     const prompt = promptInput.value.trim();
-    if (!prompt) return;
+    if (!prompt) {
+        if (resultsArea) {
+            resultsArea.classList.remove('hidden');
+        }
+        improvedPromptEl.textContent = ui.noPrompt || 'Enter a prompt before generating.';
+        return;
+    }
 
     // Bring the optimized output area into view with a fixed offset so we don't overshoot.
     if (resultsArea) {
@@ -1795,7 +1801,13 @@ const handleExecutePrompt = async () => {
     }
 
     const prompt = promptInput.value.trim();
-    if (!prompt) return;
+    if (!prompt) {
+        if (resultsArea) {
+            resultsArea.classList.remove('hidden');
+        }
+        improvedPromptEl.textContent = 'Enter a prompt before executing it.';
+        return;
+    }
 
     if (resultsArea) {
         resultsArea.classList.remove('hidden');
@@ -1965,6 +1977,32 @@ if (sampleSupportBtn) {
 
 if (sampleProductBtn) {
     sampleProductBtn.addEventListener('click', () => applySamplePrompt(productSamplePrompt));
+}
+
+if (promptInput) {
+    promptInput.addEventListener('input', () => {
+        handleAnalysis();
+    });
+}
+
+if (generateAIBtn) {
+    generateAIBtn.addEventListener('click', handleAIRewrite);
+}
+
+if (executePromptBtn) {
+    executePromptBtn.addEventListener('click', handleExecutePrompt);
+}
+
+if (copyBtn) {
+    copyBtn.addEventListener('click', handleCopyPrompt);
+}
+
+if (exportTxtBtn) {
+    exportTxtBtn.addEventListener('click', () => handleExport('txt'));
+}
+
+if (exportMdBtn) {
+    exportMdBtn.addEventListener('click', () => handleExport('md'));
 }
 
 if (generateExamplesBtn) {
